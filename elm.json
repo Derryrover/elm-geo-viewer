@@ -1,6 +1,7 @@
 {
     "type": "application",
     "source-directories": [
+        "AuthElm",
         "src",
         "src/Utils",
         "src/ElmStyle",

@@ -1,8 +1,8 @@
 module Main exposing (..)
 
 -- core
-import Html exposing (Html, div, text, input)
-import Html.Attributes exposing (style, class,value)
+import Html exposing (Html, div, text, input, img)
+import Html.Attributes exposing (style, class,value, src, alt)
 import Html.Events exposing (onInput)
 import Browser exposing(element)
 
@@ -11,6 +11,9 @@ import ElmStyle
 import SelfMadeMath
 import Time
 import Clock
+
+-- Authentication
+import MapboxAuth
 
 
 type alias Model = 
@@ -49,7 +52,15 @@ view : Model -> Html Msg
 view model = 
   div 
     []
-    [ input 
+    --  <img alt='static Mapbox map of the San Francisco bay area' src='https://api.mapbox.com/styles/v1/mapbox/streets-v10/static/-122.337798,37.810550,9.67,0.00,0.00/1000x600@2x?access_token=pk.eyJ1IjoiZGVycnlyb3ZlciIsImEiOiJjanByMGpnMHIwcms5NDJwMnl3MWlrdGttIn0.VMPuIHsIOkOo7b2YQVSy6Q' >
+
+
+    [ img
+      [ alt "static Mapbox map of the San Francisco bay area"
+      , src "https://api.mapbox.com/styles/v1/mapbox/streets-v10/static/-122.337798,37.810550,9.67,0.00,0.00/1000x600@2x?access_token=pk.eyJ1IjoiZGVycnlyb3ZlciIsImEiOiJjanByMGpnMHIwcms5NDJwMnl3MWlrdGttIn0.VMPuIHsIOkOo7b2YQVSy6Q"  
+      ]
+      []
+    , input 
       [ value (String.fromInt model.hours)
       , onInput (toIntMsg Hour)
       ] 

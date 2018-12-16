@@ -5320,6 +5320,7 @@ var author$project$Main$toIntMsg = F2(
 			return msg(val);
 		}
 	});
+var elm$html$Html$img = _VirtualDom_node('img');
 var elm$html$Html$input = _VirtualDom_node('input');
 var elm$json$Json$Encode$string = _Json_wrap;
 var elm$html$Html$Attributes$stringProperty = F2(
@@ -5329,6 +5330,13 @@ var elm$html$Html$Attributes$stringProperty = F2(
 			key,
 			elm$json$Json$Encode$string(string));
 	});
+var elm$html$Html$Attributes$alt = elm$html$Html$Attributes$stringProperty('alt');
+var elm$html$Html$Attributes$src = function (url) {
+	return A2(
+		elm$html$Html$Attributes$stringProperty,
+		'src',
+		_VirtualDom_noJavaScriptOrHtmlUri(url));
+};
 var elm$html$Html$Attributes$value = elm$html$Html$Attributes$stringProperty('value');
 var elm$html$Html$Events$alwaysStop = function (x) {
 	return _Utils_Tuple2(x, true);
@@ -5370,6 +5378,14 @@ var author$project$Main$view = function (model) {
 		_List_Nil,
 		_List_fromArray(
 			[
+				A2(
+				elm$html$Html$img,
+				_List_fromArray(
+					[
+						elm$html$Html$Attributes$alt('static Mapbox map of the San Francisco bay area'),
+						elm$html$Html$Attributes$src('https://api.mapbox.com/styles/v1/mapbox/streets-v10/static/-122.337798,37.810550,9.67,0.00,0.00/1000x600@2x?access_token=pk.eyJ1IjoiZGVycnlyb3ZlciIsImEiOiJjanByMGpnMHIwcms5NDJwMnl3MWlrdGttIn0.VMPuIHsIOkOo7b2YQVSy6Q')
+					]),
+				_List_Nil),
 				A2(
 				elm$html$Html$input,
 				_List_fromArray(
