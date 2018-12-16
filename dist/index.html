@@ -1,0 +1,45 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Main</title>
+
+  <link rel="stylesheet" type="text/css" href="style/tree.css">
+</head>
+
+<body>
+
+<script src="main.js"></script> 
+<div id="main_elm" style="height:100%;width:100%;"></div>
+<script>
+var node = document.getElementById('main_elm');
+var app = Elm.Main.init({ node : node });
+// Note: if your Elm module is named "MyThing.Root" you
+// would call "Elm.MyThing.Root.init({ node : node });" instead.
+
+// if elm app should be fullscreen this is also possible
+//var app = Elm.RubicsCube.fullscreen();
+
+// example port
+// app.ports.setSelectToDefault.subscribe(function(id) {
+//   // console.log(id);
+//   var element = document.getElementById(id);
+//   // console.log(element);
+//   element.value = "select new item";
+// });
+
+</script>
+
+<style>
+body {
+    height: 100vh;
+    min-height: 100vh;
+    margin: 0px;
+}
+</style>
+
+
+
+
+</body>
+</html>

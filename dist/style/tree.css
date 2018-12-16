@@ -1,0 +1,48 @@
+.clock_border {
+  fill: black;
+}
+
+.clock_background {
+  /* fill: black; */
+  fill: white;
+}
+
+.clock_hours_main {
+  /* fill: lime; */
+  /* fill: green; */
+  /* fill: #2ea73c; */
+  fill: blue;
+}
+.clock_hours_odd {
+  /* fill: white; */
+  fill: blue;
+  /* fill: black; */
+}
+
+.clock_minutes_quarters {
+  /* fill: blue; */
+  /* fill: #8c3eaa; */
+  fill: green;
+}
+.clock_minutes_fivers_odd {
+  /* fill: red; */
+  /* fill: orange; */
+  /* fill: #ff6f06; */
+  fill: green;
+  /* fill: black; */
+}
+.clock_minutes_fivers_even {
+  /* fill: blue; */
+  /* fill: #8c3eaa; */
+  fill: green;
+}
+.clock_minutes_odd {
+  /* fill: white; */
+  /* fill: black; */
+  fill: red;
+}
+.clock_minutes_even {
+  /* fill: blue; */
+  /* fill: #8c3eaa; */
+  fill: green;
+}
