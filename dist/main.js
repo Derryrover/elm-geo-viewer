@@ -4310,9 +4310,12 @@ function _Browser_load(url)
 		}
 	}));
 }
-var author$project$Time$Model = F2(
-	function (hours, minutes) {
-		return {hours: hours, minutes: minutes};
+var author$project$Main$MapMsg = function (a) {
+	return {$: 'MapMsg', a: a};
+};
+var author$project$Map$Model = F2(
+	function (x, y) {
+		return {x: x, y: y};
 	});
 var elm$core$Basics$False = {$: 'False'};
 var elm$core$Basics$True = {$: 'True'};
@@ -4790,10 +4793,30 @@ var elm$json$Json$Decode$errorToStringHelp = F2(
 		}
 	});
 var elm$core$Platform$Cmd$batch = _Platform_batch;
-var author$project$Main$init = function (_n0) {
+var author$project$Map$init = function (_n0) {
 	return _Utils_Tuple2(
-		A2(author$project$Time$Model, 11, 39),
+		A2(author$project$Map$Model, 0, 0),
 		elm$core$Platform$Cmd$batch(_List_Nil));
+};
+var author$project$Time$Model = F2(
+	function (hours, minutes) {
+		return {hours: hours, minutes: minutes};
+	});
+var elm$core$Platform$Cmd$map = _Platform_map;
+var author$project$Main$init = function (_n0) {
+	var _n1 = author$project$Map$init(_Utils_Tuple0);
+	var map = _n1.a;
+	var mapCmd = _n1.b;
+	return _Utils_Tuple2(
+		{
+			map: map,
+			time: A2(author$project$Time$Model, 11, 39)
+		},
+		elm$core$Platform$Cmd$batch(
+			_List_fromArray(
+				[
+					A2(elm$core$Platform$Cmd$map, author$project$Main$MapMsg, mapCmd)
+				])));
 };
 var elm$core$Platform$Sub$batch = _Platform_batch;
 var elm$core$Platform$Sub$none = elm$core$Platform$Sub$batch(_List_Nil);
@@ -4801,22 +4824,54 @@ var author$project$Main$subscriptions = function (model) {
 	return elm$core$Platform$Sub$none;
 };
 var elm$core$Platform$Cmd$none = elm$core$Platform$Cmd$batch(_List_Nil);
+var author$project$Map$update = F2(
+	function (msg, model) {
+		if (msg.$ === 'Click') {
+			var x = msg.a;
+			var y = msg.b;
+			return _Utils_Tuple2(
+				_Utils_update(
+					model,
+					{x: x, y: y}),
+				elm$core$Platform$Cmd$none);
+		} else {
+			return _Utils_Tuple2(model, elm$core$Platform$Cmd$none);
+		}
+	});
 var author$project$Main$update = F2(
 	function (msg, model) {
 		switch (msg.$) {
-			case 'Hour':
-				var hr = msg.a;
+			case 'MapMsg':
+				var mapMsg = msg.a;
+				var _n1 = A2(author$project$Map$update, mapMsg, model.map);
+				var map = _n1.a;
+				var mapMsg2 = _n1.b;
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
-						{hours: hr}),
+						{map: map}),
+					A2(elm$core$Platform$Cmd$map, author$project$Main$MapMsg, mapMsg2));
+			case 'Hour':
+				var hr = msg.a;
+				var time = model.time;
+				var newTime = _Utils_update(
+					time,
+					{hours: hr});
+				return _Utils_Tuple2(
+					_Utils_update(
+						model,
+						{time: newTime}),
 					elm$core$Platform$Cmd$none);
 			case 'Minute':
 				var mn = msg.a;
+				var time = model.time;
+				var newTime = _Utils_update(
+					time,
+					{minutes: mn});
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
-						{minutes: mn}),
+						{time: newTime}),
 					elm$core$Platform$Cmd$none);
 			default:
 				return _Utils_Tuple2(model, elm$core$Platform$Cmd$none);
@@ -5320,8 +5375,32 @@ var author$project$Main$toIntMsg = F2(
 			return msg(val);
 		}
 	});
+var author$project$Map$Click = F2(
+	function (a, b) {
+		return {$: 'Click', a: a, b: b};
+	});
+var author$project$Map$getX = function (event) {
+	var _n0 = event.pointer.offsetPos;
+	var x = _n0.a;
+	var y = _n0.b;
+	return x;
+};
+var author$project$Map$getY = function (event) {
+	var _n0 = event.pointer.offsetPos;
+	var x = _n0.a;
+	var y = _n0.b;
+	return y;
+};
+var author$project$MapboxAuth$key = 'pk.eyJ1IjoiZGVycnlyb3ZlciIsImEiOiJjanByMGxrMzQwdjhkNDNxbjFrMmtocTJwIn0.7Y_iLTVdPaoTdMoClFb-bA';
+var author$project$Map$accesToken = '?access_token=' + author$project$MapboxAuth$key;
+var author$project$Map$boundingBox = '-122.337798,37.810550,9.67,0.00,0.00/1000x600@2x';
+var author$project$Map$mapBoxApiBaseUrl = 'https://api.mapbox.com/styles/v1/mapbox/streets-v10/static/';
+var author$project$Map$mapBoxUrl = _Utils_ap(
+	author$project$Map$mapBoxApiBaseUrl,
+	_Utils_ap(author$project$Map$boundingBox, author$project$Map$accesToken));
 var elm$html$Html$img = _VirtualDom_node('img');
-var elm$html$Html$input = _VirtualDom_node('input');
+var elm$virtual_dom$VirtualDom$text = _VirtualDom_text;
+var elm$html$Html$text = elm$virtual_dom$VirtualDom$text;
 var elm$json$Json$Encode$string = _Json_wrap;
 var elm$html$Html$Attributes$stringProperty = F2(
 	function (key, string) {
@@ -5337,6 +5416,186 @@ var elm$html$Html$Attributes$src = function (url) {
 		'src',
 		_VirtualDom_noJavaScriptOrHtmlUri(url));
 };
+var mpizenberg$elm_pointer_events$Html$Events$Extra$Pointer$defaultOptions = {preventDefault: true, stopPropagation: false};
+var elm$virtual_dom$VirtualDom$Custom = function (a) {
+	return {$: 'Custom', a: a};
+};
+var elm$virtual_dom$VirtualDom$on = _VirtualDom_on;
+var elm$html$Html$Events$custom = F2(
+	function (event, decoder) {
+		return A2(
+			elm$virtual_dom$VirtualDom$on,
+			event,
+			elm$virtual_dom$VirtualDom$Custom(decoder));
+	});
+var elm$json$Json$Decode$bool = _Json_decodeBool;
+var elm$json$Json$Decode$field = _Json_decodeField;
+var elm$json$Json$Decode$int = _Json_decodeInt;
+var elm$json$Json$Decode$map5 = _Json_map5;
+var elm$json$Json$Decode$map6 = _Json_map6;
+var mpizenberg$elm_pointer_events$Html$Events$Extra$Mouse$Event = F6(
+	function (keys, button, clientPos, offsetPos, pagePos, screenPos) {
+		return {button: button, clientPos: clientPos, keys: keys, offsetPos: offsetPos, pagePos: pagePos, screenPos: screenPos};
+	});
+var mpizenberg$elm_pointer_events$Html$Events$Extra$Mouse$BackButton = {$: 'BackButton'};
+var mpizenberg$elm_pointer_events$Html$Events$Extra$Mouse$ErrorButton = {$: 'ErrorButton'};
+var mpizenberg$elm_pointer_events$Html$Events$Extra$Mouse$ForwardButton = {$: 'ForwardButton'};
+var mpizenberg$elm_pointer_events$Html$Events$Extra$Mouse$MainButton = {$: 'MainButton'};
+var mpizenberg$elm_pointer_events$Html$Events$Extra$Mouse$MiddleButton = {$: 'MiddleButton'};
+var mpizenberg$elm_pointer_events$Html$Events$Extra$Mouse$SecondButton = {$: 'SecondButton'};
+var mpizenberg$elm_pointer_events$Html$Events$Extra$Mouse$buttonFromId = function (id) {
+	switch (id) {
+		case 0:
+			return mpizenberg$elm_pointer_events$Html$Events$Extra$Mouse$MainButton;
+		case 1:
+			return mpizenberg$elm_pointer_events$Html$Events$Extra$Mouse$MiddleButton;
+		case 2:
+			return mpizenberg$elm_pointer_events$Html$Events$Extra$Mouse$SecondButton;
+		case 3:
+			return mpizenberg$elm_pointer_events$Html$Events$Extra$Mouse$BackButton;
+		case 4:
+			return mpizenberg$elm_pointer_events$Html$Events$Extra$Mouse$ForwardButton;
+		default:
+			return mpizenberg$elm_pointer_events$Html$Events$Extra$Mouse$ErrorButton;
+	}
+};
+var mpizenberg$elm_pointer_events$Html$Events$Extra$Mouse$buttonDecoder = A2(
+	elm$json$Json$Decode$map,
+	mpizenberg$elm_pointer_events$Html$Events$Extra$Mouse$buttonFromId,
+	A2(elm$json$Json$Decode$field, 'button', elm$json$Json$Decode$int));
+var elm$json$Json$Decode$float = _Json_decodeFloat;
+var mpizenberg$elm_pointer_events$Internal$Decode$clientPos = A3(
+	elm$json$Json$Decode$map2,
+	F2(
+		function (a, b) {
+			return _Utils_Tuple2(a, b);
+		}),
+	A2(elm$json$Json$Decode$field, 'clientX', elm$json$Json$Decode$float),
+	A2(elm$json$Json$Decode$field, 'clientY', elm$json$Json$Decode$float));
+var elm$json$Json$Decode$map3 = _Json_map3;
+var mpizenberg$elm_pointer_events$Internal$Decode$Keys = F3(
+	function (alt, ctrl, shift) {
+		return {alt: alt, ctrl: ctrl, shift: shift};
+	});
+var mpizenberg$elm_pointer_events$Internal$Decode$keys = A4(
+	elm$json$Json$Decode$map3,
+	mpizenberg$elm_pointer_events$Internal$Decode$Keys,
+	A2(elm$json$Json$Decode$field, 'altKey', elm$json$Json$Decode$bool),
+	A2(elm$json$Json$Decode$field, 'ctrlKey', elm$json$Json$Decode$bool),
+	A2(elm$json$Json$Decode$field, 'shiftKey', elm$json$Json$Decode$bool));
+var mpizenberg$elm_pointer_events$Internal$Decode$offsetPos = A3(
+	elm$json$Json$Decode$map2,
+	F2(
+		function (a, b) {
+			return _Utils_Tuple2(a, b);
+		}),
+	A2(elm$json$Json$Decode$field, 'offsetX', elm$json$Json$Decode$float),
+	A2(elm$json$Json$Decode$field, 'offsetY', elm$json$Json$Decode$float));
+var mpizenberg$elm_pointer_events$Internal$Decode$pagePos = A3(
+	elm$json$Json$Decode$map2,
+	F2(
+		function (a, b) {
+			return _Utils_Tuple2(a, b);
+		}),
+	A2(elm$json$Json$Decode$field, 'pageX', elm$json$Json$Decode$float),
+	A2(elm$json$Json$Decode$field, 'pageY', elm$json$Json$Decode$float));
+var mpizenberg$elm_pointer_events$Internal$Decode$screenPos = A3(
+	elm$json$Json$Decode$map2,
+	F2(
+		function (a, b) {
+			return _Utils_Tuple2(a, b);
+		}),
+	A2(elm$json$Json$Decode$field, 'screenX', elm$json$Json$Decode$float),
+	A2(elm$json$Json$Decode$field, 'screenY', elm$json$Json$Decode$float));
+var mpizenberg$elm_pointer_events$Html$Events$Extra$Mouse$eventDecoder = A7(elm$json$Json$Decode$map6, mpizenberg$elm_pointer_events$Html$Events$Extra$Mouse$Event, mpizenberg$elm_pointer_events$Internal$Decode$keys, mpizenberg$elm_pointer_events$Html$Events$Extra$Mouse$buttonDecoder, mpizenberg$elm_pointer_events$Internal$Decode$clientPos, mpizenberg$elm_pointer_events$Internal$Decode$offsetPos, mpizenberg$elm_pointer_events$Internal$Decode$pagePos, mpizenberg$elm_pointer_events$Internal$Decode$screenPos);
+var mpizenberg$elm_pointer_events$Html$Events$Extra$Pointer$Event = F5(
+	function (pointerType, pointer, pointerId, isPrimary, contactDetails) {
+		return {contactDetails: contactDetails, isPrimary: isPrimary, pointer: pointer, pointerId: pointerId, pointerType: pointerType};
+	});
+var mpizenberg$elm_pointer_events$Html$Events$Extra$Pointer$ContactDetails = F5(
+	function (width, height, pressure, tiltX, tiltY) {
+		return {height: height, pressure: pressure, tiltX: tiltX, tiltY: tiltY, width: width};
+	});
+var mpizenberg$elm_pointer_events$Html$Events$Extra$Pointer$contactDetailsDecoder = A6(
+	elm$json$Json$Decode$map5,
+	mpizenberg$elm_pointer_events$Html$Events$Extra$Pointer$ContactDetails,
+	A2(elm$json$Json$Decode$field, 'width', elm$json$Json$Decode$float),
+	A2(elm$json$Json$Decode$field, 'height', elm$json$Json$Decode$float),
+	A2(elm$json$Json$Decode$field, 'pressure', elm$json$Json$Decode$float),
+	A2(elm$json$Json$Decode$field, 'tiltX', elm$json$Json$Decode$float),
+	A2(elm$json$Json$Decode$field, 'tiltY', elm$json$Json$Decode$float));
+var elm$json$Json$Decode$string = _Json_decodeString;
+var mpizenberg$elm_pointer_events$Html$Events$Extra$Pointer$MouseType = {$: 'MouseType'};
+var mpizenberg$elm_pointer_events$Html$Events$Extra$Pointer$PenType = {$: 'PenType'};
+var mpizenberg$elm_pointer_events$Html$Events$Extra$Pointer$TouchType = {$: 'TouchType'};
+var mpizenberg$elm_pointer_events$Html$Events$Extra$Pointer$stringToPointerType = function (str) {
+	switch (str) {
+		case 'pen':
+			return mpizenberg$elm_pointer_events$Html$Events$Extra$Pointer$PenType;
+		case 'touch':
+			return mpizenberg$elm_pointer_events$Html$Events$Extra$Pointer$TouchType;
+		default:
+			return mpizenberg$elm_pointer_events$Html$Events$Extra$Pointer$MouseType;
+	}
+};
+var mpizenberg$elm_pointer_events$Html$Events$Extra$Pointer$pointerTypeDecoder = A2(elm$json$Json$Decode$map, mpizenberg$elm_pointer_events$Html$Events$Extra$Pointer$stringToPointerType, elm$json$Json$Decode$string);
+var mpizenberg$elm_pointer_events$Html$Events$Extra$Pointer$eventDecoder = A6(
+	elm$json$Json$Decode$map5,
+	mpizenberg$elm_pointer_events$Html$Events$Extra$Pointer$Event,
+	A2(elm$json$Json$Decode$field, 'pointerType', mpizenberg$elm_pointer_events$Html$Events$Extra$Pointer$pointerTypeDecoder),
+	mpizenberg$elm_pointer_events$Html$Events$Extra$Mouse$eventDecoder,
+	A2(elm$json$Json$Decode$field, 'pointerId', elm$json$Json$Decode$int),
+	A2(elm$json$Json$Decode$field, 'isPrimary', elm$json$Json$Decode$bool),
+	mpizenberg$elm_pointer_events$Html$Events$Extra$Pointer$contactDetailsDecoder);
+var mpizenberg$elm_pointer_events$Html$Events$Extra$Pointer$onWithOptions = F3(
+	function (event, options, tag) {
+		return A2(
+			elm$html$Html$Events$custom,
+			event,
+			A2(
+				elm$json$Json$Decode$map,
+				function (ev) {
+					return {
+						message: tag(ev),
+						preventDefault: options.preventDefault,
+						stopPropagation: options.stopPropagation
+					};
+				},
+				mpizenberg$elm_pointer_events$Html$Events$Extra$Pointer$eventDecoder));
+	});
+var mpizenberg$elm_pointer_events$Html$Events$Extra$Pointer$onDown = A2(mpizenberg$elm_pointer_events$Html$Events$Extra$Pointer$onWithOptions, 'pointerdown', mpizenberg$elm_pointer_events$Html$Events$Extra$Pointer$defaultOptions);
+var author$project$Map$view = function (model) {
+	return A2(
+		elm$html$Html$div,
+		_List_Nil,
+		_List_fromArray(
+			[
+				elm$html$Html$text('x'),
+				elm$html$Html$text(
+				elm$core$String$fromFloat(model.x)),
+				elm$html$Html$text('y'),
+				elm$html$Html$text(
+				elm$core$String$fromFloat(model.y)),
+				A2(
+				elm$html$Html$img,
+				_List_fromArray(
+					[
+						elm$html$Html$Attributes$alt('static Mapbox map of the San Francisco bay area'),
+						elm$html$Html$Attributes$src(author$project$Map$mapBoxUrl),
+						mpizenberg$elm_pointer_events$Html$Events$Extra$Pointer$onDown(
+						function (event) {
+							return A2(
+								author$project$Map$Click,
+								author$project$Map$getX(event),
+								author$project$Map$getY(event));
+						})
+					]),
+				_List_Nil)
+			]));
+};
+var elm$html$Html$input = _VirtualDom_node('input');
+var elm$virtual_dom$VirtualDom$map = _VirtualDom_map;
+var elm$html$Html$map = elm$virtual_dom$VirtualDom$map;
 var elm$html$Html$Attributes$value = elm$html$Html$Attributes$stringProperty('value');
 var elm$html$Html$Events$alwaysStop = function (x) {
 	return _Utils_Tuple2(x, true);
@@ -5344,7 +5603,6 @@ var elm$html$Html$Events$alwaysStop = function (x) {
 var elm$virtual_dom$VirtualDom$MayStopPropagation = function (a) {
 	return {$: 'MayStopPropagation', a: a};
 };
-var elm$virtual_dom$VirtualDom$on = _VirtualDom_on;
 var elm$html$Html$Events$stopPropagationOn = F2(
 	function (event, decoder) {
 		return A2(
@@ -5352,12 +5610,10 @@ var elm$html$Html$Events$stopPropagationOn = F2(
 			event,
 			elm$virtual_dom$VirtualDom$MayStopPropagation(decoder));
 	});
-var elm$json$Json$Decode$field = _Json_decodeField;
 var elm$json$Json$Decode$at = F2(
 	function (fields, decoder) {
 		return A3(elm$core$List$foldr, elm$json$Json$Decode$field, decoder, fields);
 	});
-var elm$json$Json$Decode$string = _Json_decodeString;
 var elm$html$Html$Events$targetValue = A2(
 	elm$json$Json$Decode$at,
 	_List_fromArray(
@@ -5379,19 +5635,15 @@ var author$project$Main$view = function (model) {
 		_List_fromArray(
 			[
 				A2(
-				elm$html$Html$img,
-				_List_fromArray(
-					[
-						elm$html$Html$Attributes$alt('static Mapbox map of the San Francisco bay area'),
-						elm$html$Html$Attributes$src('https://api.mapbox.com/styles/v1/mapbox/streets-v10/static/-122.337798,37.810550,9.67,0.00,0.00/1000x600@2x?access_token=pk.eyJ1IjoiZGVycnlyb3ZlciIsImEiOiJjanByMGpnMHIwcms5NDJwMnl3MWlrdGttIn0.VMPuIHsIOkOo7b2YQVSy6Q')
-					]),
-				_List_Nil),
+				elm$html$Html$map,
+				author$project$Main$MapMsg,
+				author$project$Map$view(model.map)),
 				A2(
 				elm$html$Html$input,
 				_List_fromArray(
 					[
 						elm$html$Html$Attributes$value(
-						elm$core$String$fromInt(model.hours)),
+						elm$core$String$fromInt(model.time.hours)),
 						elm$html$Html$Events$onInput(
 						author$project$Main$toIntMsg(author$project$Main$Hour))
 					]),
@@ -5401,12 +5653,12 @@ var author$project$Main$view = function (model) {
 				_List_fromArray(
 					[
 						elm$html$Html$Attributes$value(
-						elm$core$String$fromInt(model.minutes)),
+						elm$core$String$fromInt(model.time.minutes)),
 						elm$html$Html$Events$onInput(
 						author$project$Main$toIntMsg(author$project$Main$Minute))
 					]),
 				_List_Nil),
-				author$project$Clock$view(model)
+				author$project$Clock$view(model.time)
 			]));
 };
 var elm$browser$Browser$External = function (a) {
