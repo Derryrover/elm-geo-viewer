@@ -5379,6 +5379,13 @@ var author$project$Map$Click = F2(
 	function (a, b) {
 		return {$: 'Click', a: a, b: b};
 	});
+var author$project$Map$createMapBoxUrl = F3(
+	function (zoomInt, xInt, yInt) {
+		var zoom = elm$core$String$fromInt(zoomInt);
+		var y = elm$core$String$fromInt(yInt);
+		var x = elm$core$String$fromInt(xInt);
+		return 'http://tile.stamen.com/terrain-background/' + (zoom + ('/' + (x + ('/' + (y + '.png')))));
+	});
 var author$project$Map$getX = function (event) {
 	var _n0 = event.pointer.offsetPos;
 	var x = _n0.a;
@@ -5391,13 +5398,6 @@ var author$project$Map$getY = function (event) {
 	var y = _n0.b;
 	return y;
 };
-var author$project$MapboxAuth$key = 'pk.eyJ1IjoiZGVycnlyb3ZlciIsImEiOiJjanByMGxrMzQwdjhkNDNxbjFrMmtocTJwIn0.7Y_iLTVdPaoTdMoClFb-bA';
-var author$project$Map$accesToken = '?access_token=' + author$project$MapboxAuth$key;
-var author$project$Map$boundingBox = '-122.337798,37.810550,9.67,0.00,0.00/1000x600@2x';
-var author$project$Map$mapBoxApiBaseUrl = 'https://api.mapbox.com/styles/v1/mapbox/streets-v10/static/';
-var author$project$Map$mapBoxUrl = _Utils_ap(
-	author$project$Map$mapBoxApiBaseUrl,
-	_Utils_ap(author$project$Map$boundingBox, author$project$Map$accesToken));
 var elm$html$Html$img = _VirtualDom_node('img');
 var elm$virtual_dom$VirtualDom$text = _VirtualDom_text;
 var elm$html$Html$text = elm$virtual_dom$VirtualDom$text;
@@ -5409,7 +5409,6 @@ var elm$html$Html$Attributes$stringProperty = F2(
 			key,
 			elm$json$Json$Encode$string(string));
 	});
-var elm$html$Html$Attributes$alt = elm$html$Html$Attributes$stringProperty('alt');
 var elm$html$Html$Attributes$src = function (url) {
 	return A2(
 		elm$html$Html$Attributes$stringProperty,
@@ -5577,20 +5576,36 @@ var author$project$Map$view = function (model) {
 				elm$html$Html$text(
 				elm$core$String$fromFloat(model.y)),
 				A2(
-				elm$html$Html$img,
-				_List_fromArray(
-					[
-						elm$html$Html$Attributes$alt('static Mapbox map of the San Francisco bay area'),
-						elm$html$Html$Attributes$src(author$project$Map$mapBoxUrl),
-						mpizenberg$elm_pointer_events$Html$Events$Extra$Pointer$onDown(
-						function (event) {
-							return A2(
-								author$project$Map$Click,
-								author$project$Map$getX(event),
-								author$project$Map$getY(event));
-						})
-					]),
-				_List_Nil)
+				elm$html$Html$div,
+				_List_Nil,
+				A2(
+					elm$core$List$map,
+					function (y) {
+						return A2(
+							elm$html$Html$div,
+							_List_Nil,
+							A2(
+								elm$core$List$map,
+								function (x) {
+									return A2(
+										elm$html$Html$img,
+										_List_fromArray(
+											[
+												elm$html$Html$Attributes$src(
+												A3(author$project$Map$createMapBoxUrl, 4, x, y)),
+												mpizenberg$elm_pointer_events$Html$Events$Extra$Pointer$onDown(
+												function (event) {
+													return A2(
+														author$project$Map$Click,
+														author$project$Map$getX(event),
+														author$project$Map$getY(event));
+												})
+											]),
+										_List_Nil);
+								},
+								A2(elm$core$List$range, 1, 5)));
+					},
+					A2(elm$core$List$range, 1, 5)))
 			]));
 };
 var elm$html$Html$input = _VirtualDom_node('input');
