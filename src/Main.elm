@@ -73,17 +73,17 @@ view model =
       -- , src mapBoxUrl
       -- ]
       -- []
-    , input 
-      [ value (String.fromInt model.time.hours)
-      , onInput (toIntMsg Hour)
-      ] 
-      []
-    , input 
-      [ value (String.fromInt model.time.minutes)
-      , onInput (toIntMsg Minute)
-      ] 
-      []
-    , (Clock.view model.time)
+    -- , input 
+    --   [ value (String.fromInt model.time.hours)
+    --   , onInput (toIntMsg Hour)
+    --   ] 
+    --   []
+    -- , input 
+    --   [ value (String.fromInt model.time.minutes)
+    --   , onInput (toIntMsg Minute)
+    --   ] 
+    --   []
+    -- , (Clock.view model.time)
     ]
 
 update : Msg -> Model -> ( Model, Cmd Msg )

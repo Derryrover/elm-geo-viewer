@@ -4877,47 +4877,6 @@ var author$project$Main$update = F2(
 				return _Utils_Tuple2(model, elm$core$Platform$Cmd$none);
 		}
 	});
-var author$project$ClockElements$degreesCircle = 360;
-var author$project$ClockElements$hoursEtmal = 12;
-var author$project$ClockElements$degreesHour = (author$project$ClockElements$degreesCircle / author$project$ClockElements$hoursEtmal) | 0;
-var author$project$SelfMadeMath$Even = {$: 'Even'};
-var author$project$SelfMadeMath$Odd = {$: 'Odd'};
-var elm$core$Basics$modBy = _Basics_modBy;
-var author$project$SelfMadeMath$isEven = function (_int) {
-	return !A2(elm$core$Basics$modBy, 2, _int);
-};
-var author$project$SelfMadeMath$intToOddEven = function (i) {
-	return author$project$SelfMadeMath$isEven(i) ? author$project$SelfMadeMath$Even : author$project$SelfMadeMath$Odd;
-};
-var author$project$ClockElements$hourMapToClockPart = F3(
-	function (begin, end, numberOfKind) {
-		return {
-			end: end * author$project$ClockElements$degreesHour,
-			oddEven: author$project$SelfMadeMath$intToOddEven(numberOfKind),
-			start: begin * author$project$ClockElements$degreesHour
-		};
-	});
-var elm$core$List$drop = F2(
-	function (n, list) {
-		drop:
-		while (true) {
-			if (n <= 0) {
-				return list;
-			} else {
-				if (!list.b) {
-					return list;
-				} else {
-					var x = list.a;
-					var xs = list.b;
-					var $temp$n = n - 1,
-						$temp$list = xs;
-					n = $temp$n;
-					list = $temp$list;
-					continue drop;
-				}
-			}
-		}
-	});
 var elm$core$List$foldrHelper = F4(
 	function (fn, acc, ctr, ls) {
 		if (!ls.b) {
@@ -4973,17 +4932,6 @@ var elm$core$List$foldr = F3(
 	function (fn, acc, ls) {
 		return A4(elm$core$List$foldrHelper, fn, acc, 0, ls);
 	});
-var elm$core$List$filter = F2(
-	function (isGood, list) {
-		return A3(
-			elm$core$List$foldr,
-			F2(
-				function (x, xs) {
-					return isGood(x) ? A2(elm$core$List$cons, x, xs) : xs;
-				}),
-			_List_Nil,
-			list);
-	});
 var elm$core$List$map = F2(
 	function (f, xs) {
 		return A3(
@@ -4998,228 +4946,6 @@ var elm$core$List$map = F2(
 			_List_Nil,
 			xs);
 	});
-var elm$core$List$takeReverse = F3(
-	function (n, list, kept) {
-		takeReverse:
-		while (true) {
-			if (n <= 0) {
-				return kept;
-			} else {
-				if (!list.b) {
-					return kept;
-				} else {
-					var x = list.a;
-					var xs = list.b;
-					var $temp$n = n - 1,
-						$temp$list = xs,
-						$temp$kept = A2(elm$core$List$cons, x, kept);
-					n = $temp$n;
-					list = $temp$list;
-					kept = $temp$kept;
-					continue takeReverse;
-				}
-			}
-		}
-	});
-var elm$core$List$takeTailRec = F2(
-	function (n, list) {
-		return elm$core$List$reverse(
-			A3(elm$core$List$takeReverse, n, list, _List_Nil));
-	});
-var elm$core$List$takeFast = F3(
-	function (ctr, n, list) {
-		if (n <= 0) {
-			return _List_Nil;
-		} else {
-			var _n0 = _Utils_Tuple2(n, list);
-			_n0$1:
-			while (true) {
-				_n0$5:
-				while (true) {
-					if (!_n0.b.b) {
-						return list;
-					} else {
-						if (_n0.b.b.b) {
-							switch (_n0.a) {
-								case 1:
-									break _n0$1;
-								case 2:
-									var _n2 = _n0.b;
-									var x = _n2.a;
-									var _n3 = _n2.b;
-									var y = _n3.a;
-									return _List_fromArray(
-										[x, y]);
-								case 3:
-									if (_n0.b.b.b.b) {
-										var _n4 = _n0.b;
-										var x = _n4.a;
-										var _n5 = _n4.b;
-										var y = _n5.a;
-										var _n6 = _n5.b;
-										var z = _n6.a;
-										return _List_fromArray(
-											[x, y, z]);
-									} else {
-										break _n0$5;
-									}
-								default:
-									if (_n0.b.b.b.b && _n0.b.b.b.b.b) {
-										var _n7 = _n0.b;
-										var x = _n7.a;
-										var _n8 = _n7.b;
-										var y = _n8.a;
-										var _n9 = _n8.b;
-										var z = _n9.a;
-										var _n10 = _n9.b;
-										var w = _n10.a;
-										var tl = _n10.b;
-										return (ctr > 1000) ? A2(
-											elm$core$List$cons,
-											x,
-											A2(
-												elm$core$List$cons,
-												y,
-												A2(
-													elm$core$List$cons,
-													z,
-													A2(
-														elm$core$List$cons,
-														w,
-														A2(elm$core$List$takeTailRec, n - 4, tl))))) : A2(
-											elm$core$List$cons,
-											x,
-											A2(
-												elm$core$List$cons,
-												y,
-												A2(
-													elm$core$List$cons,
-													z,
-													A2(
-														elm$core$List$cons,
-														w,
-														A3(elm$core$List$takeFast, ctr + 1, n - 4, tl)))));
-									} else {
-										break _n0$5;
-									}
-							}
-						} else {
-							if (_n0.a === 1) {
-								break _n0$1;
-							} else {
-								break _n0$5;
-							}
-						}
-					}
-				}
-				return list;
-			}
-			var _n1 = _n0.b;
-			var x = _n1.a;
-			return _List_fromArray(
-				[x]);
-		}
-	});
-var elm$core$List$take = F2(
-	function (n, list) {
-		return A3(elm$core$List$takeFast, 0, n, list);
-	});
-var author$project$ClockElements$hoursToClockParts = function (hour) {
-	var hours = A2(elm$core$List$range, 1, hour);
-	var amountSingles = hour % 3;
-	var amountQuarters = (hour / 3) | 0;
-	var quarterList = A2(elm$core$List$take, 3 * amountQuarters, hours);
-	var quarterList3 = A2(
-		elm$core$List$filter,
-		function (n) {
-			return !(n % 3);
-		},
-		quarterList);
-	var quarterListClockpart = A2(
-		elm$core$List$map,
-		function (n) {
-			return A3(author$project$ClockElements$hourMapToClockPart, n - 3, n, 2);
-		},
-		quarterList3);
-	var singlesList = A2(elm$core$List$drop, 3 * amountQuarters, hours);
-	var singleListClockParts = A2(
-		elm$core$List$map,
-		function (n) {
-			return A3(author$project$ClockElements$hourMapToClockPart, n - 1, n, n - (3 * amountQuarters));
-		},
-		singlesList);
-	return {quarters: quarterListClockpart, singles: singleListClockParts};
-};
-var author$project$ClockElements$minutesHour = 60;
-var author$project$ClockElements$degreesMinute = (author$project$ClockElements$degreesCircle / author$project$ClockElements$minutesHour) | 0;
-var author$project$ClockElements$minutesMapToClockPart = F3(
-	function (begin, end, numberOfKind) {
-		return {
-			end: end * author$project$ClockElements$degreesMinute,
-			oddEven: author$project$SelfMadeMath$intToOddEven(numberOfKind),
-			start: begin * author$project$ClockElements$degreesMinute
-		};
-	});
-var author$project$ClockElements$minutesToClockParts = function (minute) {
-	var minutes = A2(elm$core$List$range, 1, minute);
-	var amountQuarters = (minute / 15) | 0;
-	var quarterList = A2(elm$core$List$take, 15 * amountQuarters, minutes);
-	var quarterList15 = A2(
-		elm$core$List$filter,
-		function (n) {
-			return !(n % 15);
-		},
-		quarterList);
-	var quarterListClockpart = A2(
-		elm$core$List$map,
-		function (n) {
-			return A3(author$project$ClockElements$minutesMapToClockPart, n - 15, n, 2);
-		},
-		quarterList15);
-	var amountMinutes = minute % 5;
-	var amountFivers = ((minute % 15) / 5) | 0;
-	var fiverList = A2(
-		elm$core$List$take,
-		amountFivers * 5,
-		A2(elm$core$List$drop, 15 * amountQuarters, minutes));
-	var fiverList5 = A2(
-		elm$core$List$filter,
-		function (n) {
-			return !(n % 5);
-		},
-		fiverList);
-	var fiverListClockParts = A2(
-		elm$core$List$map,
-		function (n) {
-			return A3(author$project$ClockElements$minutesMapToClockPart, n - 5, n, n - (15 * amountQuarters));
-		},
-		fiverList5);
-	var minutesList = A2(
-		elm$core$List$drop,
-		amountFivers * 5,
-		A2(elm$core$List$drop, 3 * amountQuarters, minutes));
-	var minutesListClockParts = A2(
-		elm$core$List$map,
-		function (n) {
-			return A3(author$project$ClockElements$minutesMapToClockPart, n - 1, n, (n - (15 * amountQuarters)) - (5 * amountFivers));
-		},
-		minutesList);
-	return {fivers: fiverListClockParts, minutes: minutesListClockParts, quarters: quarterListClockpart};
-};
-var author$project$ClockRenderer$clockPartWholeCircle = _List_fromArray(
-	[
-		{end: 90, oddEven: author$project$SelfMadeMath$Odd, start: 0},
-		{end: 180, oddEven: author$project$SelfMadeMath$Odd, start: 90},
-		{end: 270, oddEven: author$project$SelfMadeMath$Odd, start: 180},
-		{end: 360, oddEven: author$project$SelfMadeMath$Odd, start: 270}
-	]);
-var elm$core$Basics$cos = _Basics_cos;
-var elm$core$Basics$pi = _Basics_pi;
-var elm$core$Basics$degrees = function (angleInDegrees) {
-	return (angleInDegrees * elm$core$Basics$pi) / 180;
-};
-var elm$core$Basics$sin = _Basics_sin;
-var elm$core$String$fromFloat = _String_fromNumber;
 var elm$core$Basics$identity = function (x) {
 	return x;
 };
@@ -5238,143 +4964,18 @@ var elm$virtual_dom$VirtualDom$toHandlerInt = function (handler) {
 			return 3;
 	}
 };
-var elm$svg$Svg$trustedNode = _VirtualDom_nodeNS('http://www.w3.org/2000/svg');
-var elm$svg$Svg$g = elm$svg$Svg$trustedNode('g');
-var elm$svg$Svg$path = elm$svg$Svg$trustedNode('path');
-var elm$svg$Svg$Attributes$class = _VirtualDom_attribute('class');
-var elm$svg$Svg$Attributes$d = _VirtualDom_attribute('d');
-var elm$svg$Svg$Attributes$stroke = _VirtualDom_attribute('stroke');
-var author$project$ClockRenderer$renderHour = F4(
-	function (clockPart, radius, evenColor, oddColor) {
-		var radiusString = elm$core$String$fromFloat(radius);
-		var fillColor = function () {
-			var _n1 = clockPart.oddEven;
-			if (_n1.$ === 'Even') {
-				return evenColor;
-			} else {
-				return oddColor;
-			}
-		}();
-		var endY = elm$core$String$fromFloat(
-			radius * elm$core$Basics$sin(
-				elm$core$Basics$degrees(clockPart.end - 90)));
-		var endX = elm$core$String$fromFloat(
-			radius * elm$core$Basics$cos(
-				elm$core$Basics$degrees(clockPart.end - 90)));
-		var classColor = function () {
-			var _n0 = clockPart.oddEven;
-			if (_n0.$ === 'Even') {
-				return evenColor;
-			} else {
-				return oddColor;
-			}
-		}();
-		var beginY = elm$core$String$fromFloat(
-			radius * elm$core$Basics$sin(
-				elm$core$Basics$degrees(clockPart.start - 90)));
-		var beginX = elm$core$String$fromFloat(
-			radius * elm$core$Basics$cos(
-				elm$core$Basics$degrees(clockPart.start - 90)));
-		return A2(
-			elm$svg$Svg$g,
-			_List_fromArray(
-				[
-					elm$svg$Svg$Attributes$stroke('none'),
-					elm$svg$Svg$Attributes$class(classColor)
-				]),
-			_List_fromArray(
-				[
-					A2(
-					elm$svg$Svg$path,
-					_List_fromArray(
-						[
-							elm$svg$Svg$Attributes$d('M 0 0 ' + ('L ' + (beginX + (' ' + (beginY + (' ' + ('A ' + (radiusString + (' ' + (radiusString + (' 0 0 1 ' + (endX + (' ' + (endY + (' ' + ('L ' + (endX + (' ' + (endY + ' ')))))))))))))))))))
-						]),
-					_List_Nil)
-				]));
-	});
-var author$project$ClockRenderer$renderHours = F4(
-	function (clockParts, radius, evenColor, oddColor) {
-		return A2(
-			elm$core$List$map,
-			function (n) {
-				return A4(author$project$ClockRenderer$renderHour, n, radius, evenColor, oddColor);
-			},
-			clockParts);
-	});
-var elm$core$List$append = F2(
-	function (xs, ys) {
-		if (!ys.b) {
-			return xs;
-		} else {
-			return A3(elm$core$List$foldr, elm$core$List$cons, ys, xs);
-		}
-	});
-var elm$core$List$concat = function (lists) {
-	return A3(elm$core$List$foldr, elm$core$List$append, _List_Nil, lists);
-};
-var elm$html$Html$div = _VirtualDom_node('div');
-var elm$svg$Svg$svg = elm$svg$Svg$trustedNode('svg');
-var elm$svg$Svg$Attributes$viewBox = _VirtualDom_attribute('viewBox');
-var elm$svg$Svg$Attributes$width = _VirtualDom_attribute('width');
-var author$project$Clock$view = function (time) {
-	var clockPartMinutes = author$project$ClockElements$minutesToClockParts(time.minutes);
-	var quarterFiverMinutes = elm$core$List$concat(
-		_List_fromArray(
-			[clockPartMinutes.minutes, clockPartMinutes.fivers, clockPartMinutes.quarters]));
-	var clockPartHours = author$project$ClockElements$hoursToClockParts(time.hours);
-	var bothHours = elm$core$List$concat(
-		_List_fromArray(
-			[clockPartHours.quarters, clockPartHours.singles]));
+var elm$virtual_dom$VirtualDom$style = _VirtualDom_style;
+var elm$html$Html$Attributes$style = elm$virtual_dom$VirtualDom$style;
+var author$project$ElmStyle$createStyleList = function (list) {
 	return A2(
-		elm$html$Html$div,
-		_List_Nil,
-		_List_fromArray(
-			[
-				A2(
-				elm$svg$Svg$svg,
-				_List_fromArray(
-					[
-						elm$svg$Svg$Attributes$viewBox('-100 -100 200 200'),
-						elm$svg$Svg$Attributes$width('300px')
-					]),
-				elm$core$List$concat(
-					_List_fromArray(
-						[
-							A4(author$project$ClockRenderer$renderHours, author$project$ClockRenderer$clockPartWholeCircle, 74, 'clock_border', 'clock_border'),
-							A4(author$project$ClockRenderer$renderHours, author$project$ClockRenderer$clockPartWholeCircle, 70, 'clock_background', 'clock_background'),
-							A4(author$project$ClockRenderer$renderHours, clockPartMinutes.minutes, 70, 'clock_minutes_even', 'clock_minutes_odd'),
-							A4(author$project$ClockRenderer$renderHours, clockPartMinutes.fivers, 70, 'clock_minutes_fivers_even', 'clock_minutes_fivers_odd'),
-							A4(author$project$ClockRenderer$renderHours, clockPartMinutes.quarters, 70, 'clock_minutes_quarters', 'clock_minutes_quarters'),
-							A4(author$project$ClockRenderer$renderHours, author$project$ClockRenderer$clockPartWholeCircle, 45, 'clock_background', 'clock_background'),
-							A4(author$project$ClockRenderer$renderHours, author$project$ClockRenderer$clockPartWholeCircle, 40, 'clock_background', 'clock_background'),
-							A4(author$project$ClockRenderer$renderHours, clockPartHours.singles, 40, 'clock_hours_main', 'clock_hours_odd'),
-							A4(author$project$ClockRenderer$renderHours, clockPartHours.quarters, 40, 'clock_hours_main', 'clock_hours_main')
-						])))
-			]));
+		elm$core$List$map,
+		function (_n0) {
+			var key = _n0.a;
+			var value = _n0.b;
+			return A2(elm$html$Html$Attributes$style, key, value);
+		},
+		list);
 };
-var author$project$Main$Hour = function (a) {
-	return {$: 'Hour', a: a};
-};
-var author$project$Main$Minute = function (a) {
-	return {$: 'Minute', a: a};
-};
-var author$project$Main$None = {$: 'None'};
-var elm$core$String$toInt = _String_toInt;
-var author$project$Main$toIntMsg = F2(
-	function (msg, str) {
-		var _n0 = elm$core$String$toInt(str);
-		if (_n0.$ === 'Nothing') {
-			if (str === '') {
-				return msg(0);
-			} else {
-				return author$project$Main$None;
-			}
-		} else {
-			var val = _n0.a;
-			return msg(val);
-		}
-	});
 var author$project$Map$Click = F2(
 	function (a, b) {
 		return {$: 'Click', a: a, b: b};
@@ -5398,9 +4999,26 @@ var author$project$Map$getY = function (event) {
 	var y = _n0.b;
 	return y;
 };
+var author$project$Map$xEnd = 15;
+var author$project$Map$xStart = 0;
+var author$project$Map$xRange = A2(elm$core$List$range, author$project$Map$xStart, author$project$Map$xEnd);
+var author$project$Map$xLength = elm$core$List$length(author$project$Map$xRange);
+var author$project$Map$yEnd = 15;
+var author$project$Map$yStart = 0;
+var author$project$Map$yRange = A2(elm$core$List$range, author$project$Map$yStart, author$project$Map$yEnd);
+var elm$core$List$append = F2(
+	function (xs, ys) {
+		if (!ys.b) {
+			return xs;
+		} else {
+			return A3(elm$core$List$foldr, elm$core$List$cons, ys, xs);
+		}
+	});
+var elm$core$List$concat = function (lists) {
+	return A3(elm$core$List$foldr, elm$core$List$append, _List_Nil, lists);
+};
+var elm$html$Html$div = _VirtualDom_node('div');
 var elm$html$Html$img = _VirtualDom_node('img');
-var elm$virtual_dom$VirtualDom$text = _VirtualDom_text;
-var elm$html$Html$text = elm$virtual_dom$VirtualDom$text;
 var elm$json$Json$Encode$string = _Json_wrap;
 var elm$html$Html$Attributes$stringProperty = F2(
 	function (key, string) {
@@ -5569,12 +5187,6 @@ var author$project$Map$view = function (model) {
 		_List_Nil,
 		_List_fromArray(
 			[
-				elm$html$Html$text('x'),
-				elm$html$Html$text(
-				elm$core$String$fromFloat(model.x)),
-				elm$html$Html$text('y'),
-				elm$html$Html$text(
-				elm$core$String$fromFloat(model.y)),
 				A2(
 				elm$html$Html$div,
 				_List_Nil,
@@ -5583,66 +5195,50 @@ var author$project$Map$view = function (model) {
 					function (y) {
 						return A2(
 							elm$html$Html$div,
-							_List_Nil,
+							author$project$ElmStyle$createStyleList(
+								_List_fromArray(
+									[
+										_Utils_Tuple2('height', '256px'),
+										_Utils_Tuple2(
+										'width',
+										elm$core$String$fromInt(256 * author$project$Map$xLength) + 'px')
+									])),
 							A2(
 								elm$core$List$map,
 								function (x) {
 									return A2(
 										elm$html$Html$img,
-										_List_fromArray(
-											[
-												elm$html$Html$Attributes$src(
-												A3(author$project$Map$createMapBoxUrl, 4, x, y)),
-												mpizenberg$elm_pointer_events$Html$Events$Extra$Pointer$onDown(
-												function (event) {
-													return A2(
-														author$project$Map$Click,
-														author$project$Map$getX(event),
-														author$project$Map$getY(event));
-												})
-											]),
+										elm$core$List$concat(
+											_List_fromArray(
+												[
+													_List_fromArray(
+													[
+														elm$html$Html$Attributes$src(
+														A3(author$project$Map$createMapBoxUrl, 4, x, y)),
+														mpizenberg$elm_pointer_events$Html$Events$Extra$Pointer$onDown(
+														function (event) {
+															return A2(
+																author$project$Map$Click,
+																author$project$Map$getX(event),
+																author$project$Map$getY(event));
+														})
+													]),
+													author$project$ElmStyle$createStyleList(
+													_List_fromArray(
+														[
+															_Utils_Tuple2('height', '256px'),
+															_Utils_Tuple2('width', '256px')
+														]))
+												])),
 										_List_Nil);
 								},
-								A2(elm$core$List$range, 1, 5)));
+								author$project$Map$xRange));
 					},
-					A2(elm$core$List$range, 1, 5)))
+					author$project$Map$yRange))
 			]));
 };
-var elm$html$Html$input = _VirtualDom_node('input');
 var elm$virtual_dom$VirtualDom$map = _VirtualDom_map;
 var elm$html$Html$map = elm$virtual_dom$VirtualDom$map;
-var elm$html$Html$Attributes$value = elm$html$Html$Attributes$stringProperty('value');
-var elm$html$Html$Events$alwaysStop = function (x) {
-	return _Utils_Tuple2(x, true);
-};
-var elm$virtual_dom$VirtualDom$MayStopPropagation = function (a) {
-	return {$: 'MayStopPropagation', a: a};
-};
-var elm$html$Html$Events$stopPropagationOn = F2(
-	function (event, decoder) {
-		return A2(
-			elm$virtual_dom$VirtualDom$on,
-			event,
-			elm$virtual_dom$VirtualDom$MayStopPropagation(decoder));
-	});
-var elm$json$Json$Decode$at = F2(
-	function (fields, decoder) {
-		return A3(elm$core$List$foldr, elm$json$Json$Decode$field, decoder, fields);
-	});
-var elm$html$Html$Events$targetValue = A2(
-	elm$json$Json$Decode$at,
-	_List_fromArray(
-		['target', 'value']),
-	elm$json$Json$Decode$string);
-var elm$html$Html$Events$onInput = function (tagger) {
-	return A2(
-		elm$html$Html$Events$stopPropagationOn,
-		'input',
-		A2(
-			elm$json$Json$Decode$map,
-			elm$html$Html$Events$alwaysStop,
-			A2(elm$json$Json$Decode$map, tagger, elm$html$Html$Events$targetValue)));
-};
 var author$project$Main$view = function (model) {
 	return A2(
 		elm$html$Html$div,
@@ -5652,28 +5248,7 @@ var author$project$Main$view = function (model) {
 				A2(
 				elm$html$Html$map,
 				author$project$Main$MapMsg,
-				author$project$Map$view(model.map)),
-				A2(
-				elm$html$Html$input,
-				_List_fromArray(
-					[
-						elm$html$Html$Attributes$value(
-						elm$core$String$fromInt(model.time.hours)),
-						elm$html$Html$Events$onInput(
-						author$project$Main$toIntMsg(author$project$Main$Hour))
-					]),
-				_List_Nil),
-				A2(
-				elm$html$Html$input,
-				_List_fromArray(
-					[
-						elm$html$Html$Attributes$value(
-						elm$core$String$fromInt(model.time.minutes)),
-						elm$html$Html$Events$onInput(
-						author$project$Main$toIntMsg(author$project$Main$Minute))
-					]),
-				_List_Nil),
-				author$project$Clock$view(model.time)
+				author$project$Map$view(model.map))
 			]));
 };
 var elm$browser$Browser$External = function (a) {
@@ -5795,6 +5370,7 @@ var elm$core$String$left = F2(
 		return (n < 1) ? '' : A3(elm$core$String$slice, 0, n, string);
 	});
 var elm$core$String$contains = _String_contains;
+var elm$core$String$toInt = _String_toInt;
 var elm$url$Url$Url = F6(
 	function (protocol, host, port_, path, query, fragment) {
 		return {fragment: fragment, host: host, path: path, port_: port_, protocol: protocol, query: query};

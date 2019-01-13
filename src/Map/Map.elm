@@ -65,36 +65,53 @@ getY event =
   let (x,y) = event.pointer.offsetPos
   in y
 
+xStart = 0
+xEnd = 15
+xRange = List.range xStart xEnd
+xLength = List.length xRange
+
+yStart = 0
+yEnd = 15
+yRange = List.range yStart yEnd
+yLength = List.length yRange
+
+
 view : Model -> Html Msg
 view model = 
   div 
     []
     [ 
-      text "x"
-    , text (String.fromFloat model.x )
-    , text "y"
-    , text (String.fromFloat model.y )
-    , div
+    --   text "x"
+    -- , text (String.fromFloat model.x )
+    -- , text "y"
+    -- , text (String.fromFloat model.y )
+    -- , 
+    div
       []
       (
         List.map
         (
           \y ->
           div
-            []
+            ( ElmStyle.createStyleList [("height", "256px"), ("width", (String.fromInt (256*xLength))++"px")] )
             (List.map 
               (
                 \x ->
                 img
-                [ src (createMapBoxUrl 4 x y)
-                , Pointer.onDown (\event -> Click (getX event) (getY event))
-                ]
+                (
+                  List.concat [
+                  [ src (createMapBoxUrl 4 x y)
+                  , Pointer.onDown (\event -> Click (getX event) (getY event))
+                  ]
+                  , ( ElmStyle.createStyleList [("height", "256px"), ("width", "256px")] )
+                  ]
+                )
                 []
               ) 
-              (List.range 1 5)
+              xRange
             )
         )
-        (List.range 1 5)
+        yRange
       )
       -- [ div
       --   []
