@@ -11,10 +11,36 @@ import Html.Events.Extra.Pointer as Pointer
 
 -- self made modules
 import ElmStyle
+import SizeXYLongLat exposing(getTileRange)
 import List
 
 -- Authentication
 import MapboxAuth
+
+map1 =
+  { width = 1000
+  , height = 1000
+  , longLeft = degrees 3.97705 -- Netherlands
+  , longRight = degrees 9.98657 -- Hamburg
+  , latTop = degrees 53.10722 -- Netherlands
+  , latBottom = degrees 51.27566 -- antwerpen
+  }
+
+range0 = getTileRange map1
+range1 = Debug.log "range" range0
+-- mapplog = Debug.log "map1" map1
+
+-- map2 =
+--   { width = 1000
+--   , height = 1000
+--   , longLeft = degrees 3.97705 -- Netherlands
+--   , longRight = degrees 9.98657 -- Hamburg
+--   , latTop = degrees 53.10722 -- Netherlands
+--   , latBottom = degrees 51.27566 -- antwerpen
+--   }
+-- mapplog2 = Debug.log "map2" map2
+-- mapplog3 = mapplog2
+
 
 type alias Model = 
   { x: Float,
@@ -100,7 +126,7 @@ view model =
                 img
                 (
                   List.concat [
-                  [ src (createMapBoxUrl 4 x y)
+                  [ src (createMapBoxUrl (Basics.round range1.zoomLevel) x y)
                   , Pointer.onDown (\event -> Click (getX event) (getY event))
                   ]
                   , ( ElmStyle.createStyleList [("height", "256px"), ("width", "256px")] )
@@ -108,11 +134,15 @@ view model =
                 )
                 []
               ) 
-              xRange
+              -- xRange
+              range1.x
             )
         )
-        yRange
+        -- yRange
+        range1.y
       )
+      -- , div [] [text (String.fromFloat mapplog2.width)]
+    -- div [] [ text (Basics.toString range1)]
       -- [ div
       --   []
       --   (List.map 

@@ -14,6 +14,8 @@ map1 =
 
 newMap1 = getAdaptedMapWidthHeight map1
 
+zoomLevelMap1 = getZoomLevel map1 0
+
 map2 =
   { width = 1000
   , height = 1000
@@ -25,3 +27,6 @@ map2 =
 
 
 newMap2 = getAdaptedMapWidthHeight map2
+
+zoomLevelMap2 = getZoomLevel map2 0
+
