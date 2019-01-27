@@ -98,7 +98,7 @@ getTileRange mapDimensions =
     { x = List.range xTileLeft xTileRight
     , y = List.range yTileTop yTileBottom
     , zoomLevel = zoomLevel
-    , panFromLeft = modBy (Basics.round xLeft) 256
-    , panFromTop = modBy (Basics.round yTop) 256
+    , panFromLeft = modBy 256 (Basics.round xLeft) 
+    , panFromTop = modBy 256 (Basics.round yTop) 
     }
   

@@ -5,22 +5,31 @@ ln x = Basics.logBase Basics.e x
 
 
 -- all below coordinates in radians
-longToX long zoom = 
-  (256/(2*pi)) * 2^zoom * (long + pi)
+longToX long zoomInt = 
+  let zoom = toFloat zoomInt
+  in (256/(2*pi)) * 2^zoom * (long + pi)
 
-xToLong x zoom =
+xToLong xInt zoomInt =
+  let
+    x = toFloat xInt
+    zoom = toFloat zoomInt
+  in
+  
   (x / ((256/(2*pi)) * 2^zoom) ) - pi
 
 
-latToY lat zoom = 
-  (256/(2*pi)) * 2^zoom * (pi- (ln(abs(tan(pi/4 + lat/2)))))
+latToY lat zoomInt = 
+  let zoom = toFloat zoomInt
+  in (256/(2*pi)) * 2^zoom * (pi- (ln(abs(tan(pi/4 + lat/2)))))
 
 -- how do I inverse a absolute or is that even possible..
 -- the function yToLat seems to work if identity function is used so maybe it is okey
 inverseAbs x = x
 
-yToLat y zoom = 
+yToLat yInt zoomInt = 
   let 
+    y = toFloat yInt
+    zoom = toFloat zoomInt
     temp = y / ((256/(2*pi)) * 2^zoom)
     temp2 = pi - temp
     temp3 = e^temp2

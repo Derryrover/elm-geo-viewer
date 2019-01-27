@@ -17,13 +17,31 @@ import List
 -- Authentication
 import MapboxAuth
 
+-- map1 =
+--   { width = 1000
+--   , height = 1000
+--   , longLeft = degrees 3.97705 -- Netherlands
+--   , longRight = degrees 9.98657 -- Hamburg
+--   , latTop = degrees 53.10722 -- Netherlands
+--   , latBottom = degrees 51.27566 -- antwerpen
+--   }
+
+-- map1 =
+--   { width = 1000
+--   , height = 1000
+--   , longLeft = degrees 4.838178 
+--   , longRight = degrees 5.705716 
+--   , latTop = degrees 53.177070 -- Netherlands Texel
+--   , latBottom = degrees 50.740627 -- Aachen
+--   }
+
 map1 =
   { width = 1000
   , height = 1000
-  , longLeft = degrees 3.97705 -- Netherlands
-  , longRight = degrees 9.98657 -- Hamburg
-  , latTop = degrees 53.10722 -- Netherlands
-  , latBottom = degrees 51.27566 -- antwerpen
+  , longLeft = degrees 3.454511 
+  , longRight = degrees 7.254106 
+  , latTop = degrees 52.379623 -- Netherlands Texel
+  , latBottom = degrees 51.379623 -- Aachen
   }
 
 range0 = getTileRange map1
@@ -113,34 +131,54 @@ view model =
     -- , text (String.fromFloat model.y )
     -- , 
     div
-      []
-      (
-        List.map
-        (
-          \y ->
-          div
-            ( ElmStyle.createStyleList [("height", "256px"), ("width", (String.fromInt (256*xLength))++"px")] )
-            (List.map 
-              (
-                \x ->
-                img
-                (
-                  List.concat [
-                  [ src (createMapBoxUrl (Basics.round range1.zoomLevel) x y)
-                  , Pointer.onDown (\event -> Click (getX event) (getY event))
-                  ]
-                  , ( ElmStyle.createStyleList [("height", "256px"), ("width", "256px")] )
-                  ]
-                )
-                []
-              ) 
-              -- xRange
-              range1.x
-            )
-        )
-        -- yRange
-        range1.y
+      ( 
+        ElmStyle.createStyleList 
+          [ ("height", (String.fromInt map1.height)++"px")
+          , ("width", (String.fromInt map1.width)++"px")
+          , ("overflow", "hidden")
+          , ("position", "relative")
+          ] 
       )
+      [
+        div 
+          ( 
+            ElmStyle.createStyleList 
+              [ ("position", "absolute")
+              , ("top", (String.fromInt -range1.panFromTop)++"px")
+              , ("left", (String.fromInt -range1.panFromLeft)++"px")
+              , ("overflow", "hidden")
+              ] 
+          )
+        
+          (
+          List.map
+          (
+            \y ->
+            div
+              ( ElmStyle.createStyleList [("height", "256px"), ("width", (String.fromInt (256*xLength))++"px")] )
+              (List.map 
+                (
+                  \x ->
+                  img
+                  (
+                    List.concat [
+                    [ src (createMapBoxUrl (Basics.round range1.zoomLevel) x y)
+                    , Pointer.onDown (\event -> Click (getX event) (getY event))
+                    ]
+                    , ( ElmStyle.createStyleList [("height", "256px"), ("width", "256px")] )
+                    ]
+                  )
+                  []
+                ) 
+                -- xRange
+                range1.x
+              )
+          )
+          -- yRange
+          range1.y
+        )
+        
+      ]
       -- , div [] [text (String.fromFloat mapplog2.width)]
     -- div [] [ text (Basics.toString range1)]
       -- [ div

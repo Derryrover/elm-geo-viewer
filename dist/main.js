@@ -5005,10 +5005,10 @@ var elm$core$Basics$degrees = function (angleInDegrees) {
 };
 var author$project$Map$map1 = {
 	height: 1000,
-	latBottom: elm$core$Basics$degrees(51.27566),
-	latTop: elm$core$Basics$degrees(53.10722),
-	longLeft: elm$core$Basics$degrees(3.97705),
-	longRight: elm$core$Basics$degrees(9.98657),
+	latBottom: elm$core$Basics$degrees(51.379623),
+	latTop: elm$core$Basics$degrees(52.379623),
+	longLeft: elm$core$Basics$degrees(3.454511),
+	longRight: elm$core$Basics$degrees(7.254106),
 	width: 1000
 };
 var elm$core$Basics$e = _Basics_e;
@@ -5139,12 +5139,12 @@ var author$project$SizeXYLongLat$getTileRange = function (mapDimensions) {
 	return {
 		panFromLeft: A2(
 			elm$core$Basics$modBy,
-			elm$core$Basics$round(xLeft),
-			256),
+			256,
+			elm$core$Basics$round(xLeft)),
 		panFromTop: A2(
 			elm$core$Basics$modBy,
-			elm$core$Basics$round(yTop),
-			256),
+			256,
+			elm$core$Basics$round(yTop)),
 		x: A2(elm$core$List$range, xTileLeft, xTileRight),
 		y: A2(elm$core$List$range, yTileTop, yTileBottom),
 		zoomLevel: zoomLevel
@@ -5339,56 +5339,84 @@ var author$project$Map$view = function (model) {
 			[
 				A2(
 				elm$html$Html$div,
-				_List_Nil,
-				A2(
-					elm$core$List$map,
-					function (y) {
-						return A2(
-							elm$html$Html$div,
-							author$project$ElmStyle$createStyleList(
-								_List_fromArray(
-									[
-										_Utils_Tuple2('height', '256px'),
-										_Utils_Tuple2(
-										'width',
-										elm$core$String$fromInt(256 * author$project$Map$xLength) + 'px')
-									])),
-							A2(
-								elm$core$List$map,
-								function (x) {
-									return A2(
-										elm$html$Html$img,
-										elm$core$List$concat(
-											_List_fromArray(
-												[
-													_List_fromArray(
-													[
-														elm$html$Html$Attributes$src(
-														A3(
-															author$project$Map$createMapBoxUrl,
-															elm$core$Basics$round(author$project$Map$range1.zoomLevel),
-															x,
-															y)),
-														mpizenberg$elm_pointer_events$Html$Events$Extra$Pointer$onDown(
-														function (event) {
-															return A2(
-																author$project$Map$Click,
-																author$project$Map$getX(event),
-																author$project$Map$getY(event));
-														})
-													]),
-													author$project$ElmStyle$createStyleList(
+				author$project$ElmStyle$createStyleList(
+					_List_fromArray(
+						[
+							_Utils_Tuple2(
+							'height',
+							elm$core$String$fromInt(author$project$Map$map1.height) + 'px'),
+							_Utils_Tuple2(
+							'width',
+							elm$core$String$fromInt(author$project$Map$map1.width) + 'px'),
+							_Utils_Tuple2('overflow', 'hidden'),
+							_Utils_Tuple2('position', 'relative')
+						])),
+				_List_fromArray(
+					[
+						A2(
+						elm$html$Html$div,
+						author$project$ElmStyle$createStyleList(
+							_List_fromArray(
+								[
+									_Utils_Tuple2('position', 'absolute'),
+									_Utils_Tuple2(
+									'top',
+									elm$core$String$fromInt(-author$project$Map$range1.panFromTop) + 'px'),
+									_Utils_Tuple2(
+									'left',
+									elm$core$String$fromInt(-author$project$Map$range1.panFromLeft) + 'px'),
+									_Utils_Tuple2('overflow', 'hidden')
+								])),
+						A2(
+							elm$core$List$map,
+							function (y) {
+								return A2(
+									elm$html$Html$div,
+									author$project$ElmStyle$createStyleList(
+										_List_fromArray(
+											[
+												_Utils_Tuple2('height', '256px'),
+												_Utils_Tuple2(
+												'width',
+												elm$core$String$fromInt(256 * author$project$Map$xLength) + 'px')
+											])),
+									A2(
+										elm$core$List$map,
+										function (x) {
+											return A2(
+												elm$html$Html$img,
+												elm$core$List$concat(
 													_List_fromArray(
 														[
-															_Utils_Tuple2('height', '256px'),
-															_Utils_Tuple2('width', '256px')
-														]))
-												])),
-										_List_Nil);
-								},
-								author$project$Map$range1.x));
-					},
-					author$project$Map$range1.y))
+															_List_fromArray(
+															[
+																elm$html$Html$Attributes$src(
+																A3(
+																	author$project$Map$createMapBoxUrl,
+																	elm$core$Basics$round(author$project$Map$range1.zoomLevel),
+																	x,
+																	y)),
+																mpizenberg$elm_pointer_events$Html$Events$Extra$Pointer$onDown(
+																function (event) {
+																	return A2(
+																		author$project$Map$Click,
+																		author$project$Map$getX(event),
+																		author$project$Map$getY(event));
+																})
+															]),
+															author$project$ElmStyle$createStyleList(
+															_List_fromArray(
+																[
+																	_Utils_Tuple2('height', '256px'),
+																	_Utils_Tuple2('width', '256px')
+																]))
+														])),
+												_List_Nil);
+										},
+										author$project$Map$range1.x));
+							},
+							author$project$Map$range1.y))
+					]))
 			]));
 };
 var elm$virtual_dom$VirtualDom$map = _VirtualDom_map;
