@@ -4999,18 +4999,13 @@ var author$project$Map$getY = function (event) {
 	var y = _n0.b;
 	return y;
 };
-var elm$core$Basics$pi = _Basics_pi;
-var elm$core$Basics$degrees = function (angleInDegrees) {
-	return (angleInDegrees * elm$core$Basics$pi) / 180;
-};
-var author$project$Map$map1 = {
-	height: 1000,
-	latBottom: elm$core$Basics$degrees(51.379623),
-	latTop: elm$core$Basics$degrees(52.379623),
-	longLeft: elm$core$Basics$degrees(3.454511),
-	longRight: elm$core$Basics$degrees(7.254106),
-	width: 1000
-};
+var author$project$Map$xEnd = 3;
+var author$project$Map$xStart = 0;
+var author$project$Map$xRange = A2(elm$core$List$range, author$project$Map$xStart, author$project$Map$xEnd);
+var author$project$Map$xLength = elm$core$List$length(author$project$Map$xRange);
+var author$project$Map$yEnd = 3;
+var author$project$Map$yStart = 0;
+var author$project$Map$yRange = A2(elm$core$List$range, author$project$Map$yStart, author$project$Map$yEnd);
 var elm$core$Basics$e = _Basics_e;
 var author$project$ProjectionWebMercator$ln = function (x) {
 	return A2(elm$core$Basics$logBase, elm$core$Basics$e, x);
@@ -5021,20 +5016,25 @@ var elm$core$Basics$negate = function (n) {
 var elm$core$Basics$abs = function (n) {
 	return (n < 0) ? (-n) : n;
 };
+var elm$core$Basics$pi = _Basics_pi;
 var elm$core$Basics$pow = _Basics_pow;
 var elm$core$Basics$tan = _Basics_tan;
 var author$project$ProjectionWebMercator$latToY = F2(
-	function (lat, zoom) {
+	function (lat, zoomInt) {
+		var zoom = zoomInt;
 		return ((256 / (2 * elm$core$Basics$pi)) * A2(elm$core$Basics$pow, 2, zoom)) * (elm$core$Basics$pi - author$project$ProjectionWebMercator$ln(
 			elm$core$Basics$abs(
 				elm$core$Basics$tan((elm$core$Basics$pi / 4) + (lat / 2)))));
 	});
 var author$project$ProjectionWebMercator$longToX = F2(
-	function (_long, zoom) {
+	function (_long, zoomInt) {
+		var zoom = zoomInt;
 		return ((256 / (2 * elm$core$Basics$pi)) * A2(elm$core$Basics$pow, 2, zoom)) * (_long + elm$core$Basics$pi);
 	});
 var author$project$ProjectionWebMercator$xToLong = F2(
-	function (x, zoom) {
+	function (xInt, zoomInt) {
+		var zoom = zoomInt;
+		var x = xInt;
 		return (x / ((256 / (2 * elm$core$Basics$pi)) * A2(elm$core$Basics$pow, 2, zoom))) - elm$core$Basics$pi;
 	});
 var author$project$ProjectionWebMercator$inverseAbs = function (x) {
@@ -5042,7 +5042,9 @@ var author$project$ProjectionWebMercator$inverseAbs = function (x) {
 };
 var elm$core$Basics$atan = _Basics_atan;
 var author$project$ProjectionWebMercator$yToLat = F2(
-	function (y, zoom) {
+	function (yInt, zoomInt) {
+		var zoom = zoomInt;
+		var y = yInt;
 		var temp = y / ((256 / (2 * elm$core$Basics$pi)) * A2(elm$core$Basics$pow, 2, zoom));
 		var temp2 = elm$core$Basics$pi - temp;
 		var temp3 = A2(elm$core$Basics$pow, elm$core$Basics$e, temp2);
@@ -5052,110 +5054,7 @@ var author$project$ProjectionWebMercator$yToLat = F2(
 		var temp7 = temp6 * 2;
 		return temp7;
 	});
-var elm$core$Debug$log = _Debug_log;
-var author$project$SizeXYLongLat$getAdaptedMapDimensions = function (mapDimensions) {
-	var yTop = A2(author$project$ProjectionWebMercator$latToY, mapDimensions.latTop, 0);
-	var yBottom = A2(author$project$ProjectionWebMercator$latToY, mapDimensions.latBottom, 0);
-	var xRight = A2(author$project$ProjectionWebMercator$longToX, mapDimensions.longRight, 0);
-	var xrightlog = A2(elm$core$Debug$log, 'xRight', xRight);
-	var xLeft = A2(author$project$ProjectionWebMercator$longToX, mapDimensions.longLeft, 0);
-	var xleftlog = A2(elm$core$Debug$log, 'xLeft', xLeft);
-	var relativeWidthHeight = mapDimensions.height / mapDimensions.width;
-	var deltaY = elm$core$Basics$abs(yTop - yBottom);
-	var deltaYlog = A2(elm$core$Debug$log, 'deltaY', deltaY);
-	var deltaX = elm$core$Basics$abs(xRight - xLeft);
-	var deltaXlog = A2(elm$core$Debug$log, 'deltaX', deltaX);
-	var relativeLongLat = deltaY / deltaX;
-	var newMapDimension = function () {
-		if (_Utils_cmp(relativeLongLat, relativeWidthHeight) < 0) {
-			var width = deltaY / relativeWidthHeight;
-			var logWidth = A2(elm$core$Debug$log, 'width', width);
-			var halfWidthDelta = (width - deltaX) / 2;
-			var xLeftNew = xLeft - halfWidthDelta;
-			var logxLeftNew = A2(elm$core$Debug$log, 'xLeftNew', xLeftNew);
-			var xRightNew = xRight + halfWidthDelta;
-			return _Utils_update(
-				mapDimensions,
-				{
-					longLeft: A2(author$project$ProjectionWebMercator$xToLong, xLeftNew, 0),
-					longRight: A2(author$project$ProjectionWebMercator$xToLong, xRightNew, 0)
-				});
-		} else {
-			var height = mapDimensions.width * relativeLongLat;
-			var halfheightDelta = (mapDimensions.height - height) / 2;
-			var yBottomNew = yBottom + halfheightDelta;
-			var yTopNew = yTop - halfheightDelta;
-			return _Utils_update(
-				mapDimensions,
-				{
-					latBottom: A2(author$project$ProjectionWebMercator$yToLat, yBottomNew, 0),
-					latTop: A2(author$project$ProjectionWebMercator$yToLat, yTopNew, 0)
-				});
-		}
-	}();
-	return newMapDimension;
-};
-var author$project$SizeXYLongLat$maxZoomLevel = 16;
-var author$project$SizeXYLongLat$getZoomLevel = F2(
-	function (mapDimensions, testZoom) {
-		getZoomLevel:
-		while (true) {
-			var yTop = A2(author$project$ProjectionWebMercator$latToY, mapDimensions.latTop, testZoom);
-			var yBottom = A2(author$project$ProjectionWebMercator$latToY, mapDimensions.latBottom, testZoom);
-			var xRight = A2(author$project$ProjectionWebMercator$longToX, mapDimensions.longRight, testZoom);
-			var xLeft = A2(author$project$ProjectionWebMercator$longToX, mapDimensions.longLeft, testZoom);
-			var deltaY = elm$core$Basics$abs(yTop - yBottom);
-			var deltaX = elm$core$Basics$abs(xRight - xLeft);
-			if ((_Utils_cmp(deltaX, mapDimensions.width) > 0) && (_Utils_cmp(deltaY, mapDimensions.height) > 0)) {
-				return (!testZoom) ? 0 : (testZoom - 1);
-			} else {
-				if (_Utils_eq(testZoom, author$project$SizeXYLongLat$maxZoomLevel)) {
-					return author$project$SizeXYLongLat$maxZoomLevel;
-				} else {
-					var $temp$mapDimensions = mapDimensions,
-						$temp$testZoom = testZoom + 1;
-					mapDimensions = $temp$mapDimensions;
-					testZoom = $temp$testZoom;
-					continue getZoomLevel;
-				}
-			}
-		}
-	});
-var elm$core$Basics$modBy = _Basics_modBy;
 var elm$core$Basics$round = _Basics_round;
-var author$project$SizeXYLongLat$getTileRange = function (mapDimensions) {
-	var log9 = A2(elm$core$Debug$log, 'initialMapDimensions', mapDimensions);
-	var adaptedMapDimensions = author$project$SizeXYLongLat$getAdaptedMapDimensions(mapDimensions);
-	var log10 = A2(elm$core$Debug$log, 'adaptedMapDimensions', adaptedMapDimensions);
-	var zoomLevel = A2(author$project$SizeXYLongLat$getZoomLevel, adaptedMapDimensions, 0);
-	var xLeft = A2(author$project$ProjectionWebMercator$longToX, adaptedMapDimensions.longLeft, zoomLevel);
-	var xTileLeft = elm$core$Basics$floor(xLeft / 256);
-	var xRight = A2(author$project$ProjectionWebMercator$longToX, adaptedMapDimensions.longRight, zoomLevel);
-	var xTileRight = elm$core$Basics$ceiling(xRight / 256);
-	var yBottom = A2(author$project$ProjectionWebMercator$latToY, adaptedMapDimensions.latBottom, zoomLevel);
-	var yTileBottom = elm$core$Basics$ceiling(yBottom / 256);
-	var yTop = A2(author$project$ProjectionWebMercator$latToY, adaptedMapDimensions.latTop, zoomLevel);
-	var yTileTop = elm$core$Basics$floor(yTop / 256);
-	return {
-		panFromLeft: A2(
-			elm$core$Basics$modBy,
-			256,
-			elm$core$Basics$round(xLeft)),
-		panFromTop: A2(
-			elm$core$Basics$modBy,
-			256,
-			elm$core$Basics$round(yTop)),
-		x: A2(elm$core$List$range, xTileLeft, xTileRight),
-		y: A2(elm$core$List$range, yTileTop, yTileBottom),
-		zoomLevel: zoomLevel
-	};
-};
-var author$project$Map$range0 = author$project$SizeXYLongLat$getTileRange(author$project$Map$map1);
-var author$project$Map$range1 = A2(elm$core$Debug$log, 'range', author$project$Map$range0);
-var author$project$Map$xEnd = 15;
-var author$project$Map$xStart = 0;
-var author$project$Map$xRange = A2(elm$core$List$range, author$project$Map$xStart, author$project$Map$xEnd);
-var author$project$Map$xLength = elm$core$List$length(author$project$Map$xRange);
 var elm$core$List$append = F2(
 	function (xs, ys) {
 		if (!ys.b) {
@@ -5167,8 +5066,11 @@ var elm$core$List$append = F2(
 var elm$core$List$concat = function (lists) {
 	return A3(elm$core$List$foldr, elm$core$List$append, _List_Nil, lists);
 };
+var elm$core$String$fromFloat = _String_fromNumber;
 var elm$html$Html$div = _VirtualDom_node('div');
 var elm$html$Html$img = _VirtualDom_node('img');
+var elm$virtual_dom$VirtualDom$text = _VirtualDom_text;
+var elm$html$Html$text = elm$virtual_dom$VirtualDom$text;
 var elm$json$Json$Encode$string = _Json_wrap;
 var elm$html$Html$Attributes$stringProperty = F2(
 	function (key, string) {
@@ -5332,6 +5234,16 @@ var mpizenberg$elm_pointer_events$Html$Events$Extra$Pointer$onWithOptions = F3(
 	});
 var mpizenberg$elm_pointer_events$Html$Events$Extra$Pointer$onDown = A2(mpizenberg$elm_pointer_events$Html$Events$Extra$Pointer$onWithOptions, 'pointerdown', mpizenberg$elm_pointer_events$Html$Events$Extra$Pointer$defaultOptions);
 var author$project$Map$view = function (model) {
+	var _long = A2(
+		author$project$ProjectionWebMercator$xToLong,
+		elm$core$Basics$round(model.x),
+		2);
+	var xCalc = A2(author$project$ProjectionWebMercator$longToX, _long, 2);
+	var lat = A2(
+		author$project$ProjectionWebMercator$yToLat,
+		elm$core$Basics$round(model.y),
+		2);
+	var yCalc = A2(author$project$ProjectionWebMercator$latToY, lat, 2);
 	return A2(
 		elm$html$Html$div,
 		_List_Nil,
@@ -5339,34 +5251,75 @@ var author$project$Map$view = function (model) {
 			[
 				A2(
 				elm$html$Html$div,
-				author$project$ElmStyle$createStyleList(
-					_List_fromArray(
-						[
-							_Utils_Tuple2(
-							'height',
-							elm$core$String$fromInt(author$project$Map$map1.height) + 'px'),
-							_Utils_Tuple2(
-							'width',
-							elm$core$String$fromInt(author$project$Map$map1.width) + 'px'),
-							_Utils_Tuple2('overflow', 'hidden'),
-							_Utils_Tuple2('position', 'relative')
-						])),
+				_List_Nil,
+				_List_fromArray(
+					[
+						elm$html$Html$text('x: '),
+						elm$html$Html$text(
+						elm$core$String$fromFloat(model.x))
+					])),
+				A2(
+				elm$html$Html$div,
+				_List_Nil,
+				_List_fromArray(
+					[
+						elm$html$Html$text('y: '),
+						elm$html$Html$text(
+						elm$core$String$fromFloat(model.y))
+					])),
+				A2(
+				elm$html$Html$div,
+				_List_Nil,
+				_List_fromArray(
+					[
+						elm$html$Html$text('long: '),
+						elm$html$Html$text(
+						elm$core$String$fromFloat((_long / elm$core$Basics$pi) * 180))
+					])),
+				A2(
+				elm$html$Html$div,
+				_List_Nil,
+				_List_fromArray(
+					[
+						elm$html$Html$text('lat: '),
+						elm$html$Html$text(
+						elm$core$String$fromFloat((lat / elm$core$Basics$pi) * 180))
+					])),
+				A2(
+				elm$html$Html$div,
+				_List_Nil,
+				_List_fromArray(
+					[
+						elm$html$Html$text('x: '),
+						elm$html$Html$text(
+						elm$core$String$fromFloat(xCalc))
+					])),
+				A2(
+				elm$html$Html$div,
+				_List_Nil,
+				_List_fromArray(
+					[
+						elm$html$Html$text('y: '),
+						elm$html$Html$text(
+						elm$core$String$fromFloat(yCalc))
+					])),
+				A2(
+				elm$html$Html$div,
+				author$project$ElmStyle$createStyleList(_List_Nil),
 				_List_fromArray(
 					[
 						A2(
 						elm$html$Html$div,
-						author$project$ElmStyle$createStyleList(
-							_List_fromArray(
-								[
-									_Utils_Tuple2('position', 'absolute'),
-									_Utils_Tuple2(
-									'top',
-									elm$core$String$fromInt(-author$project$Map$range1.panFromTop) + 'px'),
-									_Utils_Tuple2(
-									'left',
-									elm$core$String$fromInt(-author$project$Map$range1.panFromLeft) + 'px'),
-									_Utils_Tuple2('overflow', 'hidden')
-								])),
+						_List_fromArray(
+							[
+								mpizenberg$elm_pointer_events$Html$Events$Extra$Pointer$onDown(
+								function (event) {
+									return A2(
+										author$project$Map$Click,
+										author$project$Map$getX(event),
+										author$project$Map$getY(event));
+								})
+							]),
 						A2(
 							elm$core$List$map,
 							function (y) {
@@ -5375,6 +5328,7 @@ var author$project$Map$view = function (model) {
 									author$project$ElmStyle$createStyleList(
 										_List_fromArray(
 											[
+												_Utils_Tuple2('pointer-events', 'none'),
 												_Utils_Tuple2('height', '256px'),
 												_Utils_Tuple2(
 												'width',
@@ -5391,31 +5345,21 @@ var author$project$Map$view = function (model) {
 															_List_fromArray(
 															[
 																elm$html$Html$Attributes$src(
-																A3(
-																	author$project$Map$createMapBoxUrl,
-																	elm$core$Basics$round(author$project$Map$range1.zoomLevel),
-																	x,
-																	y)),
-																mpizenberg$elm_pointer_events$Html$Events$Extra$Pointer$onDown(
-																function (event) {
-																	return A2(
-																		author$project$Map$Click,
-																		author$project$Map$getX(event),
-																		author$project$Map$getY(event));
-																})
+																A3(author$project$Map$createMapBoxUrl, 2, x, y))
 															]),
 															author$project$ElmStyle$createStyleList(
 															_List_fromArray(
 																[
+																	_Utils_Tuple2('pointer-events', 'none'),
 																	_Utils_Tuple2('height', '256px'),
 																	_Utils_Tuple2('width', '256px')
 																]))
 														])),
 												_List_Nil);
 										},
-										author$project$Map$range1.x));
+										author$project$Map$xRange));
 							},
-							author$project$Map$range1.y))
+							author$project$Map$yRange))
 					]))
 			]));
 };

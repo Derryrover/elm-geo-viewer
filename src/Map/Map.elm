@@ -13,6 +13,7 @@ import Html.Events.Extra.Pointer as Pointer
 import ElmStyle
 import SizeXYLongLat exposing(getTileRange)
 import List
+import ProjectionWebMercator exposing(..)
 
 -- Authentication
 import MapboxAuth
@@ -35,18 +36,20 @@ import MapboxAuth
 --   , latBottom = degrees 50.740627 -- Aachen
 --   }
 
-map1 =
-  { width = 1000
-  , height = 1000
-  , longLeft = degrees 3.454511 
-  , longRight = degrees 7.254106 
-  , latTop = degrees 52.379623 -- Netherlands Texel
-  , latBottom = degrees 51.379623 -- Aachen
-  }
+--_____________________________________________
+-- map1 =
+--   { width = 1000
+--   , height = 1000
+--   , longLeft = degrees 3.454511 
+--   , longRight = degrees 7.254106 
+--   , latTop = degrees 52.379623 -- Netherlands Texel
+--   , latBottom = degrees 51.379623 -- Aachen
+--   }
 
-range0 = getTileRange map1
-range1 = Debug.log "range" range0
+-- range0 = getTileRange map1
+-- range1 = Debug.log "range" range0
 -- mapplog = Debug.log "map1" map1
+--_________________________________
 
 -- map2 =
 --   { width = 1000
@@ -106,76 +109,113 @@ getX event =
   in x
 
 getY event = 
+  -- let (x,y) = event.pointer.offsetPos clientPos
   let (x,y) = event.pointer.offsetPos
   in y
 
 xStart = 0
-xEnd = 15
+xEnd = 3
 xRange = List.range xStart xEnd
 xLength = List.length xRange
 
 yStart = 0
-yEnd = 15
+yEnd = 3
 yRange = List.range yStart yEnd
 yLength = List.length yRange
 
 
 view : Model -> Html Msg
 view model = 
+  let
+    long = (xToLong (round model.x) 2)
+    lat = (yToLat (round model.y) 2)
+    xCalc = longToX long 2
+    yCalc = latToY lat 2
+  in
+  
   div 
     []
     [ 
-    --   text "x"
-    -- , text (String.fromFloat model.x )
-    -- , text "y"
-    -- , text (String.fromFloat model.y )
-    -- , 
-    div
+      div 
+        [] 
+        [  text "x: "
+        , text (String.fromFloat model.x )
+        ]
+    , div 
+        []
+        [ text "y: "
+        , text (String.fromFloat model.y )
+        ]
+    , div 
+        []
+        [ text "long: "
+        , text (String.fromFloat  ((long/pi)*180))
+        ]  
+    , div 
+        []
+        [ text "lat: "
+        , text (String.fromFloat  ((lat/pi)*180))
+        ] 
+    , div 
+        []
+        [ text "x: "
+        , text (String.fromFloat xCalc )
+        ]
+    , div 
+        []
+        [ text "y: "
+        , text (String.fromFloat yCalc )
+        ]     
+    , div
       ( 
-        ElmStyle.createStyleList 
-          [ ("height", (String.fromInt map1.height)++"px")
-          , ("width", (String.fromInt map1.width)++"px")
-          , ("overflow", "hidden")
-          , ("position", "relative")
-          ] 
+        ElmStyle.createStyleList []
+          -- [ ("height", (String.fromInt map1.height)++"px")
+          -- , ("width", (String.fromInt map1.width)++"px")
+          -- , ("overflow", "hidden")
+          -- , ("position", "relative")
+          -- ] 
       )
       [
-        div 
-          ( 
-            ElmStyle.createStyleList 
-              [ ("position", "absolute")
-              , ("top", (String.fromInt -range1.panFromTop)++"px")
-              , ("left", (String.fromInt -range1.panFromLeft)++"px")
-              , ("overflow", "hidden")
-              ] 
-          )
+        div [
+              Pointer.onDown (\event -> Click (getX event) (getY event))
+            ]
+          -- ( 
+          --   ElmStyle.createStyleList 
+          --     [ ("position", "absolute")
+          --     , ("top", (String.fromInt -range1.panFromTop)++"px")
+          --     , ("left", (String.fromInt -range1.panFromLeft)++"px")
+          --     , ("overflow", "hidden")
+          --     ] 
+          -- )
         
           (
           List.map
           (
             \y ->
             div
-              ( ElmStyle.createStyleList [("height", "256px"), ("width", (String.fromInt (256*xLength))++"px")] )
+              ( ElmStyle.createStyleList [("pointer-events", "none"),("height", "256px"), ("width", (String.fromInt (256*xLength))++"px")] )
               (List.map 
                 (
                   \x ->
                   img
                   (
                     List.concat [
-                    [ src (createMapBoxUrl (Basics.round range1.zoomLevel) x y)
-                    , Pointer.onDown (\event -> Click (getX event) (getY event))
+                    -- [ src (createMapBoxUrl (Basics.round range1.zoomLevel) x y)
+                    [ src (createMapBoxUrl 2 x y)
+                    -- , Pointer.onDown (\event -> Click (getX event) (getY event))
                     ]
-                    , ( ElmStyle.createStyleList [("height", "256px"), ("width", "256px")] )
+                    , ( ElmStyle.createStyleList [("pointer-events", "none"),("height", "256px"), ("width", "256px")] )
                     ]
                   )
                   []
                 ) 
-                -- xRange
-                range1.x
+                xRange
+                --range1.x
+
               )
           )
-          -- yRange
-          range1.y
+          yRange
+          -- range1.y
         )
         
       ]
