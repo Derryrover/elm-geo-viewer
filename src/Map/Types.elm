@@ -27,6 +27,13 @@ type alias ZoomPlusPixel =
   , pixelCoordinates: PixelCoordinates
   }
 
+type alias TileRange = 
+  { rangeX: List Int
+  , rangeY: List Int
+  , panFromLeft: Int
+  , panFromTop: Int 
+  }
+
 type alias CompleteMapConfiguration =
   { window: Window
   , zoom: Int
@@ -34,7 +41,12 @@ type alias CompleteMapConfiguration =
   , finalGeoCoordinates: GeoCoordinates
   , initialPixelCoordinates: PixelCoordinates
   , finalPixelCoordinates: PixelCoordinates
+  , tileRange: TileRange
   }
+
+
+
+
 
 getCompleteMapConfigurationFromWindowAndGeoCoordinates: Window -> GeoCoordinates -> CompleteMapConfiguration
 getCompleteMapConfigurationFromWindowAndGeoCoordinates window geoCoordinates = 
@@ -49,6 +61,7 @@ getCompleteMapConfigurationFromWindowAndGeoCoordinates window geoCoordinates =
     , finalGeoCoordinates = newGeo
     , initialPixelCoordinates = zoomPlusPixel.pixelCoordinates
     , finalPixelCoordinates = adaptedPixelCoordinates
+    , tileRange = getTileRange adaptedPixelCoordinates
     }
 
 mapSettingsToZoomAndPixelCoordinates: Window -> GeoCoordinates -> ZoomPlusPixel
@@ -87,7 +100,7 @@ getZoomLevelHelper testZoom window geoCoordinates  =
     deltaX = abs (pixelCoordinates.rightX - pixelCoordinates.leftX)
     deltaY = abs (pixelCoordinates.topY - pixelCoordinates.bottomY)
   in
-    if (deltaX > window.width && deltaY > window.height) then -- current scale is too big to fit in window
+    if (deltaX > window.width || deltaY > window.height) then -- current scale is too big to fit in window
       if testZoom == 0 then -- is already smallest zoom -> return smallest zoom 
         Just  { zoom = 0
               , pixelCoordinates = pixelCoordinates
@@ -118,10 +131,10 @@ adaptPixelCoordinatesForWindow window pixelCoordinates =
     relativeWidthHeight = (toFloat window.height) / (toFloat window.width)
     relativeLongLat =  deltaY / deltaX
   in
-    if (relativeLongLat < relativeWidthHeight) then -- coordinates are wider
+    if (relativeLongLat > relativeWidthHeight) then -- coordinates are wider
       let
         width = deltaY / relativeWidthHeight
-        halfWidthDelta = (width - deltaX) / 2
+        halfWidthDelta = (abs (width - deltaX)) / 2
         xLeftNew = pixelCoordinates.leftX - ( round halfWidthDelta)
         xRightNew = pixelCoordinates.rightX + ( round halfWidthDelta)
       in
@@ -131,8 +144,8 @@ adaptPixelCoordinatesForWindow window pixelCoordinates =
         }
     else 
       let
-        height = deltaX * relativeLongLat
-        halfheightDelta = (height - deltaY) / 2
+        height = deltaX * relativeWidthHeight
+        halfheightDelta = (abs(height - deltaY)) / 2
         yTopNew = pixelCoordinates.topY - ( round halfheightDelta)
         yBottomNew = pixelCoordinates.bottomY + ( round halfheightDelta)
       in
@@ -153,6 +166,24 @@ transformPixelToGeoCoordinates zoom pixelCoordinates =
   , latTop = ProjectionWebMercator.yToLat pixelCoordinates.topY zoom
   , latBottom = ProjectionWebMercator.yToLat pixelCoordinates.bottomY zoom
   }
+
+getTileRange: PixelCoordinates -> TileRange
+getTileRange pixelCoordinates = 
+  let
+    leftX = toFloat pixelCoordinates.leftX
+    rightX = toFloat pixelCoordinates.rightX
+    topY = toFloat pixelCoordinates.topY
+    bottomY = toFloat pixelCoordinates.bottomY
+    xTileLeft = Basics.floor ( leftX / 256 )
+    xTileRight = Basics.ceiling ( rightX / 256 )
+    yTileTop = Basics.floor ( topY / 256 )
+    yTileBottom = Basics.ceiling ( bottomY / 256 )
+  in
+    { rangeX = List.range xTileLeft xTileRight
+    , rangeY = List.range yTileTop yTileBottom
+    , panFromLeft = modBy 256 pixelCoordinates.leftX
+    , panFromTop = modBy 256 pixelCoordinates.topY
+    }
 
 
   
