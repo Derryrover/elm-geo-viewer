@@ -13,7 +13,11 @@ import SizeXYLongLat exposing(getTileRange)
 import List
 import ProjectionWebMercator exposing(..)
 import Types exposing(..)
+import CoordinateUtils exposing(Coordinate2d(..))
+
+-- self made data
 import MapData exposing ( map1 )
+
 
 -- Authentication
 import MapboxAuth
@@ -24,7 +28,7 @@ type alias Model =
   }
 
 type Msg 
-  = Click Float Float
+  = Click (Float, Float)
   | None
 
 main = Browser.element
@@ -44,7 +48,7 @@ init _ =
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model = 
   case msg of
-    Click x y ->
+    Click (x, y) ->
       ({ model | x = x, y = y }, Cmd.none)
     None ->
       (model, Cmd.none)
@@ -65,21 +69,21 @@ createMapBoxUrl zoomInt xInt yInt =
 
 
 
-getX event = 
-  let (x,y) = event.pointer.offsetPos
-  in x
+-- getX event = 
+--   let (x,y) = event.pointer.offsetPos
+--   in x
 
-getY event = 
-  let (x,y) = event.pointer.offsetPos
-  in y
+-- getY event = 
+--   let (x,y) = event.pointer.offsetPos
+--   in y
 
 view : Model -> Html Msg
 view model = 
   let
-    long = (xToLong (round model.x) 2)
-    lat = (yToLat (round model.y) 2)
-    xCalc = longToX long 2
-    yCalc = latToY lat 2
+    long = (xToLong (round model.x) map1.zoom)
+    lat = (yToLat (round model.y) map1.zoom)
+    xCalc = longToX long map1.zoom
+    yCalc = latToY lat map1.zoom
   in
   
   div 
@@ -119,11 +123,17 @@ view model =
       ( 
          List.concat [
           [
-            Pointer.onDown (\event -> Click (getX event) (getY event))
+            Pointer.onDown 
+              (\event -> 
+                let (x,y) = event.pointer.offsetPos 
+                in Click ( x + toFloat map1.finalPixelCoordinates.leftX
+                         , y + toFloat map1.finalPixelCoordinates.topY
+                         )
+              )
           ],(
         ElmStyle.createStyleList 
-          [ ("height", (String.fromInt (map1.finalPixelCoordinates.bottomY - map1.finalPixelCoordinates.topY)) ++ "px")
-          , ("width", (String.fromInt (map1.finalPixelCoordinates.rightX - map1.finalPixelCoordinates.leftX))++"px")
+          [ ("height", (String.fromInt map1.window.height) ++ "px")
+          , ("width", (String.fromInt map1.window.width)++"px")
           , ("overflow", "hidden")
           , ("position", "relative")
           ] 

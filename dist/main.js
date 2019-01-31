@@ -4827,8 +4827,9 @@ var elm$core$Platform$Cmd$none = elm$core$Platform$Cmd$batch(_List_Nil);
 var author$project$Map$update = F2(
 	function (msg, model) {
 		if (msg.$ === 'Click') {
-			var x = msg.a;
-			var y = msg.b;
+			var _n1 = msg.a;
+			var x = _n1.a;
+			var y = _n1.b;
 			return _Utils_Tuple2(
 				_Utils_update(
 					model,
@@ -4976,10 +4977,9 @@ var author$project$ElmStyle$createStyleList = function (list) {
 		},
 		list);
 };
-var author$project$Map$Click = F2(
-	function (a, b) {
-		return {$: 'Click', a: a, b: b};
-	});
+var author$project$Map$Click = function (a) {
+	return {$: 'Click', a: a};
+};
 var author$project$Map$createMapBoxUrl = F3(
 	function (zoomInt, xInt, yInt) {
 		var zoom = elm$core$String$fromInt(zoomInt);
@@ -4987,18 +4987,6 @@ var author$project$Map$createMapBoxUrl = F3(
 		var x = elm$core$String$fromInt(xInt);
 		return 'http://tile.stamen.com/terrain-background/' + (zoom + ('/' + (x + ('/' + (y + '.png')))));
 	});
-var author$project$Map$getX = function (event) {
-	var _n0 = event.pointer.offsetPos;
-	var x = _n0.a;
-	var y = _n0.b;
-	return x;
-};
-var author$project$Map$getY = function (event) {
-	var _n0 = event.pointer.offsetPos;
-	var x = _n0.a;
-	var y = _n0.b;
-	return y;
-};
 var elm$core$Basics$negate = function (n) {
 	return -n;
 };
@@ -5358,13 +5346,13 @@ var author$project$Map$view = function (model) {
 	var _long = A2(
 		author$project$ProjectionWebMercator$xToLong,
 		elm$core$Basics$round(model.x),
-		2);
-	var xCalc = A2(author$project$ProjectionWebMercator$longToX, _long, 2);
+		author$project$MapData$map1.zoom);
+	var xCalc = A2(author$project$ProjectionWebMercator$longToX, _long, author$project$MapData$map1.zoom);
 	var lat = A2(
 		author$project$ProjectionWebMercator$yToLat,
 		elm$core$Basics$round(model.y),
-		2);
-	var yCalc = A2(author$project$ProjectionWebMercator$latToY, lat, 2);
+		author$project$MapData$map1.zoom);
+	var yCalc = A2(author$project$ProjectionWebMercator$latToY, lat, author$project$MapData$map1.zoom);
 	return A2(
 		elm$html$Html$div,
 		_List_Nil,
@@ -5433,10 +5421,11 @@ var author$project$Map$view = function (model) {
 							[
 								mpizenberg$elm_pointer_events$Html$Events$Extra$Pointer$onDown(
 								function (event) {
-									return A2(
-										author$project$Map$Click,
-										author$project$Map$getX(event),
-										author$project$Map$getY(event));
+									var _n0 = event.pointer.offsetPos;
+									var x = _n0.a;
+									var y = _n0.b;
+									return author$project$Map$Click(
+										_Utils_Tuple2(x + author$project$MapData$map1.finalPixelCoordinates.leftX, y + author$project$MapData$map1.finalPixelCoordinates.topY));
 								})
 							]),
 							author$project$ElmStyle$createStyleList(
@@ -5444,10 +5433,10 @@ var author$project$Map$view = function (model) {
 								[
 									_Utils_Tuple2(
 									'height',
-									elm$core$String$fromInt(author$project$MapData$map1.finalPixelCoordinates.bottomY - author$project$MapData$map1.finalPixelCoordinates.topY) + 'px'),
+									elm$core$String$fromInt(author$project$MapData$map1.window.height) + 'px'),
 									_Utils_Tuple2(
 									'width',
-									elm$core$String$fromInt(author$project$MapData$map1.finalPixelCoordinates.rightX - author$project$MapData$map1.finalPixelCoordinates.leftX) + 'px'),
+									elm$core$String$fromInt(author$project$MapData$map1.window.width) + 'px'),
 									_Utils_Tuple2('overflow', 'hidden'),
 									_Utils_Tuple2('position', 'relative')
 								]))
