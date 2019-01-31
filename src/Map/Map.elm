@@ -6,7 +6,6 @@ import Browser exposing(element)
 import Html exposing (..)
 import Html.Events
 import Html.Events.Extra.Pointer as Pointer
-
 -- self made modules
 import ElmStyle
 import SizeXYLongLat exposing(getTileRange)
@@ -14,11 +13,10 @@ import List
 import ProjectionWebMercator exposing(..)
 import Types exposing(..)
 import CoordinateUtils exposing(Coordinate2d(..))
-
+import CoordinateViewer
+import MapBoxUtils exposing (createMapBoxUrl)
 -- self made data
 import MapData exposing ( map1 )
-
-
 -- Authentication
 import MapboxAuth
 
@@ -53,72 +51,15 @@ update msg model =
     None ->
       (model, Cmd.none)
 
-
 subscriptions : Model -> Sub Msg
 subscriptions model =
   Sub.none
 
-createMapBoxUrl zoomInt xInt yInt = 
-  let
-    x = String.fromInt xInt
-    y = String.fromInt yInt
-    zoom = String.fromInt zoomInt
-  in
-    "http://tile.stamen.com/terrain-background/"++zoom++"/"++x++"/"++y++".png"
-  
-
-
-
--- getX event = 
---   let (x,y) = event.pointer.offsetPos
---   in x
-
--- getY event = 
---   let (x,y) = event.pointer.offsetPos
---   in y
-
 view : Model -> Html Msg
 view model = 
-  let
-    long = (xToLong (round model.x) map1.zoom)
-    lat = (yToLat (round model.y) map1.zoom)
-    xCalc = longToX long map1.zoom
-    yCalc = latToY lat map1.zoom
-  in
-  
   div 
     []
-    [ 
-      div 
-        [] 
-        [  text "x: "
-        , text (String.fromFloat model.x )
-        ]
-    , div 
-        []
-        [ text "y: "
-        , text (String.fromFloat model.y )
-        ]
-    , div 
-        []
-        [ text "long: "
-        , text (String.fromFloat  ((long/pi)*180))
-        ]  
-    , div 
-        []
-        [ text "lat: "
-        , text (String.fromFloat  ((lat/pi)*180))
-        ] 
-    , div 
-        []
-        [ text "x: "
-        , text (String.fromFloat xCalc )
-        ]
-    , div 
-        []
-        [ text "y: "
-        , text (String.fromFloat yCalc )
-        ]     
+    [ CoordinateViewer.view model.x model.y map1.zoom    
     , div
       ( 
          List.concat [
@@ -151,7 +92,6 @@ view model =
               , ("pointer-events", "none")
               ] 
           )
-        
           (
           List.map
           (
