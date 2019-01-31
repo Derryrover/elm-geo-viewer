@@ -5167,11 +5167,11 @@ var author$project$Types$getCompleteMapConfigurationFromWindowAndGeoCoordinates 
 var elm$core$Basics$degrees = function (angleInDegrees) {
 	return (angleInDegrees * elm$core$Basics$pi) / 180;
 };
-var author$project$Map$map1 = A2(
+var author$project$MapData$map1 = A2(
 	author$project$Types$getCompleteMapConfigurationFromWindowAndGeoCoordinates,
-	{height: 300, width: 300},
+	{height: 1000, width: 1000},
 	{
-		latBottom: elm$core$Basics$degrees(50.731588),
+		latBottom: elm$core$Basics$degrees(40.731588),
 		latTop: elm$core$Basics$degrees(53.498503),
 		longLeft: elm$core$Basics$degrees(3.409191),
 		longRight: elm$core$Basics$degrees(7.252712)
@@ -5426,47 +5426,48 @@ var author$project$Map$view = function (model) {
 					])),
 				A2(
 				elm$html$Html$div,
-				author$project$ElmStyle$createStyleList(
+				elm$core$List$concat(
 					_List_fromArray(
 						[
-							_Utils_Tuple2(
-							'height',
-							elm$core$String$fromInt(author$project$Map$map1.finalPixelCoordinates.bottomY - author$project$Map$map1.finalPixelCoordinates.topY) + 'px'),
-							_Utils_Tuple2(
-							'width',
-							elm$core$String$fromInt(author$project$Map$map1.finalPixelCoordinates.rightX - author$project$Map$map1.finalPixelCoordinates.leftX) + 'px'),
-							_Utils_Tuple2('overflow', 'hidden'),
-							_Utils_Tuple2('position', 'relative')
+							_List_fromArray(
+							[
+								mpizenberg$elm_pointer_events$Html$Events$Extra$Pointer$onDown(
+								function (event) {
+									return A2(
+										author$project$Map$Click,
+										author$project$Map$getX(event),
+										author$project$Map$getY(event));
+								})
+							]),
+							author$project$ElmStyle$createStyleList(
+							_List_fromArray(
+								[
+									_Utils_Tuple2(
+									'height',
+									elm$core$String$fromInt(author$project$MapData$map1.finalPixelCoordinates.bottomY - author$project$MapData$map1.finalPixelCoordinates.topY) + 'px'),
+									_Utils_Tuple2(
+									'width',
+									elm$core$String$fromInt(author$project$MapData$map1.finalPixelCoordinates.rightX - author$project$MapData$map1.finalPixelCoordinates.leftX) + 'px'),
+									_Utils_Tuple2('overflow', 'hidden'),
+									_Utils_Tuple2('position', 'relative')
+								]))
 						])),
 				_List_fromArray(
 					[
 						A2(
 						elm$html$Html$div,
-						elm$core$List$concat(
+						author$project$ElmStyle$createStyleList(
 							_List_fromArray(
 								[
-									_List_fromArray(
-									[
-										mpizenberg$elm_pointer_events$Html$Events$Extra$Pointer$onDown(
-										function (event) {
-											return A2(
-												author$project$Map$Click,
-												author$project$Map$getX(event),
-												author$project$Map$getY(event));
-										})
-									]),
-									author$project$ElmStyle$createStyleList(
-									_List_fromArray(
-										[
-											_Utils_Tuple2('position', 'absolute'),
-											_Utils_Tuple2(
-											'top',
-											elm$core$String$fromInt(-author$project$Map$map1.tileRange.panFromTop) + 'px'),
-											_Utils_Tuple2(
-											'left',
-											elm$core$String$fromInt(-author$project$Map$map1.tileRange.panFromLeft) + 'px'),
-											_Utils_Tuple2('overflow', 'hidden')
-										]))
+									_Utils_Tuple2('position', 'absolute'),
+									_Utils_Tuple2(
+									'top',
+									elm$core$String$fromInt(-author$project$MapData$map1.tileRange.panFromTop) + 'px'),
+									_Utils_Tuple2(
+									'left',
+									elm$core$String$fromInt(-author$project$MapData$map1.tileRange.panFromLeft) + 'px'),
+									_Utils_Tuple2('overflow', 'hidden'),
+									_Utils_Tuple2('pointer-events', 'none')
 								])),
 						A2(
 							elm$core$List$map,
@@ -5481,7 +5482,7 @@ var author$project$Map$view = function (model) {
 												_Utils_Tuple2(
 												'width',
 												elm$core$String$fromInt(
-													256 * elm$core$List$length(author$project$Map$map1.tileRange.rangeX)) + 'px')
+													256 * elm$core$List$length(author$project$MapData$map1.tileRange.rangeX)) + 'px')
 											])),
 									A2(
 										elm$core$List$map,
@@ -5494,7 +5495,7 @@ var author$project$Map$view = function (model) {
 															_List_fromArray(
 															[
 																elm$html$Html$Attributes$src(
-																A3(author$project$Map$createMapBoxUrl, author$project$Map$map1.zoom, x, y))
+																A3(author$project$Map$createMapBoxUrl, author$project$MapData$map1.zoom, x, y))
 															]),
 															author$project$ElmStyle$createStyleList(
 															_List_fromArray(
@@ -5506,9 +5507,9 @@ var author$project$Map$view = function (model) {
 														])),
 												_List_Nil);
 										},
-										author$project$Map$map1.tileRange.rangeX));
+										author$project$MapData$map1.tileRange.rangeX));
 							},
-							author$project$Map$map1.tileRange.rangeY))
+							author$project$MapData$map1.tileRange.rangeY))
 					]))
 			]));
 };
