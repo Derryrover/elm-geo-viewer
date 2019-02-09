@@ -4456,22 +4456,23 @@ var elm$core$List$range = F2(
 	function (lo, hi) {
 		return A3(elm$core$List$rangeHelp, lo, hi, _List_Nil);
 	});
-var author$project$Types$getTileRange = function (pixelCoordinates) {
-	var topY = pixelCoordinates.topY;
-	var yTileTop = elm$core$Basics$floor(topY / 256);
-	var rightX = pixelCoordinates.rightX;
-	var xTileRight = elm$core$Basics$ceiling(rightX / 256);
-	var leftX = pixelCoordinates.leftX;
-	var xTileLeft = elm$core$Basics$floor(leftX / 256);
-	var bottomY = pixelCoordinates.bottomY;
-	var yTileBottom = elm$core$Basics$ceiling(bottomY / 256);
-	return {
-		panFromLeft: A2(elm$core$Basics$modBy, 256, pixelCoordinates.leftX),
-		panFromTop: A2(elm$core$Basics$modBy, 256, pixelCoordinates.topY),
-		rangeX: A2(elm$core$List$range, xTileLeft, xTileRight),
-		rangeY: A2(elm$core$List$range, yTileTop, yTileBottom)
-	};
-};
+var author$project$Types$getTileRange = F2(
+	function (pixelCoordinates, zoom) {
+		var topY = pixelCoordinates.topY;
+		var yTileTop = elm$core$Basics$floor(topY / 256) - 1;
+		var rightX = pixelCoordinates.rightX;
+		var xTileRight = elm$core$Basics$ceiling(rightX / 256) + 1;
+		var leftX = pixelCoordinates.leftX;
+		var xTileLeft = elm$core$Basics$floor(leftX / 256) - 1;
+		var bottomY = pixelCoordinates.bottomY;
+		var yTileBottom = elm$core$Basics$ceiling(bottomY / 256) + 1;
+		return {
+			panFromLeft: A2(elm$core$Basics$modBy, 256, pixelCoordinates.leftX),
+			panFromTop: A2(elm$core$Basics$modBy, 256, pixelCoordinates.topY),
+			rangeX: A2(elm$core$List$range, xTileLeft, xTileRight),
+			rangeY: A2(elm$core$List$range, yTileTop, yTileBottom)
+		};
+	});
 var elm$core$Basics$e = _Basics_e;
 var elm$core$Basics$logBase = F2(
 	function (base, number) {
@@ -4594,7 +4595,7 @@ var author$project$Types$getCompleteMapConfigurationFromWindowAndGeoCoordinates 
 			finalPixelCoordinates: adaptedPixelCoordinates,
 			initialGeoCoordinates: geoCoordinates,
 			initialPixelCoordinates: zoomPlusPixel.pixelCoordinates,
-			tileRange: author$project$Types$getTileRange(adaptedPixelCoordinates),
+			tileRange: A2(author$project$Types$getTileRange, adaptedPixelCoordinates, zoomPlusPixel.zoom),
 			window: window,
 			zoom: zoomPlusPixel.zoom
 		};
@@ -4604,12 +4605,12 @@ var elm$core$Basics$degrees = function (angleInDegrees) {
 };
 var author$project$MapData$map1 = A2(
 	author$project$Types$getCompleteMapConfigurationFromWindowAndGeoCoordinates,
-	{height: 1000, width: 1000},
+	{height: 400, width: 800},
 	{
-		latBottom: elm$core$Basics$degrees(40.731588),
+		latBottom: elm$core$Basics$degrees(20.731588),
 		latTop: elm$core$Basics$degrees(53.498503),
 		longLeft: elm$core$Basics$degrees(3.409191),
-		longRight: elm$core$Basics$degrees(7.252712)
+		longRight: elm$core$Basics$degrees(12.252712)
 	});
 var elm$core$Basics$False = {$: 'False'};
 var elm$core$Basics$True = {$: 'True'};
@@ -4971,6 +4972,7 @@ var author$project$Map$init = function (_n0) {
 		{
 			dragPrevious: {x: 0, y: 0},
 			dragStart: {x: 0, y: 0},
+			dragStartPixels: author$project$MapData$map1.finalPixelCoordinates,
 			map: author$project$MapData$map1,
 			mouseDown: false,
 			x: 0,
@@ -5003,8 +5005,8 @@ var elm$core$Platform$Sub$none = elm$core$Platform$Sub$batch(_List_Nil);
 var author$project$Main$subscriptions = function (model) {
 	return elm$core$Platform$Sub$none;
 };
-var author$project$Types$panPixelCoordinates = F3(
-	function (coordinates, xFloat, yFloat) {
+var author$project$Types$panPixelCoordinates = F4(
+	function (coordinates, xFloat, yFloat, zoom) {
 		var y = elm$core$Basics$round(yFloat);
 		var x = elm$core$Basics$round(xFloat);
 		return {bottomY: coordinates.bottomY - y, leftX: coordinates.leftX - x, rightX: coordinates.rightX - x, topY: coordinates.topY - y};
@@ -5032,6 +5034,7 @@ var author$project$Map$update = F2(
 						{
 							dragPrevious: {x: x, y: y},
 							dragStart: {x: x, y: y},
+							dragStartPixels: model.map.finalPixelCoordinates,
 							mouseDown: true
 						}),
 					elm$core$Platform$Cmd$none);
@@ -5044,14 +5047,18 @@ var author$project$Map$update = F2(
 					return _Utils_Tuple2(model, elm$core$Platform$Cmd$none);
 				} else {
 					var tempMap = model.map;
-					var deltaY = y - model.dragPrevious.y;
-					var deltaX = x - model.dragPrevious.x;
-					var newPixelCoordinates = A3(author$project$Types$panPixelCoordinates, model.map.finalPixelCoordinates, deltaX, deltaY);
+					var deltaY = y - model.dragStart.y;
+					var deltaX = x - model.dragStart.x;
+					var newPixelCoordinates = A4(author$project$Types$panPixelCoordinates, model.dragStartPixels, deltaX, deltaY, model.map.zoom);
 					var newGeoCoordinates = A2(author$project$Types$transformPixelToGeoCoordinates, model.map.zoom, newPixelCoordinates);
 					var newTileRange = author$project$Types$getTileRange(newPixelCoordinates);
 					var newMap = _Utils_update(
 						tempMap,
-						{finalGeoCoordinates: newGeoCoordinates, finalPixelCoordinates: newPixelCoordinates, tileRange: newTileRange});
+						{
+							finalGeoCoordinates: newGeoCoordinates,
+							finalPixelCoordinates: newPixelCoordinates,
+							tileRange: newTileRange(tempMap.zoom)
+						});
 					return _Utils_Tuple2(
 						_Utils_update(
 							model,
@@ -5370,6 +5377,7 @@ var elm$html$Html$Attributes$stringProperty = F2(
 			key,
 			elm$json$Json$Encode$string(string));
 	});
+var elm$html$Html$Attributes$id = elm$html$Html$Attributes$stringProperty('id');
 var elm$html$Html$Attributes$src = function (url) {
 	return A2(
 		elm$html$Html$Attributes$stringProperty,
@@ -5589,10 +5597,10 @@ var author$project$Map$view = function (model) {
 									_Utils_Tuple2('position', 'absolute'),
 									_Utils_Tuple2(
 									'top',
-									elm$core$String$fromInt(-model.map.tileRange.panFromTop) + 'px'),
+									elm$core$String$fromInt(-model.map.finalPixelCoordinates.topY) + 'px'),
 									_Utils_Tuple2(
 									'left',
-									elm$core$String$fromInt(-model.map.tileRange.panFromLeft) + 'px'),
+									elm$core$String$fromInt(-model.map.finalPixelCoordinates.leftX) + 'px'),
 									_Utils_Tuple2('pointer-events', 'none')
 								])),
 						A2(
@@ -5604,32 +5612,50 @@ var author$project$Map$view = function (model) {
 										_List_fromArray(
 											[
 												_Utils_Tuple2('height', '256px'),
+												_Utils_Tuple2('position', 'absolute'),
 												_Utils_Tuple2(
-												'width',
-												elm$core$String$fromInt(
-													256 * elm$core$List$length(model.map.tileRange.rangeX)) + 'px')
+												'top',
+												elm$core$String$fromInt(256 * y) + 'px')
 											])),
 									A2(
 										elm$core$List$map,
 										function (x) {
 											return A2(
-												elm$html$Html$img,
+												elm$html$Html$div,
 												elm$core$List$concat(
 													_List_fromArray(
 														[
 															_List_fromArray(
 															[
-																elm$html$Html$Attributes$src(
-																A3(author$project$MapBoxUtils$createMapBoxUrl, model.map.zoom, x, y))
+																elm$html$Html$Attributes$id(
+																'id_backgroundimg_' + (elm$core$String$fromInt(x) + ('_' + elm$core$String$fromInt(y))))
 															]),
 															author$project$ElmStyle$createStyleList(
 															_List_fromArray(
 																[
 																	_Utils_Tuple2('height', '256px'),
-																	_Utils_Tuple2('width', '256px')
+																	_Utils_Tuple2('width', '256px'),
+																	_Utils_Tuple2('position', 'absolute'),
+																	_Utils_Tuple2(
+																	'left',
+																	elm$core$String$fromInt(256 * x) + 'px')
 																]))
 														])),
-												_List_Nil);
+												_List_fromArray(
+													[
+														A2(
+														elm$html$Html$img,
+														elm$core$List$concat(
+															_List_fromArray(
+																[
+																	_List_fromArray(
+																	[
+																		elm$html$Html$Attributes$src(
+																		A3(author$project$MapBoxUtils$createMapBoxUrl, model.map.zoom, x, y))
+																	])
+																])),
+														_List_Nil)
+													]));
 										},
 										model.map.tileRange.rangeX));
 							},

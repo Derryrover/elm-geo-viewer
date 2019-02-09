@@ -68,7 +68,7 @@ getCompleteMapConfigurationFromWindowAndGeoCoordinates window geoCoordinates =
     , finalGeoCoordinates = newGeo
     , initialPixelCoordinates = zoomPlusPixel.pixelCoordinates
     , finalPixelCoordinates = adaptedPixelCoordinates
-    , tileRange = getTileRange adaptedPixelCoordinates
+    , tileRange = getTileRange adaptedPixelCoordinates zoomPlusPixel.zoom
     }
 
 mapSettingsToZoomAndPixelCoordinates: Window -> GeoCoordinates -> ZoomPlusPixel
@@ -161,11 +161,12 @@ adaptPixelCoordinatesForWindow window pixelCoordinates =
             bottomY = yBottomNew
         }
 
-panPixelCoordinates: PixelCoordinates -> Float -> Float -> PixelCoordinates
-panPixelCoordinates coordinates xFloat yFloat = 
+panPixelCoordinates: PixelCoordinates -> Float -> Float -> Int -> PixelCoordinates
+panPixelCoordinates coordinates xFloat yFloat zoom = 
   let 
     x = round xFloat
     y = round yFloat
+    -- newLeftX = 
   in
     { leftX = coordinates.leftX - x
     , rightX = coordinates.rightX - x
@@ -184,23 +185,24 @@ transformPixelToGeoCoordinates zoom pixelCoordinates =
   , latBottom = ProjectionWebMercator.yToLat pixelCoordinates.bottomY zoom
   }
 
-getTileRange: PixelCoordinates -> TileRange
-getTileRange pixelCoordinates = 
+getTileRange: PixelCoordinates -> Int -> TileRange
+getTileRange pixelCoordinates zoom = 
   let
     leftX = toFloat pixelCoordinates.leftX
     rightX = toFloat pixelCoordinates.rightX
     topY = toFloat pixelCoordinates.topY
     bottomY = toFloat pixelCoordinates.bottomY
-    xTileLeft = Basics.floor ( leftX / 256 )
-    xTileRight = Basics.ceiling ( rightX / 256 )
-    yTileTop = Basics.floor ( topY / 256 )
-    yTileBottom = Basics.ceiling ( bottomY / 256 )
+    xTileLeft = (Basics.floor ( leftX / 256 )) - 1
+    xTileRight = (Basics.ceiling ( rightX / 256 )) + 1
+    yTileTop = (Basics.floor ( topY / 256 )) - 1
+    yTileBottom = (Basics.ceiling ( bottomY / 256 )) + 1
   in
     { rangeX = List.range xTileLeft xTileRight
     , rangeY = List.range yTileTop yTileBottom
-    , panFromLeft = modBy 256 pixelCoordinates.leftX
-    , panFromTop = modBy 256 pixelCoordinates.topY
+    , panFromLeft = (modBy 256 pixelCoordinates.leftX) -- + 256
+    , panFromTop = (modBy 256 pixelCoordinates.topY) -- + 256
     }
 
-
-  
+tilesFromZoom: Int -> Int
+tilesFromZoom zoom = 
+  (zoom + 1) ^ 2

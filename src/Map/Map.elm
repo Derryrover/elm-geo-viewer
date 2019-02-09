@@ -1,6 +1,6 @@
 module Map exposing(..)
 
-import Html.Attributes exposing (style, class,value, src, alt)
+import Html.Attributes exposing (style, class,value, src, alt, id)
 import Html.Events exposing (onInput, onClick)
 import Browser exposing(element)
 import Html exposing (..)
@@ -35,6 +35,7 @@ type alias Model =
   { x: Float
   , y: Float
   , dragStart: PixelPoint
+  , dragStartPixels: PixelCoordinates
   , dragPrevious: PixelPoint
   , mouseDown: Bool
   , map: CompleteMapConfiguration
@@ -53,6 +54,7 @@ init _ =
           { x = 0
           , y = 0
           }
+        , dragStartPixels = map1.finalPixelCoordinates
         , mouseDown = False
         , map = map1
         }
@@ -77,6 +79,7 @@ update msg model =
           | mouseDown = True
           , dragStart = {x = x, y = y}
           , dragPrevious = {x = x, y = y}
+          , dragStartPixels = model.map.finalPixelCoordinates
         }
         , Cmd.none
       )
@@ -91,15 +94,15 @@ update msg model =
         True ->
           let 
             tempMap = model.map
-            deltaX = x - model.dragPrevious.x
-            deltaY = y - model.dragPrevious.y
-            newPixelCoordinates = panPixelCoordinates model.map.finalPixelCoordinates deltaX deltaY
+            deltaX = x - model.dragStart.x
+            deltaY = y - model.dragStart.y
+            newPixelCoordinates = panPixelCoordinates model.dragStartPixels deltaX deltaY model.map.zoom
             newGeoCoordinates = transformPixelToGeoCoordinates model.map.zoom newPixelCoordinates
             newTileRange = Types.getTileRange newPixelCoordinates
             newMap = { tempMap 
                         | finalPixelCoordinates = newPixelCoordinates
                         , finalGeoCoordinates = newGeoCoordinates
-                        , tileRange = newTileRange 
+                        , tileRange = newTileRange tempMap.zoom
                         }
           in
           ({ model 
@@ -165,12 +168,15 @@ view model =
            
             ElmStyle.createStyleList 
               [ ("position", "absolute")
-              , ("top", (String.fromInt -model.map.tileRange.panFromTop)++"px")
-              , ("left", (String.fromInt -model.map.tileRange.panFromLeft)++"px")
+              -- , ("top", (String.fromInt -model.map.tileRange.panFromTop)++"px")
+              -- , ("left", (String.fromInt -model.map.tileRange.panFromLeft)++"px")
+              , ("top", (String.fromInt -model.map.finalPixelCoordinates.topY)++"px")
+              , ("left", (String.fromInt -model.map.finalPixelCoordinates.leftX)++"px")
               -- , ("transition", "top 0.2s, left 0.2s")
               , ("pointer-events", "none")
               ] 
           )
+          -- (List.concat
           (
           List.map
           (
@@ -178,31 +184,48 @@ view model =
             div
               ( ElmStyle.createStyleList 
                   [ ("height", "256px")
-                  , ("width", (String.fromInt (256*(List.length model.map.tileRange.rangeX)))++"px")
+                  , ("position", "absolute")
+                  , ("top", (String.fromInt (256 * y)++"px"))
+                  -- , ("width", (String.fromInt (256*(List.length model.map.tileRange.rangeX)))++"px")
                   ] 
               )
               (List.map 
                 (
                   \x ->
-                  img
+                  div
+                  (
+                    List.concat [
+                      [ 
+                        -- src (createMapBoxUrl model.map.zoom x y)
+                        id ("id_backgroundimg_" ++ (String.fromInt x) ++ "_"++(String.fromInt y) )
+                      ]
+                      , 
+                      ( ElmStyle.createStyleList 
+                            [ ("height", "256px")
+                            , ("width", "256px")
+                            , ("position", "absolute")
+                            -- , ("top", (String.fromInt (256 * y)++"px"))
+                            , ("left", (String.fromInt (256 * x)++"px"))
+                            ] )
+                    ]
+                  )
+                  [
+                    img
                   (
                     List.concat [
                       [ src (createMapBoxUrl model.map.zoom x y)
                       ]
-                      , ( ElmStyle.createStyleList 
-                            [ ("height", "256px")
-                            , ("width", "256px")
-                            -- , ("position", "absolute")
-                            ] )
-                    ]
+                  ]
                   )
                   []
+                  ]
                 ) 
                 model.map.tileRange.rangeX
               )
           )
           model.map.tileRange.rangeY
         )
+        -- )
       ]
     ]
 
