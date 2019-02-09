@@ -12,22 +12,13 @@ import SizeXYLongLat exposing(getTileRange)
 import List
 import ProjectionWebMercator exposing(..)
 import Types exposing(..)
-import CoordinateUtils exposing(Coordinate2d(..))
+import CoordinateUtils exposing(Coordinate2d(..), PixelPoint)
 import CoordinateViewer
 import MapBoxUtils exposing (createMapBoxUrl)
 -- self made data
-import MapData exposing ( map1 )
+import MapData exposing ( map1, map2 )
 -- Authentication
 import MapboxAuth
-
-type alias Model = 
-  { x: Float,
-    y: Float
-  }
-
-type Msg 
-  = Click (Float, Float)
-  | None
 
 main = Browser.element
   { init = init
@@ -36,45 +27,133 @@ main = Browser.element
   , subscriptions = subscriptions
   }
 
+subscriptions : Model -> Sub Msg
+subscriptions model =
+  Sub.none
+
+type alias Model = 
+  { x: Float
+  , y: Float
+  , dragStart: PixelPoint
+  , dragPrevious: PixelPoint
+  , mouseDown: Bool
+  , map: CompleteMapConfiguration
+  }
+
 init : () -> (Model, Cmd Msg)
 init _ =
     (
-       Model 0 0
+        { x = 0
+        , y = 0
+        , dragStart = 
+          { x = 0
+          , y = 0
+          }
+        , dragPrevious = 
+          { x = 0
+          , y = 0
+          }
+        , mouseDown = False
+        , map = map1
+        }
       , Cmd.batch []
     )
+
+type Msg 
+  = Click (Float, Float)
+  | MouseDown (Float, Float)
+  | MouseMove (Float, Float)
+  | MouseUp (Float, Float)
+  | None
+
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model = 
   case msg of
     Click (x, y) ->
       ({ model | x = x, y = y }, Cmd.none)
+    MouseDown (x, y) ->
+      ({ model 
+          | mouseDown = True
+          , dragStart = {x = x, y = y}
+          , dragPrevious = {x = x, y = y}
+        }
+        , Cmd.none
+      )
+    MouseMove (x, y) ->
+      case model.mouseDown of
+        False ->
+          ( model 
+              -- | dragPrevious = {x = x, y = y}
+            -- }
+            , Cmd.none
+          )
+        True ->
+          let 
+            tempMap = model.map
+            deltaX = x - model.dragPrevious.x
+            deltaY = y - model.dragPrevious.y
+            newPixelCoordinates = panPixelCoordinates model.map.finalPixelCoordinates deltaX deltaY
+            newGeoCoordinates = transformPixelToGeoCoordinates model.map.zoom newPixelCoordinates
+            newTileRange = Types.getTileRange newPixelCoordinates
+            newMap = { tempMap 
+                        | finalPixelCoordinates = newPixelCoordinates
+                        , finalGeoCoordinates = newGeoCoordinates
+                        , tileRange = newTileRange 
+                        }
+          in
+          ({ model 
+              | dragPrevious = {x = x, y = y}
+              , map = newMap
+            }
+            , Cmd.none
+          )
+    MouseUp (x, y) ->
+      ({ model 
+          | mouseDown = False
+        }
+        , Cmd.none
+      )
     None ->
       (model, Cmd.none)
 
-subscriptions : Model -> Sub Msg
-subscriptions model =
-  Sub.none
 
 view : Model -> Html Msg
 view model = 
   div 
     []
-    [ CoordinateViewer.view model.x model.y map1.zoom    
+    [ CoordinateViewer.view model.x model.y model.map.zoom    
+    , CoordinateUtils.view model.dragPrevious model.map.tileRange.panFromLeft model.map.tileRange.panFromTop
     , div
       ( 
          List.concat [
           [
-            Pointer.onDown 
+            -- Pointer.onDown 
+            --   (\event -> 
+            --     let (x,y) = event.pointer.offsetPos 
+            --     in Click ( x + toFloat model.map.finalPixelCoordinates.leftX
+            --              , y + toFloat model.map.finalPixelCoordinates.topY
+            --              )
+            --   )
+           Pointer.onDown 
               (\event -> 
                 let (x,y) = event.pointer.offsetPos 
-                in Click ( x + toFloat map1.finalPixelCoordinates.leftX
-                         , y + toFloat map1.finalPixelCoordinates.topY
-                         )
+                in MouseDown (x,y)
+              )
+          , Pointer.onUp 
+              (\event -> 
+                let (x,y) = event.pointer.offsetPos 
+                in MouseUp  (x,y)
+              )
+          , Pointer.onMove 
+              (\event -> 
+                let (x,y) = event.pointer.offsetPos 
+                in MouseMove  (x,y)
               )
           ],(
         ElmStyle.createStyleList 
-          [ ("height", (String.fromInt map1.window.height) ++ "px")
-          , ("width", (String.fromInt map1.window.width)++"px")
+          [ ("height", (String.fromInt model.map.window.height) ++ "px")
+          , ("width", (String.fromInt model.map.window.width)++"px")
           , ("overflow", "hidden")
           , ("position", "relative")
           ] 
@@ -86,9 +165,9 @@ view model =
            
             ElmStyle.createStyleList 
               [ ("position", "absolute")
-              , ("top", (String.fromInt -map1.tileRange.panFromTop)++"px")
-              , ("left", (String.fromInt -map1.tileRange.panFromLeft)++"px")
-              , ("overflow", "hidden")
+              , ("top", (String.fromInt -model.map.tileRange.panFromTop)++"px")
+              , ("left", (String.fromInt -model.map.tileRange.panFromLeft)++"px")
+              -- , ("transition", "top 0.2s, left 0.2s")
               , ("pointer-events", "none")
               ] 
           )
@@ -98,9 +177,8 @@ view model =
             \y ->
             div
               ( ElmStyle.createStyleList 
-                  [ ("pointer-events", "none")
-                  , ("height", "256px")
-                  , ("width", (String.fromInt (256*(List.length map1.tileRange.rangeX)))++"px")
+                  [ ("height", "256px")
+                  , ("width", (String.fromInt (256*(List.length model.map.tileRange.rangeX)))++"px")
                   ] 
               )
               (List.map 
@@ -109,17 +187,21 @@ view model =
                   img
                   (
                     List.concat [
-                      [ src (createMapBoxUrl map1.zoom x y)
+                      [ src (createMapBoxUrl model.map.zoom x y)
                       ]
-                      , ( ElmStyle.createStyleList [("pointer-events", "none"),("height", "256px"), ("width", "256px")] )
+                      , ( ElmStyle.createStyleList 
+                            [ ("height", "256px")
+                            , ("width", "256px")
+                            -- , ("position", "absolute")
+                            ] )
                     ]
                   )
                   []
                 ) 
-                map1.tileRange.rangeX
+                model.map.tileRange.rangeX
               )
           )
-          map1.tileRange.rangeY
+          model.map.tileRange.rangeY
         )
       ]
     ]

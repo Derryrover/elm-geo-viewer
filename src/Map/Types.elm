@@ -44,6 +44,13 @@ type alias CompleteMapConfiguration =
   , tileRange: TileRange
   }
 
+-- type alias MapConfigurationForView = 
+--   { window: Window
+--   , zoom: Int
+--   , geoCoordinates: GeoCoordinates
+--   , pixelCoordinates: PixelCoordinates
+--   , tileRange: TileRange
+--   }
 
 
 
@@ -153,11 +160,21 @@ adaptPixelCoordinatesForWindow window pixelCoordinates =
             topY = yTopNew,
             bottomY = yBottomNew
         }
-  -- { leftX = 1
-  -- , rightX = 2
-  -- , topY = 1
-  -- , bottomY = 2 
-  -- }
+
+panPixelCoordinates: PixelCoordinates -> Float -> Float -> PixelCoordinates
+panPixelCoordinates coordinates xFloat yFloat = 
+  let 
+    x = round xFloat
+    y = round yFloat
+  in
+    { leftX = coordinates.leftX - x
+    , rightX = coordinates.rightX - x
+    , topY = coordinates.topY - y
+    , bottomY = coordinates.bottomY - y
+    }
+
+
+
 
 transformPixelToGeoCoordinates: Int -> PixelCoordinates -> GeoCoordinates
 transformPixelToGeoCoordinates zoom pixelCoordinates =
