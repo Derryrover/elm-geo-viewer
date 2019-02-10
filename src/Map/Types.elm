@@ -161,18 +161,35 @@ adaptPixelCoordinatesForWindow window pixelCoordinates =
             bottomY = yBottomNew
         }
 
-panPixelCoordinates: PixelCoordinates -> Float -> Float -> Int -> PixelCoordinates
-panPixelCoordinates coordinates xFloat yFloat zoom = 
+panPixelCoordinates: PixelCoordinates -> Window -> Float -> Float -> Int -> PixelCoordinates
+panPixelCoordinates coordinates window xFloat yFloat zoom = 
   let 
     x = round xFloat
     y = round yFloat
-    -- newLeftX = 
+    leftX = coordinates.leftX - x
+    rightX = coordinates.rightX - x
+    topY = coordinates.topY - y
+    bottomY = coordinates.bottomY - y
+    maxBottomY = 256 * (tilesFromZoom zoom)
   in
-    { leftX = coordinates.leftX - x
-    , rightX = coordinates.rightX - x
-    , topY = coordinates.topY - y
-    , bottomY = coordinates.bottomY - y
-    }
+    if topY < 0 then
+      { leftX = coordinates.leftX - x
+      , rightX = coordinates.rightX - x
+      , topY = 0
+      , bottomY = window.height
+      }
+    else if (topY + window.height) > maxBottomY then --bottomY > maxBottomY then
+      { leftX = coordinates.leftX - x
+      , rightX = coordinates.rightX - x
+      , topY = maxBottomY - window.height
+      , bottomY = maxBottomY
+      }
+    else
+      { leftX = coordinates.leftX - x
+      , rightX = coordinates.rightX - x
+      , topY = coordinates.topY - y
+      , bottomY = coordinates.bottomY - y
+      }
 
 
 
@@ -196,13 +213,49 @@ getTileRange pixelCoordinates zoom =
     xTileRight = (Basics.ceiling ( rightX / 256 )) + 1
     yTileTop = (Basics.floor ( topY / 256 )) - 1
     yTileBottom = (Basics.ceiling ( bottomY / 256 )) + 1
+    amountTiles = tilesFromZoom zoom
   in
-    { rangeX = List.range xTileLeft xTileRight
-    , rangeY = List.range yTileTop yTileBottom
-    , panFromLeft = (modBy 256 pixelCoordinates.leftX) -- + 256
-    , panFromTop = (modBy 256 pixelCoordinates.topY) -- + 256
+    { rangeX = List.range xTileLeft xTileRight--getTileRangeHelper xTileLeft xTileRight amountTiles --List.range xTileLeft xTileRight
+    , rangeY = List.range yTileTop yTileBottom --amountTiles
+    , panFromLeft = (modBy 256 pixelCoordinates.leftX) -- + 256 -- is this still used ?
+    , panFromTop = (modBy 256 pixelCoordinates.topY) -- + 256 -- is this still used ?
     }
+
+getTileRangeHelper min max maxTiles =
+  let
+    preZeroRange = 
+      if min < 0 then
+        let 
+          preZero = maxTiles + min
+        in 
+          List.range preZero maxTiles
+      else
+        []
+    normalRange = List.range min max
+    normalRangeFilteredZero = List.filter (\n-> -1 < n) normalRange
+    normalRangeFiltered = List.filter (\n-> n < maxTiles) normalRangeFilteredZero
+    postMaxRange = 
+      if max >= maxTiles then
+        let 
+          postNormal = max - maxTiles
+        in
+          List.range postNormal (maxTiles - 1) 
+      else
+        []
+  in
+    List.concat [preZeroRange, normalRangeFiltered, postMaxRange]
+  
+  
+
 
 tilesFromZoom: Int -> Int
 tilesFromZoom zoom = 
-  (zoom + 1) ^ 2
+  case zoom of 
+    0 ->
+      1
+    1 ->
+      2
+    other ->
+      2 * (tilesFromZoom (other - 1))
+  -- (zoom + 1) ^ 2
+  --zoom ^ 2

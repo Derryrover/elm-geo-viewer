@@ -96,7 +96,7 @@ update msg model =
             tempMap = model.map
             deltaX = x - model.dragStart.x
             deltaY = y - model.dragStart.y
-            newPixelCoordinates = panPixelCoordinates model.dragStartPixels deltaX deltaY model.map.zoom
+            newPixelCoordinates = panPixelCoordinates model.dragStartPixels model.map.window deltaX deltaY model.map.zoom
             newGeoCoordinates = transformPixelToGeoCoordinates model.map.zoom newPixelCoordinates
             newTileRange = Types.getTileRange newPixelCoordinates
             newMap = { tempMap 
@@ -123,6 +123,10 @@ update msg model =
 
 view : Model -> Html Msg
 view model = 
+  let
+    maxTilesOnAxis = Types.tilesFromZoom model.map.zoom
+  in
+  
   div 
     []
     [ CoordinateViewer.view model.x model.y model.map.zoom    
@@ -213,7 +217,7 @@ view model =
                     img
                   (
                     List.concat [
-                      [ src (createMapBoxUrl model.map.zoom x y)
+                      [ src (createMapBoxUrl model.map.zoom (modBy maxTilesOnAxis x) (modBy maxTilesOnAxis y))
                       ]
                   ]
                   )

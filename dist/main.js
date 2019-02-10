@@ -4431,6 +4431,17 @@ var author$project$Types$adaptPixelCoordinatesForWindow = F2(
 				{bottomY: yBottomNew, topY: yTopNew});
 		}
 	});
+var author$project$Types$tilesFromZoom = function (zoom) {
+	switch (zoom) {
+		case 0:
+			return 1;
+		case 1:
+			return 2;
+		default:
+			var other = zoom;
+			return 2 * author$project$Types$tilesFromZoom(other - 1);
+	}
+};
 var elm$core$Basics$ceiling = _Basics_ceiling;
 var elm$core$Basics$floor = _Basics_floor;
 var elm$core$Basics$modBy = _Basics_modBy;
@@ -4466,6 +4477,7 @@ var author$project$Types$getTileRange = F2(
 		var xTileLeft = elm$core$Basics$floor(leftX / 256) - 1;
 		var bottomY = pixelCoordinates.bottomY;
 		var yTileBottom = elm$core$Basics$ceiling(bottomY / 256) + 1;
+		var amountTiles = author$project$Types$tilesFromZoom(zoom);
 		return {
 			panFromLeft: A2(elm$core$Basics$modBy, 256, pixelCoordinates.leftX),
 			panFromTop: A2(elm$core$Basics$modBy, 256, pixelCoordinates.topY),
@@ -5005,11 +5017,16 @@ var elm$core$Platform$Sub$none = elm$core$Platform$Sub$batch(_List_Nil);
 var author$project$Main$subscriptions = function (model) {
 	return elm$core$Platform$Sub$none;
 };
-var author$project$Types$panPixelCoordinates = F4(
-	function (coordinates, xFloat, yFloat, zoom) {
+var author$project$Types$panPixelCoordinates = F5(
+	function (coordinates, window, xFloat, yFloat, zoom) {
 		var y = elm$core$Basics$round(yFloat);
 		var x = elm$core$Basics$round(xFloat);
-		return {bottomY: coordinates.bottomY - y, leftX: coordinates.leftX - x, rightX: coordinates.rightX - x, topY: coordinates.topY - y};
+		var topY = coordinates.topY - y;
+		var rightX = coordinates.rightX - x;
+		var maxBottomY = 256 * author$project$Types$tilesFromZoom(zoom);
+		var leftX = coordinates.leftX - x;
+		var bottomY = coordinates.bottomY - y;
+		return (topY < 0) ? {bottomY: window.height, leftX: coordinates.leftX - x, rightX: coordinates.rightX - x, topY: 0} : ((_Utils_cmp(topY + window.height, maxBottomY) > 0) ? {bottomY: maxBottomY, leftX: coordinates.leftX - x, rightX: coordinates.rightX - x, topY: maxBottomY - window.height} : {bottomY: coordinates.bottomY - y, leftX: coordinates.leftX - x, rightX: coordinates.rightX - x, topY: coordinates.topY - y});
 	});
 var elm$core$Platform$Cmd$none = elm$core$Platform$Cmd$batch(_List_Nil);
 var author$project$Map$update = F2(
@@ -5049,7 +5066,7 @@ var author$project$Map$update = F2(
 					var tempMap = model.map;
 					var deltaY = y - model.dragStart.y;
 					var deltaX = x - model.dragStart.x;
-					var newPixelCoordinates = A4(author$project$Types$panPixelCoordinates, model.dragStartPixels, deltaX, deltaY, model.map.zoom);
+					var newPixelCoordinates = A5(author$project$Types$panPixelCoordinates, model.dragStartPixels, model.map.window, deltaX, deltaY, model.map.zoom);
 					var newGeoCoordinates = A2(author$project$Types$transformPixelToGeoCoordinates, model.map.zoom, newPixelCoordinates);
 					var newTileRange = author$project$Types$getTileRange(newPixelCoordinates);
 					var newMap = _Utils_update(
@@ -5535,6 +5552,7 @@ var mpizenberg$elm_pointer_events$Html$Events$Extra$Pointer$onDown = A2(mpizenbe
 var mpizenberg$elm_pointer_events$Html$Events$Extra$Pointer$onMove = A2(mpizenberg$elm_pointer_events$Html$Events$Extra$Pointer$onWithOptions, 'pointermove', mpizenberg$elm_pointer_events$Html$Events$Extra$Pointer$defaultOptions);
 var mpizenberg$elm_pointer_events$Html$Events$Extra$Pointer$onUp = A2(mpizenberg$elm_pointer_events$Html$Events$Extra$Pointer$onWithOptions, 'pointerup', mpizenberg$elm_pointer_events$Html$Events$Extra$Pointer$defaultOptions);
 var author$project$Map$view = function (model) {
+	var maxTilesOnAxis = author$project$Types$tilesFromZoom(model.map.zoom);
 	return A2(
 		elm$html$Html$div,
 		_List_Nil,
@@ -5651,7 +5669,11 @@ var author$project$Map$view = function (model) {
 																	_List_fromArray(
 																	[
 																		elm$html$Html$Attributes$src(
-																		A3(author$project$MapBoxUtils$createMapBoxUrl, model.map.zoom, x, y))
+																		A3(
+																			author$project$MapBoxUtils$createMapBoxUrl,
+																			model.map.zoom,
+																			A2(elm$core$Basics$modBy, maxTilesOnAxis, x),
+																			A2(elm$core$Basics$modBy, maxTilesOnAxis, y)))
 																	])
 																])),
 														_List_Nil)
