@@ -6,6 +6,8 @@ import Browser exposing(element)
 import Html exposing (..)
 import Html.Events
 import Html.Events.Extra.Pointer as Pointer
+import Types
+import ProjectionWebMercator
 
 type alias Model = Int
 
@@ -18,6 +20,43 @@ update msg model =
   case msg of 
     Plus -> model + 1
     Minus -> model - 1
+
+-- first assume center of map will stay center of map
+-- next version will also pass in coordinate that must remain coordinate
+updateWholeMapForZoom : Model -> Types.CompleteMapConfiguration -> Types.CompleteMapConfiguration
+updateWholeMapForZoom  newZoom oldMapConfiguration = --oldMapConfiguration
+  let
+    windowZoomCenter = 
+      { x = oldMapConfiguration.window.width // 2
+      , y = oldMapConfiguration.window.height // 2
+      }
+    pixelZoomCenter = --Types.getPixelCenterFromWindow oldMapConfiguration.finalPixelCoordinateWindow
+      { x = oldMapConfiguration.finalPixelCoordinateWindow.leftX + windowZoomCenter.x
+      , y = oldMapConfiguration.finalPixelCoordinateWindow.topY + windowZoomCenter.y
+      }
+    geoZoomCenter = Types.pixelPointToGeoPointCoordinates oldMapConfiguration.zoom pixelZoomCenter
+    pixelCenterNewZoom = --Types.getPixelCenterFromWindow oldMapConfiguration.finalPixelCoordinateWindow
+      { x = round (ProjectionWebMercator.longToX geoZoomCenter.long newZoom)
+      , y = round (ProjectionWebMercator.latToY geoZoomCenter.lat newZoom)
+      }
+    newPixelWindowLeftX = pixelCenterNewZoom.x - windowZoomCenter.x
+    newPixelWindowRightX = newPixelWindowLeftX + oldMapConfiguration.window.width
+    newPixelWindowTopY = pixelCenterNewZoom.y - windowZoomCenter.y
+    newPixelWindowBottomY = newPixelWindowTopY + oldMapConfiguration.window.height
+    newPixelWindow = 
+      { leftX = newPixelWindowLeftX
+      , rightX = newPixelWindowRightX
+      , topY = newPixelWindowTopY
+      , bottomY = newPixelWindowBottomY
+      }
+    newGeoWindow = Types.transformPixelToGeoCoordinateWindow newZoom newPixelWindow
+  in
+    { oldMapConfiguration
+    | zoom = newZoom
+    , finalPixelCoordinateWindow = newPixelWindow
+    , finalGeoCoordinateWindow = newGeoWindow
+    , tileRange = Types.getTileRange newPixelWindow newZoom
+    }
 
 view : Model -> Html Msg
 view model = 

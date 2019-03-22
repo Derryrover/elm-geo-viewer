@@ -4407,27 +4407,27 @@ var elm$core$Basics$mul = _Basics_mul;
 var elm$core$Basics$round = _Basics_round;
 var elm$core$Basics$sub = _Basics_sub;
 var elm$core$Basics$toFloat = _Basics_toFloat;
-var author$project$Types$adaptPixelCoordinatesForWindow = F2(
-	function (window, pixelCoordinates) {
+var author$project$Types$adaptPixelCoordinateWindowForWindow = F2(
+	function (window, pixelCoordinateWindow) {
 		var relativeWidthHeight = window.height / window.width;
-		var deltaY = elm$core$Basics$abs(pixelCoordinates.topY - pixelCoordinates.bottomY);
-		var deltaX = elm$core$Basics$abs(pixelCoordinates.rightX - pixelCoordinates.leftX);
+		var deltaY = elm$core$Basics$abs(pixelCoordinateWindow.topY - pixelCoordinateWindow.bottomY);
+		var deltaX = elm$core$Basics$abs(pixelCoordinateWindow.rightX - pixelCoordinateWindow.leftX);
 		var relativeLongLat = deltaY / deltaX;
 		if (_Utils_cmp(relativeLongLat, relativeWidthHeight) > 0) {
 			var width = deltaY / relativeWidthHeight;
 			var halfWidthDelta = elm$core$Basics$abs(width - deltaX) / 2;
-			var xLeftNew = pixelCoordinates.leftX - elm$core$Basics$round(halfWidthDelta);
-			var xRightNew = pixelCoordinates.rightX + elm$core$Basics$round(halfWidthDelta);
+			var xLeftNew = pixelCoordinateWindow.leftX - elm$core$Basics$round(halfWidthDelta);
+			var xRightNew = pixelCoordinateWindow.rightX + elm$core$Basics$round(halfWidthDelta);
 			return _Utils_update(
-				pixelCoordinates,
+				pixelCoordinateWindow,
 				{leftX: xLeftNew, rightX: xRightNew});
 		} else {
 			var height = deltaX * relativeWidthHeight;
 			var halfheightDelta = elm$core$Basics$abs(height - deltaY) / 2;
-			var yBottomNew = pixelCoordinates.bottomY + elm$core$Basics$round(halfheightDelta);
-			var yTopNew = pixelCoordinates.topY - elm$core$Basics$round(halfheightDelta);
+			var yBottomNew = pixelCoordinateWindow.bottomY + elm$core$Basics$round(halfheightDelta);
+			var yTopNew = pixelCoordinateWindow.topY - elm$core$Basics$round(halfheightDelta);
 			return _Utils_update(
-				pixelCoordinates,
+				pixelCoordinateWindow,
 				{bottomY: yBottomNew, topY: yTopNew});
 		}
 	});
@@ -4468,19 +4468,19 @@ var elm$core$List$range = F2(
 		return A3(elm$core$List$rangeHelp, lo, hi, _List_Nil);
 	});
 var author$project$Types$getTileRange = F2(
-	function (pixelCoordinates, zoom) {
-		var topY = pixelCoordinates.topY;
+	function (pixelCoordinateWindow, zoom) {
+		var topY = pixelCoordinateWindow.topY;
 		var yTileTop = elm$core$Basics$floor(topY / 256) - 1;
-		var rightX = pixelCoordinates.rightX;
+		var rightX = pixelCoordinateWindow.rightX;
 		var xTileRight = elm$core$Basics$ceiling(rightX / 256) + 1;
-		var leftX = pixelCoordinates.leftX;
+		var leftX = pixelCoordinateWindow.leftX;
 		var xTileLeft = elm$core$Basics$floor(leftX / 256) - 1;
-		var bottomY = pixelCoordinates.bottomY;
+		var bottomY = pixelCoordinateWindow.bottomY;
 		var yTileBottom = elm$core$Basics$ceiling(bottomY / 256) + 1;
 		var amountTiles = author$project$Types$tilesFromZoom(zoom);
 		return {
-			panFromLeft: A2(elm$core$Basics$modBy, 256, pixelCoordinates.leftX),
-			panFromTop: A2(elm$core$Basics$modBy, 256, pixelCoordinates.topY),
+			panFromLeft: A2(elm$core$Basics$modBy, 256, pixelCoordinateWindow.leftX),
+			panFromTop: A2(elm$core$Basics$modBy, 256, pixelCoordinateWindow.topY),
 			rangeX: A2(elm$core$List$range, xTileLeft, xTileRight),
 			rangeY: A2(elm$core$List$range, yTileTop, yTileBottom)
 		};
@@ -4508,17 +4508,17 @@ var author$project$ProjectionWebMercator$longToX = F2(
 		var zoom = zoomInt;
 		return ((256 / (2 * elm$core$Basics$pi)) * A2(elm$core$Basics$pow, 2, zoom)) * (_long + elm$core$Basics$pi);
 	});
-var author$project$Types$getPixelCoordinatesHelper = F2(
-	function (zoom, geoCoordinates) {
+var author$project$Types$getPixelCoordinateWindowHelper = F2(
+	function (zoom, geoCoordinateWindow) {
 		return {
 			bottomY: elm$core$Basics$round(
-				A2(author$project$ProjectionWebMercator$latToY, geoCoordinates.latBottom, zoom)),
+				A2(author$project$ProjectionWebMercator$latToY, geoCoordinateWindow.latBottom, zoom)),
 			leftX: elm$core$Basics$round(
-				A2(author$project$ProjectionWebMercator$longToX, geoCoordinates.longLeft, zoom)),
+				A2(author$project$ProjectionWebMercator$longToX, geoCoordinateWindow.longLeft, zoom)),
 			rightX: elm$core$Basics$round(
-				A2(author$project$ProjectionWebMercator$longToX, geoCoordinates.longRight, zoom)),
+				A2(author$project$ProjectionWebMercator$longToX, geoCoordinateWindow.longRight, zoom)),
 			topY: elm$core$Basics$round(
-				A2(author$project$ProjectionWebMercator$latToY, geoCoordinates.latTop, zoom))
+				A2(author$project$ProjectionWebMercator$latToY, geoCoordinateWindow.latTop, zoom))
 		};
 	});
 var author$project$Types$maxZoomLevel = 16;
@@ -4529,22 +4529,22 @@ var elm$core$Maybe$Just = function (a) {
 };
 var elm$core$Maybe$Nothing = {$: 'Nothing'};
 var author$project$Types$getZoomLevelHelper = F3(
-	function (testZoom, window, geoCoordinates) {
-		var pixelCoordinates = A2(author$project$Types$getPixelCoordinatesHelper, testZoom, geoCoordinates);
-		var deltaY = elm$core$Basics$abs(pixelCoordinates.topY - pixelCoordinates.bottomY);
-		var deltaX = elm$core$Basics$abs(pixelCoordinates.rightX - pixelCoordinates.leftX);
+	function (testZoom, window, geoCoordinateWindow) {
+		var pixelCoordinateWindow = A2(author$project$Types$getPixelCoordinateWindowHelper, testZoom, geoCoordinateWindow);
+		var deltaY = elm$core$Basics$abs(pixelCoordinateWindow.topY - pixelCoordinateWindow.bottomY);
+		var deltaX = elm$core$Basics$abs(pixelCoordinateWindow.rightX - pixelCoordinateWindow.leftX);
 		if ((_Utils_cmp(deltaX, window.width) > 0) || (_Utils_cmp(deltaY, window.height) > 0)) {
 			return (!testZoom) ? elm$core$Maybe$Just(
-				{pixelCoordinates: pixelCoordinates, zoom: 0}) : elm$core$Maybe$Nothing;
+				{pixelCoordinateWindow: pixelCoordinateWindow, zoom: 0}) : elm$core$Maybe$Nothing;
 		} else {
 			if (_Utils_eq(testZoom, author$project$Types$maxZoomLevel)) {
 				return elm$core$Maybe$Just(
-					{pixelCoordinates: pixelCoordinates, zoom: author$project$Types$maxZoomLevel});
+					{pixelCoordinateWindow: pixelCoordinateWindow, zoom: author$project$Types$maxZoomLevel});
 			} else {
-				var testBiggerZoom = A3(author$project$Types$getZoomLevelHelper, testZoom + 1, window, geoCoordinates);
+				var testBiggerZoom = A3(author$project$Types$getZoomLevelHelper, testZoom + 1, window, geoCoordinateWindow);
 				if (testBiggerZoom.$ === 'Nothing') {
 					return elm$core$Maybe$Just(
-						{pixelCoordinates: pixelCoordinates, zoom: testZoom});
+						{pixelCoordinateWindow: pixelCoordinateWindow, zoom: testZoom});
 				} else {
 					var result = testBiggerZoom.a;
 					return elm$core$Maybe$Just(result);
@@ -4552,12 +4552,12 @@ var author$project$Types$getZoomLevelHelper = F3(
 			}
 		}
 	});
-var author$project$Types$mapSettingsToZoomAndPixelCoordinates = F2(
-	function (window, geoCoordinates) {
-		var maybeZoomCoordinates = A3(author$project$Types$getZoomLevelHelper, 0, window, geoCoordinates);
+var author$project$Types$mapSettingsToZoomAndPixelCoordinateWindow = F2(
+	function (window, geoCoordinateWindow) {
+		var maybeZoomCoordinates = A3(author$project$Types$getZoomLevelHelper, 0, window, geoCoordinateWindow);
 		if (maybeZoomCoordinates.$ === 'Nothing') {
 			return {
-				pixelCoordinates: {bottomY: 2, leftX: 1, rightX: 2, topY: 1},
+				pixelCoordinateWindow: {bottomY: 2, leftX: 1, rightX: 2, topY: 1},
 				zoom: 1
 			};
 		} else {
@@ -4588,26 +4588,26 @@ var author$project$ProjectionWebMercator$yToLat = F2(
 		var temp7 = temp6 * 2;
 		return temp7;
 	});
-var author$project$Types$transformPixelToGeoCoordinates = F2(
-	function (zoom, pixelCoordinates) {
+var author$project$Types$transformPixelToGeoCoordinateWindow = F2(
+	function (zoom, pixelCoordinateWindow) {
 		return {
-			latBottom: A2(author$project$ProjectionWebMercator$yToLat, pixelCoordinates.bottomY, zoom),
-			latTop: A2(author$project$ProjectionWebMercator$yToLat, pixelCoordinates.topY, zoom),
-			longLeft: A2(author$project$ProjectionWebMercator$xToLong, pixelCoordinates.leftX, zoom),
-			longRight: A2(author$project$ProjectionWebMercator$xToLong, pixelCoordinates.rightX, zoom)
+			latBottom: A2(author$project$ProjectionWebMercator$yToLat, pixelCoordinateWindow.bottomY, zoom),
+			latTop: A2(author$project$ProjectionWebMercator$yToLat, pixelCoordinateWindow.topY, zoom),
+			longLeft: A2(author$project$ProjectionWebMercator$xToLong, pixelCoordinateWindow.leftX, zoom),
+			longRight: A2(author$project$ProjectionWebMercator$xToLong, pixelCoordinateWindow.rightX, zoom)
 		};
 	});
-var author$project$Types$getCompleteMapConfigurationFromWindowAndGeoCoordinates = F2(
-	function (window, geoCoordinates) {
-		var zoomPlusPixel = A2(author$project$Types$mapSettingsToZoomAndPixelCoordinates, window, geoCoordinates);
-		var adaptedPixelCoordinates = A2(author$project$Types$adaptPixelCoordinatesForWindow, window, zoomPlusPixel.pixelCoordinates);
-		var newGeo = A2(author$project$Types$transformPixelToGeoCoordinates, zoomPlusPixel.zoom, adaptedPixelCoordinates);
+var author$project$Types$getCompleteMapConfigurationFromWindowAndGeoCoordinateWindow = F2(
+	function (window, geoCoordinateWindow) {
+		var zoomPlusPixel = A2(author$project$Types$mapSettingsToZoomAndPixelCoordinateWindow, window, geoCoordinateWindow);
+		var adaptedPixelCoordinateWindow = A2(author$project$Types$adaptPixelCoordinateWindowForWindow, window, zoomPlusPixel.pixelCoordinateWindow);
+		var newGeo = A2(author$project$Types$transformPixelToGeoCoordinateWindow, zoomPlusPixel.zoom, adaptedPixelCoordinateWindow);
 		return {
-			finalGeoCoordinates: newGeo,
-			finalPixelCoordinates: adaptedPixelCoordinates,
-			initialGeoCoordinates: geoCoordinates,
-			initialPixelCoordinates: zoomPlusPixel.pixelCoordinates,
-			tileRange: A2(author$project$Types$getTileRange, adaptedPixelCoordinates, zoomPlusPixel.zoom),
+			finalGeoCoordinateWindow: newGeo,
+			finalPixelCoordinateWindow: adaptedPixelCoordinateWindow,
+			initialGeoCoordinateWindow: geoCoordinateWindow,
+			initialPixelCoordinateWindow: zoomPlusPixel.pixelCoordinateWindow,
+			tileRange: A2(author$project$Types$getTileRange, adaptedPixelCoordinateWindow, zoomPlusPixel.zoom),
 			window: window,
 			zoom: zoomPlusPixel.zoom
 		};
@@ -4616,7 +4616,7 @@ var elm$core$Basics$degrees = function (angleInDegrees) {
 	return (angleInDegrees * elm$core$Basics$pi) / 180;
 };
 var author$project$MapData$map1 = A2(
-	author$project$Types$getCompleteMapConfigurationFromWindowAndGeoCoordinates,
+	author$project$Types$getCompleteMapConfigurationFromWindowAndGeoCoordinateWindow,
 	{height: 1000, width: 1000},
 	{
 		latBottom: elm$core$Basics$degrees(50.731588),
@@ -4984,7 +4984,7 @@ var author$project$Map$init = function (_n0) {
 		{
 			dragPrevious: {x: 0, y: 0},
 			dragStart: {x: 0, y: 0},
-			dragStartPixels: author$project$MapData$map1.finalPixelCoordinates,
+			dragStartPixels: author$project$MapData$map1.finalPixelCoordinateWindow,
 			map: author$project$MapData$map1,
 			mouseDown: false,
 			x: 0,
@@ -5017,7 +5017,7 @@ var elm$core$Platform$Sub$none = elm$core$Platform$Sub$batch(_List_Nil);
 var author$project$Main$subscriptions = function (model) {
 	return elm$core$Platform$Sub$none;
 };
-var author$project$Types$panPixelCoordinates = F5(
+var author$project$Types$panPixelCoordinateWindow = F5(
 	function (coordinates, window, xFloat, yFloat, zoom) {
 		var y = elm$core$Basics$round(yFloat);
 		var x = elm$core$Basics$round(xFloat);
@@ -5036,6 +5036,39 @@ var author$project$ZoomLevel$update = F2(
 			return model - 1;
 		}
 	});
+var author$project$Types$pixelPointToGeoPointCoordinates = F2(
+	function (zoom, pixelPoint) {
+		return {
+			lat: A2(author$project$ProjectionWebMercator$yToLat, pixelPoint.y, zoom),
+			_long: A2(author$project$ProjectionWebMercator$xToLong, pixelPoint.x, zoom)
+		};
+	});
+var author$project$ZoomLevel$updateWholeMapForZoom = F2(
+	function (newZoom, oldMapConfiguration) {
+		var windowZoomCenter = {x: (oldMapConfiguration.window.width / 2) | 0, y: (oldMapConfiguration.window.height / 2) | 0};
+		var pixelZoomCenter = {x: oldMapConfiguration.finalPixelCoordinateWindow.leftX + windowZoomCenter.x, y: oldMapConfiguration.finalPixelCoordinateWindow.topY + windowZoomCenter.y};
+		var geoZoomCenter = A2(author$project$Types$pixelPointToGeoPointCoordinates, oldMapConfiguration.zoom, pixelZoomCenter);
+		var pixelCenterNewZoom = {
+			x: elm$core$Basics$round(
+				A2(author$project$ProjectionWebMercator$longToX, geoZoomCenter._long, newZoom)),
+			y: elm$core$Basics$round(
+				A2(author$project$ProjectionWebMercator$latToY, geoZoomCenter.lat, newZoom))
+		};
+		var newPixelWindowLeftX = pixelCenterNewZoom.x - windowZoomCenter.x;
+		var newPixelWindowRightX = newPixelWindowLeftX + oldMapConfiguration.window.width;
+		var newPixelWindowTopY = pixelCenterNewZoom.y - windowZoomCenter.y;
+		var newPixelWindowBottomY = newPixelWindowTopY + oldMapConfiguration.window.height;
+		var newPixelWindow = {bottomY: newPixelWindowBottomY, leftX: newPixelWindowLeftX, rightX: newPixelWindowRightX, topY: newPixelWindowTopY};
+		var newGeoWindow = A2(author$project$Types$transformPixelToGeoCoordinateWindow, newZoom, newPixelWindow);
+		return _Utils_update(
+			oldMapConfiguration,
+			{
+				finalGeoCoordinateWindow: newGeoWindow,
+				finalPixelCoordinateWindow: newPixelWindow,
+				tileRange: A2(author$project$Types$getTileRange, newPixelWindow, newZoom),
+				zoom: newZoom
+			});
+	});
 var elm$core$Platform$Cmd$none = elm$core$Platform$Cmd$batch(_List_Nil);
 var author$project$Map$update = F2(
 	function (msg, model) {
@@ -5045,14 +5078,11 @@ var author$project$Map$update = F2(
 				var map = model.map;
 				var zoom = map.zoom;
 				var newZoom = A2(author$project$ZoomLevel$update, plusOrMinus, zoom);
+				var newMap = A2(author$project$ZoomLevel$updateWholeMapForZoom, newZoom, map);
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
-						{
-							map: _Utils_update(
-								map,
-								{zoom: newZoom})
-						}),
+						{map: newMap}),
 					elm$core$Platform$Cmd$none);
 			case 'Click':
 				var _n1 = msg.a;
@@ -5073,7 +5103,7 @@ var author$project$Map$update = F2(
 						{
 							dragPrevious: {x: x, y: y},
 							dragStart: {x: x, y: y},
-							dragStartPixels: model.map.finalPixelCoordinates,
+							dragStartPixels: model.map.finalPixelCoordinateWindow,
 							mouseDown: true
 						}),
 					elm$core$Platform$Cmd$none);
@@ -5088,14 +5118,14 @@ var author$project$Map$update = F2(
 					var tempMap = model.map;
 					var deltaY = y - model.dragStart.y;
 					var deltaX = x - model.dragStart.x;
-					var newPixelCoordinates = A5(author$project$Types$panPixelCoordinates, model.dragStartPixels, model.map.window, deltaX, deltaY, model.map.zoom);
-					var newGeoCoordinates = A2(author$project$Types$transformPixelToGeoCoordinates, model.map.zoom, newPixelCoordinates);
-					var newTileRange = author$project$Types$getTileRange(newPixelCoordinates);
+					var newPixelCoordinateWindow = A5(author$project$Types$panPixelCoordinateWindow, model.dragStartPixels, model.map.window, deltaX, deltaY, model.map.zoom);
+					var newGeoCoordinateWindow = A2(author$project$Types$transformPixelToGeoCoordinateWindow, model.map.zoom, newPixelCoordinateWindow);
+					var newTileRange = author$project$Types$getTileRange(newPixelCoordinateWindow);
 					var newMap = _Utils_update(
 						tempMap,
 						{
-							finalGeoCoordinates: newGeoCoordinates,
-							finalPixelCoordinates: newPixelCoordinates,
+							finalGeoCoordinateWindow: newGeoCoordinateWindow,
+							finalPixelCoordinateWindow: newPixelCoordinateWindow,
 							tileRange: newTileRange(tempMap.zoom)
 						});
 					return _Utils_Tuple2(
@@ -5640,12 +5670,12 @@ var author$project$Map$view = function (model) {
 		_List_Nil,
 		_List_fromArray(
 			[
+				A3(author$project$CoordinateViewer$view, model.x, model.y, model.map.zoom),
+				A3(author$project$CoordinateUtils$view, model.dragPrevious, model.map.tileRange.panFromLeft, model.map.tileRange.panFromTop),
 				A2(
 				elm$html$Html$map,
 				author$project$Map$ZoomLevelMsg,
 				author$project$ZoomLevel$view(model.map.zoom)),
-				A3(author$project$CoordinateViewer$view, model.x, model.y, model.map.zoom),
-				A3(author$project$CoordinateUtils$view, model.dragPrevious, model.map.tileRange.panFromLeft, model.map.tileRange.panFromTop),
 				A2(
 				elm$html$Html$div,
 				elm$core$List$concat(
@@ -5701,10 +5731,10 @@ var author$project$Map$view = function (model) {
 									_Utils_Tuple2('position', 'absolute'),
 									_Utils_Tuple2(
 									'top',
-									elm$core$String$fromInt(-model.map.finalPixelCoordinates.topY) + 'px'),
+									elm$core$String$fromInt(-model.map.finalPixelCoordinateWindow.topY) + 'px'),
 									_Utils_Tuple2(
 									'left',
-									elm$core$String$fromInt(-model.map.finalPixelCoordinates.leftX) + 'px'),
+									elm$core$String$fromInt(-model.map.finalPixelCoordinateWindow.leftX) + 'px'),
 									_Utils_Tuple2('pointer-events', 'none')
 								])),
 						A2(

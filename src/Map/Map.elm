@@ -8,9 +8,9 @@ import Html.Events
 import Html.Events.Extra.Pointer as Pointer
 -- self made modules
 import ElmStyle
-import SizeXYLongLat exposing(getTileRange)
+-- import SizeXYLongLat exposing(getTileRange)
 import List
-import ProjectionWebMercator exposing(..)
+-- import ProjectionWebMercator exposing(..)
 import Types exposing(..)
 import CoordinateUtils exposing(Coordinate2d(..), PixelPoint)
 import CoordinateViewer
@@ -37,7 +37,7 @@ type alias Model =
   { x: Float
   , y: Float
   , dragStart: PixelPoint
-  , dragStartPixels: PixelCoordinates
+  , dragStartPixels: PixelCoordinateWindow
   , dragPrevious: PixelPoint
   , mouseDown: Bool
   , map: CompleteMapConfiguration
@@ -56,7 +56,7 @@ init _ =
           { x = 0
           , y = 0
           }
-        , dragStartPixels = map1.finalPixelCoordinates
+        , dragStartPixels = map1.finalPixelCoordinateWindow
         , mouseDown = False
         , map = map1
         }
@@ -80,8 +80,9 @@ update msg model =
         map = model.map
         zoom = map.zoom
         newZoom = ZoomLevel.update plusOrMinus zoom
+        newMap = ZoomLevel.updateWholeMapForZoom newZoom map
       in
-        ({model | map = {map | zoom = newZoom}}, Cmd.none)
+        ({model | map = newMap}, Cmd.none)
     Click (x, y) ->
       ({ model | x = x, y = y }, Cmd.none)
     MouseDown (x, y) ->
@@ -89,7 +90,7 @@ update msg model =
           | mouseDown = True
           , dragStart = {x = x, y = y}
           , dragPrevious = {x = x, y = y}
-          , dragStartPixels = model.map.finalPixelCoordinates
+          , dragStartPixels = model.map.finalPixelCoordinateWindow
         }
         , Cmd.none
       )
@@ -106,12 +107,12 @@ update msg model =
             tempMap = model.map
             deltaX = x - model.dragStart.x
             deltaY = y - model.dragStart.y
-            newPixelCoordinates = panPixelCoordinates model.dragStartPixels model.map.window deltaX deltaY model.map.zoom
-            newGeoCoordinates = transformPixelToGeoCoordinates model.map.zoom newPixelCoordinates
-            newTileRange = Types.getTileRange newPixelCoordinates
+            newPixelCoordinateWindow = panPixelCoordinateWindow model.dragStartPixels model.map.window deltaX deltaY model.map.zoom
+            newGeoCoordinateWindow = transformPixelToGeoCoordinateWindow model.map.zoom newPixelCoordinateWindow
+            newTileRange = Types.getTileRange newPixelCoordinateWindow
             newMap = { tempMap 
-                        | finalPixelCoordinates = newPixelCoordinates
-                        , finalGeoCoordinates = newGeoCoordinates
+                        | finalPixelCoordinateWindow = newPixelCoordinateWindow
+                        , finalGeoCoordinateWindow = newGeoCoordinateWindow
                         , tileRange = newTileRange tempMap.zoom
                         }
           in
@@ -139,9 +140,9 @@ view model =
   
   div 
     []
-    [ Html.map ZoomLevelMsg (ZoomLevel.view model.map.zoom)
-    , CoordinateViewer.view model.x model.y model.map.zoom    
+    [ CoordinateViewer.view model.x model.y model.map.zoom    
     , CoordinateUtils.view model.dragPrevious model.map.tileRange.panFromLeft model.map.tileRange.panFromTop
+    , Html.map ZoomLevelMsg (ZoomLevel.view model.map.zoom)
     , div
       ( 
          List.concat [
@@ -149,8 +150,8 @@ view model =
             -- Pointer.onDown 
             --   (\event -> 
             --     let (x,y) = event.pointer.offsetPos 
-            --     in Click ( x + toFloat model.map.finalPixelCoordinates.leftX
-            --              , y + toFloat model.map.finalPixelCoordinates.topY
+            --     in Click ( x + toFloat model.map.finalPixelCoordinateWindow.leftX
+            --              , y + toFloat model.map.finalPixelCoordinateWindow.topY
             --              )
             --   )
            Pointer.onDown 
@@ -185,8 +186,8 @@ view model =
               [ ("position", "absolute")
               -- , ("top", (String.fromInt -model.map.tileRange.panFromTop)++"px")
               -- , ("left", (String.fromInt -model.map.tileRange.panFromLeft)++"px")
-              , ("top", (String.fromInt -model.map.finalPixelCoordinates.topY)++"px")
-              , ("left", (String.fromInt -model.map.finalPixelCoordinates.leftX)++"px")
+              , ("top", (String.fromInt -model.map.finalPixelCoordinateWindow.topY)++"px")
+              , ("left", (String.fromInt -model.map.finalPixelCoordinateWindow.leftX)++"px")
               -- , ("transition", "top 0.02s, left 0.02s")
               , ("pointer-events", "none")
               ] 
