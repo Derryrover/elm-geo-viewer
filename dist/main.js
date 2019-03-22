@@ -4617,12 +4617,12 @@ var elm$core$Basics$degrees = function (angleInDegrees) {
 };
 var author$project$MapData$map1 = A2(
 	author$project$Types$getCompleteMapConfigurationFromWindowAndGeoCoordinates,
-	{height: 400, width: 800},
+	{height: 1000, width: 1000},
 	{
-		latBottom: elm$core$Basics$degrees(20.731588),
+		latBottom: elm$core$Basics$degrees(50.731588),
 		latTop: elm$core$Basics$degrees(53.498503),
 		longLeft: elm$core$Basics$degrees(3.409191),
-		longRight: elm$core$Basics$degrees(12.252712)
+		longRight: elm$core$Basics$degrees(24.252712)
 	});
 var elm$core$Basics$False = {$: 'False'};
 var elm$core$Basics$True = {$: 'True'};
@@ -5028,10 +5028,32 @@ var author$project$Types$panPixelCoordinates = F5(
 		var bottomY = coordinates.bottomY - y;
 		return (topY < 0) ? {bottomY: window.height, leftX: coordinates.leftX - x, rightX: coordinates.rightX - x, topY: 0} : ((_Utils_cmp(topY + window.height, maxBottomY) > 0) ? {bottomY: maxBottomY, leftX: coordinates.leftX - x, rightX: coordinates.rightX - x, topY: maxBottomY - window.height} : {bottomY: coordinates.bottomY - y, leftX: coordinates.leftX - x, rightX: coordinates.rightX - x, topY: coordinates.topY - y});
 	});
+var author$project$ZoomLevel$update = F2(
+	function (msg, model) {
+		if (msg.$ === 'Plus') {
+			return model + 1;
+		} else {
+			return model - 1;
+		}
+	});
 var elm$core$Platform$Cmd$none = elm$core$Platform$Cmd$batch(_List_Nil);
 var author$project$Map$update = F2(
 	function (msg, model) {
 		switch (msg.$) {
+			case 'ZoomLevelMsg':
+				var plusOrMinus = msg.a;
+				var map = model.map;
+				var zoom = map.zoom;
+				var newZoom = A2(author$project$ZoomLevel$update, plusOrMinus, zoom);
+				return _Utils_Tuple2(
+					_Utils_update(
+						model,
+						{
+							map: _Utils_update(
+								map,
+								{zoom: newZoom})
+						}),
+					elm$core$Platform$Cmd$none);
 			case 'Click':
 				var _n1 = msg.a;
 				var x = _n1.a;
@@ -5367,6 +5389,9 @@ var author$project$Map$MouseMove = function (a) {
 var author$project$Map$MouseUp = function (a) {
 	return {$: 'MouseUp', a: a};
 };
+var author$project$Map$ZoomLevelMsg = function (a) {
+	return {$: 'ZoomLevelMsg', a: a};
+};
 var author$project$MapBoxUtils$createMapBoxUrl = F3(
 	function (zoomInt, xInt, yInt) {
 		var zoom = elm$core$String$fromInt(zoomInt);
@@ -5374,6 +5399,62 @@ var author$project$MapBoxUtils$createMapBoxUrl = F3(
 		var x = elm$core$String$fromInt(xInt);
 		return 'http://tile.stamen.com/terrain-background/' + (zoom + ('/' + (x + ('/' + (y + '.png')))));
 	});
+var author$project$ZoomLevel$Minus = {$: 'Minus'};
+var author$project$ZoomLevel$Plus = {$: 'Plus'};
+var elm$html$Html$button = _VirtualDom_node('button');
+var elm$virtual_dom$VirtualDom$Normal = function (a) {
+	return {$: 'Normal', a: a};
+};
+var elm$virtual_dom$VirtualDom$on = _VirtualDom_on;
+var elm$html$Html$Events$on = F2(
+	function (event, decoder) {
+		return A2(
+			elm$virtual_dom$VirtualDom$on,
+			event,
+			elm$virtual_dom$VirtualDom$Normal(decoder));
+	});
+var elm$html$Html$Events$onClick = function (msg) {
+	return A2(
+		elm$html$Html$Events$on,
+		'click',
+		elm$json$Json$Decode$succeed(msg));
+};
+var author$project$ZoomLevel$view = function (model) {
+	return A2(
+		elm$html$Html$div,
+		_List_Nil,
+		_List_fromArray(
+			[
+				A2(
+				elm$html$Html$button,
+				_List_fromArray(
+					[
+						elm$html$Html$Events$onClick(author$project$ZoomLevel$Plus)
+					]),
+				_List_fromArray(
+					[
+						elm$html$Html$text('+')
+					])),
+				A2(
+				elm$html$Html$div,
+				_List_Nil,
+				_List_fromArray(
+					[
+						elm$html$Html$text(
+						elm$core$String$fromInt(model))
+					])),
+				A2(
+				elm$html$Html$button,
+				_List_fromArray(
+					[
+						elm$html$Html$Events$onClick(author$project$ZoomLevel$Minus)
+					]),
+				_List_fromArray(
+					[
+						elm$html$Html$text('-')
+					]))
+			]));
+};
 var elm$core$List$append = F2(
 	function (xs, ys) {
 		if (!ys.b) {
@@ -5386,6 +5467,8 @@ var elm$core$List$concat = function (lists) {
 	return A3(elm$core$List$foldr, elm$core$List$append, _List_Nil, lists);
 };
 var elm$html$Html$img = _VirtualDom_node('img');
+var elm$virtual_dom$VirtualDom$map = _VirtualDom_map;
+var elm$html$Html$map = elm$virtual_dom$VirtualDom$map;
 var elm$json$Json$Encode$string = _Json_wrap;
 var elm$html$Html$Attributes$stringProperty = F2(
 	function (key, string) {
@@ -5405,7 +5488,6 @@ var mpizenberg$elm_pointer_events$Html$Events$Extra$Pointer$defaultOptions = {pr
 var elm$virtual_dom$VirtualDom$Custom = function (a) {
 	return {$: 'Custom', a: a};
 };
-var elm$virtual_dom$VirtualDom$on = _VirtualDom_on;
 var elm$html$Html$Events$custom = F2(
 	function (event, decoder) {
 		return A2(
@@ -5558,6 +5640,10 @@ var author$project$Map$view = function (model) {
 		_List_Nil,
 		_List_fromArray(
 			[
+				A2(
+				elm$html$Html$map,
+				author$project$Map$ZoomLevelMsg,
+				author$project$ZoomLevel$view(model.map.zoom)),
 				A3(author$project$CoordinateViewer$view, model.x, model.y, model.map.zoom),
 				A3(author$project$CoordinateUtils$view, model.dragPrevious, model.map.tileRange.panFromLeft, model.map.tileRange.panFromTop),
 				A2(
@@ -5685,8 +5771,6 @@ var author$project$Map$view = function (model) {
 					]))
 			]));
 };
-var elm$virtual_dom$VirtualDom$map = _VirtualDom_map;
-var elm$html$Html$map = elm$virtual_dom$VirtualDom$map;
 var author$project$Main$view = function (model) {
 	return A2(
 		elm$html$Html$div,

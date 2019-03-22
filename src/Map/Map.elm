@@ -15,6 +15,8 @@ import Types exposing(..)
 import CoordinateUtils exposing(Coordinate2d(..), PixelPoint)
 import CoordinateViewer
 import MapBoxUtils exposing (createMapBoxUrl)
+import ZoomLevel
+
 -- self made data
 import MapData exposing ( map1, map2 )
 -- Authentication
@@ -66,12 +68,20 @@ type Msg
   | MouseDown (Float, Float)
   | MouseMove (Float, Float)
   | MouseUp (Float, Float)
+  | ZoomLevelMsg ZoomLevel.Msg
   | None
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model = 
   case msg of
+    ZoomLevelMsg plusOrMinus ->
+      let 
+        map = model.map
+        zoom = map.zoom
+        newZoom = ZoomLevel.update plusOrMinus zoom
+      in
+        ({model | map = {map | zoom = newZoom}}, Cmd.none)
     Click (x, y) ->
       ({ model | x = x, y = y }, Cmd.none)
     MouseDown (x, y) ->
@@ -129,7 +139,8 @@ view model =
   
   div 
     []
-    [ CoordinateViewer.view model.x model.y model.map.zoom    
+    [ Html.map ZoomLevelMsg (ZoomLevel.view model.map.zoom)
+    , CoordinateViewer.view model.x model.y model.map.zoom    
     , CoordinateUtils.view model.dragPrevious model.map.tileRange.panFromLeft model.map.tileRange.panFromTop
     , div
       ( 
@@ -176,7 +187,7 @@ view model =
               -- , ("left", (String.fromInt -model.map.tileRange.panFromLeft)++"px")
               , ("top", (String.fromInt -model.map.finalPixelCoordinates.topY)++"px")
               , ("left", (String.fromInt -model.map.finalPixelCoordinates.leftX)++"px")
-              -- , ("transition", "top 0.2s, left 0.2s")
+              -- , ("transition", "top 0.02s, left 0.02s")
               , ("pointer-events", "none")
               ] 
           )

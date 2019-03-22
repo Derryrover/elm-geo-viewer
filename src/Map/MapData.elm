@@ -4,8 +4,8 @@ module MapData exposing (..)
 
 import Types exposing (getCompleteMapConfigurationFromWindowAndGeoCoordinates, Window, GeoCoordinates,CompleteMapConfiguration )
 
-map1: CompleteMapConfiguration
-map1 = 
+map2: CompleteMapConfiguration
+map2 = 
   getCompleteMapConfigurationFromWindowAndGeoCoordinates
     { width = 800
     , height = 400
@@ -16,8 +16,8 @@ map1 =
     , latBottom = degrees 20.731588 -- Italie?
     }
 
-map2: CompleteMapConfiguration
-map2 = 
+map1: CompleteMapConfiguration
+map1 = 
   getCompleteMapConfigurationFromWindowAndGeoCoordinates
     { width = 1000
     , height = 1000
