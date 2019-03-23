@@ -5,3 +5,6 @@ repl-temp-*
 
 # authentication for mapbox and such
 AuthElm
+
+# generated javascript file
+dist/main.js
