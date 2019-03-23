@@ -4,6 +4,7 @@ import Html.Attributes exposing (style, class,value, src, alt, id)
 import Html.Events exposing (onInput, onClick)
 import Browser exposing(element)
 import Html exposing (..)
+import Html.Keyed exposing(node)
 import Html.Events
 import Html.Events.Extra.Pointer as Pointer
 -- self made modules
@@ -21,6 +22,8 @@ import ZoomLevel
 import MapData exposing ( map1, map2 )
 -- Authentication
 import MapboxAuth
+
+keyedDiv = node "div"
 
 main = Browser.element
   { init = init
@@ -142,7 +145,10 @@ view model =
     []
     [ 
       --CoordinateViewer.view model.x model.y model.map.zoom    
-     CoordinateUtils.view model.dragPrevious model.map.tileRange.panFromLeft model.map.tileRange.panFromTop
+     --CoordinateUtils.view model.dragPrevious model.map.tileRange.panFromLeft model.map.tileRange.panFromTop
+      CoordinateUtils.view model.dragPrevious model.map.finalPixelCoordinateWindow.leftX model.map.finalPixelCoordinateWindow.topY
+    , CoordinateUtils.view model.dragPrevious model.map.tileRange.panFromLeft model.map.tileRange.panFromTop
+     
     , Html.map ZoomLevelMsg (ZoomLevel.view model.map.zoom)
     , div
       ( 
@@ -180,7 +186,7 @@ view model =
           )]
       )
       [
-        div 
+        keyedDiv 
           (
            
             ElmStyle.createStyleList 
@@ -198,7 +204,9 @@ view model =
           List.map
           (
             \y ->
-            div
+            (
+              ("y_value_"++(String.fromInt y)) 
+            ,keyedDiv
               ( ElmStyle.createStyleList 
                   [ ("height", "256px")
                   , ("position", "absolute")
@@ -209,7 +217,9 @@ view model =
               (List.map 
                 (
                   \x ->
-                  div
+                  (
+                    ("x_y_value_"++(String.fromInt x) ++ "_"++(String.fromInt y)) 
+                  , div
                   (
                     List.concat [
                       [ 
@@ -236,10 +246,10 @@ view model =
                   )
                   []
                   ]
-                ) 
+                )) 
                 model.map.tileRange.rangeX
               )
-          )
+          ))
           model.map.tileRange.rangeY
         )
         -- )
