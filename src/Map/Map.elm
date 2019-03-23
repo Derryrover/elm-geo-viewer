@@ -56,9 +56,9 @@ init _ =
           { x = 0
           , y = 0
           }
-        , dragStartPixels = map1.finalPixelCoordinateWindow
+        , dragStartPixels = map2.finalPixelCoordinateWindow
         , mouseDown = False
-        , map = map1
+        , map = map2
         }
       , Cmd.batch []
     )
@@ -140,8 +140,9 @@ view model =
   
   div 
     []
-    [ CoordinateViewer.view model.x model.y model.map.zoom    
-    , CoordinateUtils.view model.dragPrevious model.map.tileRange.panFromLeft model.map.tileRange.panFromTop
+    [ 
+      --CoordinateViewer.view model.x model.y model.map.zoom    
+     CoordinateUtils.view model.dragPrevious model.map.tileRange.panFromLeft model.map.tileRange.panFromTop
     , Html.map ZoomLevelMsg (ZoomLevel.view model.map.zoom)
     , div
       ( 
