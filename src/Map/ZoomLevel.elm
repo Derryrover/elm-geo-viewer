@@ -21,15 +21,9 @@ update msg model =
     Plus -> model + 1
     Minus -> model - 1
 
--- first assume center of map will stay center of map
--- next version will also pass in coordinate that must remain coordinate
-updateWholeMapForZoom : Model -> Types.CompleteMapConfiguration -> Types.CompleteMapConfiguration
-updateWholeMapForZoom  newZoom oldMapConfiguration = --oldMapConfiguration
+updateWholeMapForZoom : Model -> Types.PixelCoordinatePoint ->  Types.CompleteMapConfiguration -> Types.CompleteMapConfiguration
+updateWholeMapForZoom  newZoom windowZoomCenter oldMapConfiguration = --oldMapConfiguration
   let
-    windowZoomCenter = 
-      { x = oldMapConfiguration.window.width // 2
-      , y = oldMapConfiguration.window.height // 2
-      }
     pixelZoomCenter = --Types.getPixelCenterFromWindow oldMapConfiguration.finalPixelCoordinateWindow
       { x = oldMapConfiguration.finalPixelCoordinateWindow.leftX + windowZoomCenter.x
       , y = oldMapConfiguration.finalPixelCoordinateWindow.topY + windowZoomCenter.y

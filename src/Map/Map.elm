@@ -83,7 +83,8 @@ update msg model =
         map = model.map
         zoom = map.zoom
         newZoom = ZoomLevel.update plusOrMinus zoom
-        newMap = ZoomLevel.updateWholeMapForZoom newZoom map
+        mapCenter = { x =  map.window.width // 2, y = map.window.height // 2}
+        newMap = ZoomLevel.updateWholeMapForZoom newZoom mapCenter map
       in
         ({model | map = newMap}, Cmd.none)
     Click (x, y) ->
