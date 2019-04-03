@@ -21,7 +21,7 @@ import ZoomLevel
 -- self made data
 import MapData exposing ( map1, map2 )
 -- Authentication
-import MapboxAuth
+--import MapboxAuth
 
 keyedDiv = node "div"
 

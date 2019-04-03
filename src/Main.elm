@@ -14,7 +14,7 @@ import Clock
 import Map exposing(..)
 
 -- Authentication
-import MapboxAuth
+-- import MapboxAuth
 
 
 type alias Model = 
@@ -56,8 +56,8 @@ toIntMsg msg str =
 
 mapBoxApiBaseUrl = "https://api.mapbox.com/styles/v1/mapbox/streets-v10/static/"
 boundingBox = "-122.337798,37.810550,9.67,0.00,0.00/1000x600@2x"
-accesToken = "?access_token=" ++ MapboxAuth.key
-mapBoxUrl = mapBoxApiBaseUrl ++ boundingBox ++ accesToken
+-- accesToken = "?access_token=" ++ MapboxAuth.key
+-- mapBoxUrl = mapBoxApiBaseUrl ++ boundingBox ++ accesToken
 
 
 view : Model -> Html Msg
