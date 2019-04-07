@@ -1,83 +1,80 @@
 module WheelDecoder exposing(..)
 
-import Html.Attributes exposing (style, class,value, src, alt, id)
-import Html.Events exposing (onInput, onClick)
-import Browser exposing(element)
-import Html exposing (..)
-
+import Html exposing (div, text)
 import Html.Events
-import Html.Events.Extra.Pointer as Pointer
 import Html.Events.Extra.Wheel as Wheel
-
 import Json.Decode as Decode
+import ZoomLevel
 
-
-type alias EventWithOffsetPos =
-    { wheelEvent : Wheel.Event
-    , offsetPos : {x: Float, y: Float}
-    }
-
-decodeWithOffsetPos : Decode.Decoder EventWithOffsetPos
-decodeWithOffsetPos =
-    Decode.map2 EventWithOffsetPos
-        Wheel.eventDecoder
-        offsetPosDecoder
-
-offsetPosDecoder : Decode.Decoder {x: Float, y: Float}
-offsetPosDecoder =
-    Decode.map2 (,)
-        (Decode.field "offsetY" Decode.float)
-        (Decode.field "offsetY" Decode.float)
-
+-- type Zoom = ZoomIn | ZoomOut
+type alias ModelDecoded = {x: Float, y: Float, zoom: Float}
+type alias Model = {x: Float, y: Float, zoom: ZoomLevel.Msg}
 type Msg
-    = Wheeli {x: Float, y: Float}
+  = WheelMsg Model
 
-div
-    [ onWheeli (.offsetPos >> Wheeli) ]
-    [ text "move here" ]
+type alias WheelEventWithOffsetXY =
+  { wheelEvent : Wheel.Event
+  , offsetXY : ModelDecoded
+  }
+
+decodeWeelWithOffsetXY : Decode.Decoder WheelEventWithOffsetXY
+decodeWeelWithOffsetXY =
+  Decode.map2 WheelEventWithOffsetXY
+    Wheel.eventDecoder
+    offsetXYDecoder
+
+offsetXYDecoder : Decode.Decoder ModelDecoded
+offsetXYDecoder =
+  Decode.map3 (\x y zoom -> {x=x,y=y,zoom=zoom})
+    (Decode.field "offsetX" Decode.float)
+    (Decode.field "offsetY" Decode.float)
+    -- (Decode.Decoder ZoomIn)
+    (Decode.field "deltaY" Decode.float)
+
+getFromMsg: Msg -> Model
+getFromMsg (WheelMsg record) = record
+
+toWheelMsg: WheelEventWithOffsetXY -> Msg
+toWheelMsg wheelEvent = 
+  WheelMsg 
+  { x= (wheelEvent.offsetXY.x)
+  , y= (wheelEvent.offsetXY.y)
+  , zoom = getZoomFromWheelEvent wheelEvent 
+  }
+
+getZoomFromWheelEvent: WheelEventWithOffsetXY -> ZoomLevel.Msg
+getZoomFromWheelEvent wheelEvent = 
+  let deltaY = wheelEvent.wheelEvent.deltaY
+  in
+    if deltaY > 0 then
+      ZoomLevel.Minus
+    else
+      ZoomLevel.Plus
+
+view = 
+  div
+    [ onWheelOffsetXY toWheelMsg ]
+    [ (text "mousewheel here") ]
 
 
-onWheeli : (EventWithOffsetPos -> msg) -> Html.Attribute msg
-onWheeli tag =
-    let
-        options =
-            { stopPropagation = True, preventDefault = True }
-    in
-    Decode.map tag decodeWithOffsetPos
-        |> Html.Events.onWithOptions "mousemove" options
-
---------------------------------------------------------------------------
-
-type alias EventWithMovement =
-    { mouseEvent : Mouse.Event
-    , movement : ( Float, Float )
-    }
-
-decodeWithMovement : Decoder EventWithMovement
-decodeWithMovement =
-    Decode.map2 EventWithMovement
-        Wheel.eventDecoder
-        movementDecoder
-
-movementDecoder : Decoder ( Float, Float )
-movementDecoder =
-    Decode.map2 (,)
-        (Decode.field "movementX" Decode.float)
-        (Decode.field "movementY" Decode.float)
-
-type Msg
-    = Movement ( Float, Float )
-
-div
-    [ onMove (.movement >> Movement) ]
-    [ text "move here" ]
+onWheelOffsetXY : (WheelEventWithOffsetXY -> msg) -> Html.Attribute msg
+onWheelOffsetXY tag =
+  let
+    options message =
+        { message = message
+        , stopPropagation = True
+        , preventDefault = True
+        }
+    decoder =
+        decodeWeelWithOffsetXY
+        |> Decode.map tag 
+        |> Decode.map options
+  in
+    Html.Events.custom "wheel" decoder
 
 
-onMove : (EventWithMovement -> msg) -> Html.Attribute msg
-onMove tag =
-    let
-        options =
-            { stopPropagation = True, preventDefault = True }
-    in
-    Decode.map tag decodeWithMovement
-        |> Html.Events.onWithOptions "mousemove" options
+mouseWheelListener: Html.Attribute Msg
+mouseWheelListener = 
+  onWheelOffsetXY toWheelMsg
+  -- (onWheelOffsetXY (\wheelEvent -> WheelMsg (wheelEvent.offsetXY)))
+  -- Mouse.onMove (eventToPosition >> MouseMove)

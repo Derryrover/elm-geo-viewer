@@ -18,6 +18,12 @@ import CoordinateViewer
 import MapBoxUtils exposing (createMapBoxUrl)
 import ZoomLevel
 
+import Json.Decode as Decode
+import MousePosition
+
+import WheelDecoder
+-- import MouseCustomEvent
+
 -- self made data
 import MapData exposing ( map1, map2 )
 -- Authentication
@@ -44,6 +50,7 @@ type alias Model =
   , dragPrevious: PixelPoint
   , mouseDown: Bool
   , map: CompleteMapConfiguration
+  , mousePosition: MousePosition.Model
   }
 
 init : () -> (Model, Cmd Msg)
@@ -62,6 +69,7 @@ init _ =
         , dragStartPixels = map2.finalPixelCoordinateWindow
         , mouseDown = False
         , map = map2
+        , mousePosition = MousePosition.init
         }
       , Cmd.batch []
     )
@@ -72,12 +80,39 @@ type Msg
   | MouseMove (Float, Float)
   | MouseUp (Float, Float)
   | ZoomLevelMsg ZoomLevel.Msg
+  | MousePositionMsg MousePosition.Msg
+  | WheelDecoderMsg WheelDecoder.Msg
   | None
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model = 
   case msg of
+    WheelDecoderMsg wheelDecoderMsg ->
+      --  ({model | mousePosition = WheelDecoder.getFromMsg wheelDecoderMsg}, Cmd.none)
+      let
+        mousePosition = 
+          { x = (WheelDecoder.getFromMsg wheelDecoderMsg).x
+          , y = (WheelDecoder.getFromMsg wheelDecoderMsg).y
+          }
+        plusOrMinus = (WheelDecoder.getFromMsg wheelDecoderMsg).zoom
+        map = model.map
+        zoom = map.zoom
+        newZoom = ZoomLevel.update plusOrMinus zoom
+        -- mapCenter = { x =  map.window.width // 2, y = map.window.height // 2}
+        mapCenter = {x=round mousePosition.x, y= round  mousePosition.y}
+        newMap = ZoomLevel.updateWholeMapForZoom newZoom mapCenter map
+      in
+      
+      ( {model 
+        | mousePosition = mousePosition
+        , map = newMap
+        }
+      , Cmd.none
+      )
+    MousePositionMsg mousePositionMsg ->
+      -- ({model | mousePosition = MousePosition.update mousePositionMsg model.mousePosition}, Cmd.none)
+      (model, Cmd.none)
     ZoomLevelMsg plusOrMinus ->
       let 
         map = model.map
@@ -151,6 +186,7 @@ view model =
     , CoordinateUtils.view model.dragPrevious model.map.tileRange.panFromLeft model.map.tileRange.panFromTop
      
     , Html.map ZoomLevelMsg (ZoomLevel.view model.map.zoom)
+    , MousePosition.view model.mousePosition
     , div
       ( 
          List.concat [
@@ -177,6 +213,8 @@ view model =
                 let (x,y) = event.pointer.offsetPos 
                 in MouseMove  (x,y)
               )
+          , ( Html.Attributes.map MousePositionMsg MousePosition.mouseMoveListener)
+          , ( Html.Attributes.map WheelDecoderMsg  WheelDecoder.mouseWheelListener)
           ],(
         ElmStyle.createStyleList 
           [ ("height", (String.fromInt model.map.window.height) ++ "px")
