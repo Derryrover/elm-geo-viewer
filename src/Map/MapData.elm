@@ -2,11 +2,11 @@
 
 module MapData exposing (..)
 
-import Types exposing (getCompleteMapConfigurationFromWindowAndGeoCoordinates, Window, GeoCoordinates,CompleteMapConfiguration )
+import Types exposing (getCompleteMapConfigurationFromWindowAndGeoCoordinateWindow, Window, GeoCoordinateWindow,CompleteMapConfiguration )
 
 map2: CompleteMapConfiguration
 map2 = 
-  getCompleteMapConfigurationFromWindowAndGeoCoordinates
+  getCompleteMapConfigurationFromWindowAndGeoCoordinateWindow
     { width = 800
     , height = 400
     }
@@ -18,7 +18,7 @@ map2 =
 
 map1: CompleteMapConfiguration
 map1 = 
-  getCompleteMapConfigurationFromWindowAndGeoCoordinates
+  getCompleteMapConfigurationFromWindowAndGeoCoordinateWindow
     { width = 1000
     , height = 1000
     }
@@ -30,7 +30,7 @@ map1 =
 
 map3: CompleteMapConfiguration
 map3 = 
-  getCompleteMapConfigurationFromWindowAndGeoCoordinates
+  getCompleteMapConfigurationFromWindowAndGeoCoordinateWindow
     { width = 1000
     , height = 1000
     }

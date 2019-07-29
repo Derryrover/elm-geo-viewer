@@ -1,0 +1,4 @@
+- remove selfmade math
+- remove tree.css
+- remove folder clock (also remove from main.elm)
+- remove time.elm

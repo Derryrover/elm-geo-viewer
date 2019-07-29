@@ -8,23 +8,47 @@ type alias Window =
   , height: Int
   }
 
-type alias GeoCoordinates = 
+type alias GeoCoordinatePoint =
+  { long: Float
+  , lat: Float
+  }
+
+type alias GeoCoordinateWindow = 
   { longLeft: Float
   , longRight: Float
   , latTop: Float
   , latBottom: Float
   }
 
-type alias PixelCoordinates =
+type alias PixelCoordinatePoint = 
+  { x: Int
+  , y: Int
+  }
+
+type alias PixelCoordinateWindow =
   { leftX: Int
   , rightX: Int
   , topY: Int
   , bottomY: Int 
   }
 
+getPixelCenterFromWindow: PixelCoordinateWindow -> PixelCoordinatePoint
+getPixelCenterFromWindow window = 
+  { x = (window.leftX + window.rightX) // 2
+  , y = (window.topY + window.bottomY) // 2
+  }
+
+pixelPointToGeoPointCoordinates: Int -> PixelCoordinatePoint -> GeoCoordinatePoint
+pixelPointToGeoPointCoordinates zoom pixelPoint = 
+  { long = ProjectionWebMercator.xToLong pixelPoint.x zoom
+  , lat = ProjectionWebMercator.yToLat pixelPoint.y zoom
+  }
+
+
+
 type alias ZoomPlusPixel = 
   { zoom: Int
-  , pixelCoordinates: PixelCoordinates
+  , pixelCoordinateWindow: PixelCoordinateWindow
   }
 
 type alias TileRange = 
@@ -37,49 +61,49 @@ type alias TileRange =
 type alias CompleteMapConfiguration =
   { window: Window
   , zoom: Int
-  , initialGeoCoordinates: GeoCoordinates
-  , finalGeoCoordinates: GeoCoordinates
-  , initialPixelCoordinates: PixelCoordinates
-  , finalPixelCoordinates: PixelCoordinates
+  , initialGeoCoordinateWindow: GeoCoordinateWindow
+  , finalGeoCoordinateWindow: GeoCoordinateWindow
+  , initialPixelCoordinateWindow: PixelCoordinateWindow
+  , finalPixelCoordinateWindow: PixelCoordinateWindow
   , tileRange: TileRange
   }
 
 -- type alias MapConfigurationForView = 
 --   { window: Window
 --   , zoom: Int
---   , geoCoordinates: GeoCoordinates
---   , pixelCoordinates: PixelCoordinates
+--   , geoCoordinateWindow: GeoCoordinateWindow
+--   , PixelCoordinateWindow: PixelCoordinateWindow
 --   , tileRange: TileRange
 --   }
 
 
 
 
-getCompleteMapConfigurationFromWindowAndGeoCoordinates: Window -> GeoCoordinates -> CompleteMapConfiguration
-getCompleteMapConfigurationFromWindowAndGeoCoordinates window geoCoordinates = 
+getCompleteMapConfigurationFromWindowAndGeoCoordinateWindow: Window -> GeoCoordinateWindow -> CompleteMapConfiguration
+getCompleteMapConfigurationFromWindowAndGeoCoordinateWindow window geoCoordinateWindow = 
   let
-    zoomPlusPixel = mapSettingsToZoomAndPixelCoordinates window geoCoordinates
-    adaptedPixelCoordinates = adaptPixelCoordinatesForWindow window zoomPlusPixel.pixelCoordinates
-    newGeo = transformPixelToGeoCoordinates zoomPlusPixel.zoom adaptedPixelCoordinates
+    zoomPlusPixel = mapSettingsToZoomAndPixelCoordinateWindow window geoCoordinateWindow
+    adaptedPixelCoordinateWindow = adaptPixelCoordinateWindowForWindow window zoomPlusPixel.pixelCoordinateWindow
+    newGeo = transformPixelToGeoCoordinateWindow zoomPlusPixel.zoom adaptedPixelCoordinateWindow
   in
     { window = window
     , zoom = zoomPlusPixel.zoom
-    , initialGeoCoordinates = geoCoordinates
-    , finalGeoCoordinates = newGeo
-    , initialPixelCoordinates = zoomPlusPixel.pixelCoordinates
-    , finalPixelCoordinates = adaptedPixelCoordinates
-    , tileRange = getTileRange adaptedPixelCoordinates zoomPlusPixel.zoom
+    , initialGeoCoordinateWindow = geoCoordinateWindow
+    , finalGeoCoordinateWindow = newGeo
+    , initialPixelCoordinateWindow = zoomPlusPixel.pixelCoordinateWindow
+    , finalPixelCoordinateWindow = adaptedPixelCoordinateWindow
+    , tileRange = getTileRange adaptedPixelCoordinateWindow zoomPlusPixel.zoom
     }
 
-mapSettingsToZoomAndPixelCoordinates: Window -> GeoCoordinates -> ZoomPlusPixel
-mapSettingsToZoomAndPixelCoordinates window geoCoordinates = 
+mapSettingsToZoomAndPixelCoordinateWindow: Window -> GeoCoordinateWindow -> ZoomPlusPixel
+mapSettingsToZoomAndPixelCoordinateWindow window geoCoordinateWindow = 
   let 
-    maybeZoomCoordinates = getZoomLevelHelper 0 window geoCoordinates
+    maybeZoomCoordinates = getZoomLevelHelper 0 window geoCoordinateWindow
   in
     case maybeZoomCoordinates of
       Nothing -> -- return dummie value cry cry. this should never happen. Should we throw error ?
         { zoom = 1
-        , pixelCoordinates = 
+        , pixelCoordinateWindow = 
           { leftX = 1
           , rightX = 2
           , topY = 1
@@ -91,50 +115,50 @@ mapSettingsToZoomAndPixelCoordinates window geoCoordinates =
 
 maxZoomLevel = 16
 
-getPixelCoordinatesHelper: Int -> GeoCoordinates -> PixelCoordinates
-getPixelCoordinatesHelper zoom geoCoordinates = 
-  { leftX = round (ProjectionWebMercator.longToX geoCoordinates.longLeft zoom)
-  , rightX = round (ProjectionWebMercator.longToX geoCoordinates.longRight zoom)
-  , topY = round (ProjectionWebMercator.latToY geoCoordinates.latTop zoom)
-  , bottomY = round (ProjectionWebMercator.latToY geoCoordinates.latBottom zoom) 
+getPixelCoordinateWindowHelper: Int -> GeoCoordinateWindow -> PixelCoordinateWindow
+getPixelCoordinateWindowHelper zoom geoCoordinateWindow = 
+  { leftX = round (ProjectionWebMercator.longToX geoCoordinateWindow.longLeft zoom)
+  , rightX = round (ProjectionWebMercator.longToX geoCoordinateWindow.longRight zoom)
+  , topY = round (ProjectionWebMercator.latToY geoCoordinateWindow.latTop zoom)
+  , bottomY = round (ProjectionWebMercator.latToY geoCoordinateWindow.latBottom zoom) 
   }
 
 -- always call with teszoom=0 , function will call itself recursive with higher testzoom untill it finds correct zoom or untill maxZoomLevel is reached
-getZoomLevelHelper: Int -> Window -> GeoCoordinates -> Maybe ZoomPlusPixel
-getZoomLevelHelper testZoom window geoCoordinates  = 
+getZoomLevelHelper: Int -> Window -> GeoCoordinateWindow -> Maybe ZoomPlusPixel
+getZoomLevelHelper testZoom window geoCoordinateWindow  = 
   let
-    pixelCoordinates = getPixelCoordinatesHelper testZoom geoCoordinates
-    deltaX = abs (pixelCoordinates.rightX - pixelCoordinates.leftX)
-    deltaY = abs (pixelCoordinates.topY - pixelCoordinates.bottomY)
+    pixelCoordinateWindow = getPixelCoordinateWindowHelper testZoom geoCoordinateWindow
+    deltaX = abs (pixelCoordinateWindow.rightX - pixelCoordinateWindow.leftX)
+    deltaY = abs (pixelCoordinateWindow.topY - pixelCoordinateWindow.bottomY)
   in
     if (deltaX > window.width || deltaY > window.height) then -- current scale is too big to fit in window
       if testZoom == 0 then -- is already smallest zoom -> return smallest zoom 
         Just  { zoom = 0
-              , pixelCoordinates = pixelCoordinates
+              , pixelCoordinateWindow = pixelCoordinateWindow
               }
       else -- zoom level to high -> return fail
         Nothing
     else if testZoom == maxZoomLevel then -- map bigger then maximum resolution zoomlevel
       Just  { zoom = maxZoomLevel
-            , pixelCoordinates = pixelCoordinates
+            , pixelCoordinateWindow = pixelCoordinateWindow
             } 
     else -- zoom level maybe not yet high enough check next zoomlevel
       let
-        testBiggerZoom = getZoomLevelHelper (testZoom+1) window geoCoordinates
+        testBiggerZoom = getZoomLevelHelper (testZoom+1) window geoCoordinateWindow
       in
         case testBiggerZoom of 
           Nothing ->
             Just  { zoom = testZoom
-                  , pixelCoordinates = pixelCoordinates
+                  , pixelCoordinateWindow = pixelCoordinateWindow
                   }
           Just result ->
             Just result
 
-adaptPixelCoordinatesForWindow: Window -> PixelCoordinates -> PixelCoordinates
-adaptPixelCoordinatesForWindow window pixelCoordinates = 
+adaptPixelCoordinateWindowForWindow: Window -> PixelCoordinateWindow -> PixelCoordinateWindow
+adaptPixelCoordinateWindowForWindow window pixelCoordinateWindow = 
   let
-    deltaX = toFloat (abs (pixelCoordinates.rightX - pixelCoordinates.leftX))
-    deltaY = toFloat (abs (pixelCoordinates.topY - pixelCoordinates.bottomY))
+    deltaX = toFloat (abs (pixelCoordinateWindow.rightX - pixelCoordinateWindow.leftX))
+    deltaY = toFloat (abs (pixelCoordinateWindow.topY - pixelCoordinateWindow.bottomY))
     relativeWidthHeight = (toFloat window.height) / (toFloat window.width)
     relativeLongLat =  deltaY / deltaX
   in
@@ -142,10 +166,10 @@ adaptPixelCoordinatesForWindow window pixelCoordinates =
       let
         width = deltaY / relativeWidthHeight
         halfWidthDelta = (abs (width - deltaX)) / 2
-        xLeftNew = pixelCoordinates.leftX - ( round halfWidthDelta)
-        xRightNew = pixelCoordinates.rightX + ( round halfWidthDelta)
+        xLeftNew = pixelCoordinateWindow.leftX - ( round halfWidthDelta)
+        xRightNew = pixelCoordinateWindow.rightX + ( round halfWidthDelta)
       in
-        { pixelCoordinates |
+        { pixelCoordinateWindow |
             leftX = xLeftNew,
             rightX = xRightNew
         }
@@ -153,16 +177,16 @@ adaptPixelCoordinatesForWindow window pixelCoordinates =
       let
         height = deltaX * relativeWidthHeight
         halfheightDelta = (abs(height - deltaY)) / 2
-        yTopNew = pixelCoordinates.topY - ( round halfheightDelta)
-        yBottomNew = pixelCoordinates.bottomY + ( round halfheightDelta)
+        yTopNew = pixelCoordinateWindow.topY - ( round halfheightDelta)
+        yBottomNew = pixelCoordinateWindow.bottomY + ( round halfheightDelta)
       in
-        { pixelCoordinates |
+        { pixelCoordinateWindow |
             topY = yTopNew,
             bottomY = yBottomNew
         }
 
-panPixelCoordinates: PixelCoordinates -> Window -> Float -> Float -> Int -> PixelCoordinates
-panPixelCoordinates coordinates window xFloat yFloat zoom = 
+panPixelCoordinateWindow: PixelCoordinateWindow -> Window -> Float -> Float -> Int -> PixelCoordinateWindow
+panPixelCoordinateWindow coordinates window xFloat yFloat zoom = 
   let 
     x = round xFloat
     y = round yFloat
@@ -194,21 +218,21 @@ panPixelCoordinates coordinates window xFloat yFloat zoom =
 
 
 
-transformPixelToGeoCoordinates: Int -> PixelCoordinates -> GeoCoordinates
-transformPixelToGeoCoordinates zoom pixelCoordinates =
-  { longLeft = ProjectionWebMercator.xToLong pixelCoordinates.leftX zoom
-  , longRight = ProjectionWebMercator.xToLong pixelCoordinates.rightX zoom
-  , latTop = ProjectionWebMercator.yToLat pixelCoordinates.topY zoom
-  , latBottom = ProjectionWebMercator.yToLat pixelCoordinates.bottomY zoom
+transformPixelToGeoCoordinateWindow: Int -> PixelCoordinateWindow -> GeoCoordinateWindow
+transformPixelToGeoCoordinateWindow zoom pixelCoordinateWindow =
+  { longLeft = ProjectionWebMercator.xToLong pixelCoordinateWindow.leftX zoom
+  , longRight = ProjectionWebMercator.xToLong pixelCoordinateWindow.rightX zoom
+  , latTop = ProjectionWebMercator.yToLat pixelCoordinateWindow.topY zoom
+  , latBottom = ProjectionWebMercator.yToLat pixelCoordinateWindow.bottomY zoom
   }
 
-getTileRange: PixelCoordinates -> Int -> TileRange
-getTileRange pixelCoordinates zoom = 
+getTileRange: PixelCoordinateWindow -> Int -> TileRange
+getTileRange pixelCoordinateWindow zoom = 
   let
-    leftX = toFloat pixelCoordinates.leftX
-    rightX = toFloat pixelCoordinates.rightX
-    topY = toFloat pixelCoordinates.topY
-    bottomY = toFloat pixelCoordinates.bottomY
+    leftX = toFloat pixelCoordinateWindow.leftX
+    rightX = toFloat pixelCoordinateWindow.rightX
+    topY = toFloat pixelCoordinateWindow.topY
+    bottomY = toFloat pixelCoordinateWindow.bottomY
     xTileLeft = (Basics.floor ( leftX / 256 )) - 1
     xTileRight = (Basics.ceiling ( rightX / 256 )) + 1
     yTileTop = (Basics.floor ( topY / 256 )) - 1
@@ -217,8 +241,8 @@ getTileRange pixelCoordinates zoom =
   in
     { rangeX = List.range xTileLeft xTileRight--getTileRangeHelper xTileLeft xTileRight amountTiles --List.range xTileLeft xTileRight
     , rangeY = List.range yTileTop yTileBottom --amountTiles
-    , panFromLeft = (modBy 256 pixelCoordinates.leftX) -- + 256 -- is this still used ?
-    , panFromTop = (modBy 256 pixelCoordinates.topY) -- + 256 -- is this still used ?
+    , panFromLeft = (modBy 256 pixelCoordinateWindow.leftX) -- + 256 -- is this still used ?
+    , panFromTop = (modBy 256 pixelCoordinateWindow.topY) -- + 256 -- is this still used ?
     }
 
 getTileRangeHelper min max maxTiles =
