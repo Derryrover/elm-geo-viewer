@@ -1,4 +1,4 @@
-module WheelDecoder exposing(..)
+module WheelDecoder exposing(getFromMsg, mouseWheelListener, Msg)
 
 import Html exposing (div, text)
 import Html.Events
@@ -17,6 +17,9 @@ type alias WheelEventWithOffsetXY =
   , offsetXY : ModelDecoded
   }
 
+getFromMsg: Msg -> Model
+getFromMsg (WheelMsg record) = record
+
 decodeWeelWithOffsetXY : Decode.Decoder WheelEventWithOffsetXY
 decodeWeelWithOffsetXY =
   Decode.map2 WheelEventWithOffsetXY
@@ -31,8 +34,6 @@ offsetXYDecoder =
     -- (Decode.Decoder ZoomIn)
     (Decode.field "deltaY" Decode.float)
 
-getFromMsg: Msg -> Model
-getFromMsg (WheelMsg record) = record
 
 toWheelMsg: WheelEventWithOffsetXY -> Msg
 toWheelMsg wheelEvent = 
@@ -50,11 +51,6 @@ getZoomFromWheelEvent wheelEvent =
       ZoomLevel.Minus
     else
       ZoomLevel.Plus
-
-view = 
-  div
-    [ onWheelOffsetXY toWheelMsg ]
-    [ (text "mousewheel here") ]
 
 
 onWheelOffsetXY : (WheelEventWithOffsetXY -> msg) -> Html.Attribute msg
@@ -76,5 +72,3 @@ onWheelOffsetXY tag =
 mouseWheelListener: Html.Attribute Msg
 mouseWheelListener = 
   onWheelOffsetXY toWheelMsg
-  -- (onWheelOffsetXY (\wheelEvent -> WheelMsg (wheelEvent.offsetXY)))
-  -- Mouse.onMove (eventToPosition >> MouseMove)

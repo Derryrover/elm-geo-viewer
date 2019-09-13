@@ -9,24 +9,19 @@ import Html.Events
 import Html.Events.Extra.Pointer as Pointer
 -- self made modules
 import ElmStyle
--- import SizeXYLongLat exposing(getTileRange)
 import List
--- import ProjectionWebMercator exposing(..)
-import Types exposing(..)
+import Types 
+
 import CoordinateUtils exposing(Coordinate2d(..), PixelPoint)
---import CoordinateViewer
 import MapBoxUtils exposing (createMapBoxUrl)
 import ZoomLevel
 
 import Json.Decode as Decode
 
 import WheelDecoder
--- import MouseCustomEvent
 
 -- self made data
 import MapData exposing ( map1, map2 )
--- Authentication
---import MapboxAuth
 
 keyedDiv = node "div"
 
@@ -45,10 +40,10 @@ type alias Model =
   { x: Float
   , y: Float
   , dragStart: PixelPoint
-  , dragStartPixels: PixelCoordinateWindow
+  , dragStartPixels: Types.PixelCoordinateWindow
   , dragPrevious: PixelPoint
   , mouseDown: Bool
-  , map: CompleteMapConfiguration
+  , map: Types.CompleteMapConfiguration
   }
 
 init : () -> (Model, Cmd Msg)
@@ -136,8 +131,8 @@ update msg model =
             tempMap = model.map
             deltaX = x - model.dragStart.x
             deltaY = y - model.dragStart.y
-            newPixelCoordinateWindow = panPixelCoordinateWindow model.dragStartPixels model.map.window deltaX deltaY model.map.zoom
-            newGeoCoordinateWindow = transformPixelToGeoCoordinateWindow model.map.zoom newPixelCoordinateWindow
+            newPixelCoordinateWindow = Types.panPixelCoordinateWindow model.dragStartPixels model.map.window deltaX deltaY model.map.zoom
+            newGeoCoordinateWindow = Types.transformPixelToGeoCoordinateWindow model.map.zoom newPixelCoordinateWindow
             newTileRange = Types.getTileRange newPixelCoordinateWindow
             newMap = { tempMap 
                         | finalPixelCoordinateWindow = newPixelCoordinateWindow
