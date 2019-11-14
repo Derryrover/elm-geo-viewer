@@ -157,33 +157,47 @@ getZoomLevelHelper testZoom window geoCoordinateWindow  =
 adaptPixelCoordinateWindowForWindow: Window -> PixelCoordinateWindow -> PixelCoordinateWindow
 adaptPixelCoordinateWindowForWindow window pixelCoordinateWindow = 
   let
-    deltaX = toFloat (abs (pixelCoordinateWindow.rightX - pixelCoordinateWindow.leftX))
-    deltaY = toFloat (abs (pixelCoordinateWindow.topY - pixelCoordinateWindow.bottomY))
-    relativeWidthHeight = (toFloat window.height) / (toFloat window.width)
-    relativeLongLat =  deltaY / deltaX
+    pixelCoordinateWindowWidth = toFloat (abs (pixelCoordinateWindow.rightX - pixelCoordinateWindow.leftX))
+    pixelCoordinateWindowHeight = toFloat (abs (pixelCoordinateWindow.topY - pixelCoordinateWindow.bottomY))
+    halfDeltaX = ((toFloat window.width) - pixelCoordinateWindowWidth) / 2
+    halfDeltaY = ((toFloat window.height) - pixelCoordinateWindowHeight) / 2
+    -- relativeWidthHeight = (toFloat window.height) / (toFloat window.width)
+    -- relativeLongLat =  deltaY / deltaX
   in
-    if (relativeLongLat > relativeWidthHeight) then -- coordinates are wider
-      let
-        width = deltaY / relativeWidthHeight
-        halfWidthDelta = (abs (width - deltaX)) / 2
-        xLeftNew = pixelCoordinateWindow.leftX - ( round halfWidthDelta)
-        xRightNew = pixelCoordinateWindow.rightX + ( round halfWidthDelta)
-      in
-        { pixelCoordinateWindow |
-            leftX = xLeftNew,
-            rightX = xRightNew
-        }
-    else 
-      let
-        height = deltaX * relativeWidthHeight
-        halfheightDelta = (abs(height - deltaY)) / 2
-        yTopNew = pixelCoordinateWindow.topY - ( round halfheightDelta)
-        yBottomNew = pixelCoordinateWindow.bottomY + ( round halfheightDelta)
-      in
-        { pixelCoordinateWindow |
-            topY = yTopNew,
-            bottomY = yBottomNew
-        }
+    {
+      topY =  (pixelCoordinateWindow.topY - (round halfDeltaY)),
+      bottomY = (pixelCoordinateWindow.bottomY + (round halfDeltaY)),
+      leftX =  (pixelCoordinateWindow.leftX - (round halfDeltaX)),
+      rightX = (pixelCoordinateWindow.rightX + (round halfDeltaX))
+    }
+  -- let
+  --   deltaX = toFloat (abs (pixelCoordinateWindow.rightX - pixelCoordinateWindow.leftX))
+  --   deltaY = toFloat (abs (pixelCoordinateWindow.topY - pixelCoordinateWindow.bottomY))
+  --   relativeWidthHeight = (toFloat window.height) / (toFloat window.width)
+  --   relativeLongLat =  deltaY / deltaX
+  -- in
+  --   if (relativeLongLat > relativeWidthHeight) then -- coordinates are wider
+  --     let
+  --       width = deltaY / relativeWidthHeight
+  --       halfWidthDelta = (abs (width - deltaX)) / 2
+  --       xLeftNew = pixelCoordinateWindow.leftX - ( round halfWidthDelta)
+  --       xRightNew = pixelCoordinateWindow.rightX + ( round halfWidthDelta)
+  --     in
+  --       { pixelCoordinateWindow |
+  --           leftX = xLeftNew,
+  --           rightX = xRightNew
+  --       }
+  --   else 
+  --     let
+  --       height = deltaX * relativeWidthHeight
+  --       halfheightDelta = (abs(height - deltaY)) / 2
+  --       yTopNew = pixelCoordinateWindow.topY - ( round halfheightDelta)
+  --       yBottomNew = pixelCoordinateWindow.bottomY + ( round halfheightDelta)
+  --     in
+  --       { pixelCoordinateWindow |
+  --           topY = yTopNew,
+  --           bottomY = yBottomNew
+  --       }
 
 panPixelCoordinateWindow: PixelCoordinateWindow -> Window -> Float -> Float -> Int -> PixelCoordinateWindow
 panPixelCoordinateWindow coordinates window xFloat yFloat zoom = 
@@ -245,29 +259,29 @@ getTileRange pixelCoordinateWindow zoom =
     , panFromTop = (modBy 256 pixelCoordinateWindow.topY) -- + 256 -- is this still used ?
     }
 
-getTileRangeHelper min max maxTiles =
-  let
-    preZeroRange = 
-      if min < 0 then
-        let 
-          preZero = maxTiles + min
-        in 
-          List.range preZero maxTiles
-      else
-        []
-    normalRange = List.range min max
-    normalRangeFilteredZero = List.filter (\n-> -1 < n) normalRange
-    normalRangeFiltered = List.filter (\n-> n < maxTiles) normalRangeFilteredZero
-    postMaxRange = 
-      if max >= maxTiles then
-        let 
-          postNormal = max - maxTiles
-        in
-          List.range postNormal (maxTiles - 1) 
-      else
-        []
-  in
-    List.concat [preZeroRange, normalRangeFiltered, postMaxRange]
+-- getTileRangeHelper min max maxTiles =
+--   let
+--     preZeroRange = 
+--       if min < 0 then
+--         let 
+--           preZero = maxTiles + min
+--         in 
+--           List.range preZero maxTiles
+--       else
+--         []
+--     normalRange = List.range min max
+--     normalRangeFilteredZero = List.filter (\n-> -1 < n) normalRange
+--     normalRangeFiltered = List.filter (\n-> n < maxTiles) normalRangeFilteredZero
+--     postMaxRange = 
+--       if max >= maxTiles then
+--         let 
+--           postNormal = max - maxTiles
+--         in
+--           List.range postNormal (maxTiles - 1) 
+--       else
+--         []
+--   in
+--     List.concat [preZeroRange, normalRangeFiltered, postMaxRange]
   
   
 

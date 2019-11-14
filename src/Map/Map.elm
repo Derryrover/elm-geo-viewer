@@ -168,8 +168,8 @@ view model =
       --CoordinateViewer.view model.x model.y model.map.zoom    
      --CoordinateUtils.view model.dragPrevious model.map.tileRange.panFromLeft model.map.tileRange.panFromTop
       CoordinateUtils.view model.dragPrevious model.map.finalPixelCoordinateWindow.leftX model.map.finalPixelCoordinateWindow.topY
-    , CoordinateUtils.view model.dragPrevious model.map.tileRange.panFromLeft model.map.tileRange.panFromTop
-     
+    --, CoordinateUtils.view model.dragPrevious model.map.tileRange.panFromLeft model.map.tileRange.panFromTop
+    , CoordinateUtils.view model.dragPrevious model.map.finalPixelCoordinateWindow.rightX model.map.finalPixelCoordinateWindow.bottomY
     , Html.map ZoomLevelMsg (ZoomLevel.view model.map.zoom)
     , div
       ( 
