@@ -6,8 +6,7 @@ import Html.Events.Extra.Wheel as Wheel
 import Json.Decode as Decode
 import ZoomLevel
 
--- type Zoom = ZoomIn | ZoomOut
-type alias ModelDecoded = {x: Float, y: Float, zoom: Float}
+type alias ModelDecoded = {x: Float, y: Float}
 type alias Model = {x: Float, y: Float, zoom: ZoomLevel.Msg}
 type Msg
   = WheelMsg Model
@@ -28,12 +27,9 @@ decodeWeelWithOffsetXY =
 
 offsetXYDecoder : Decode.Decoder ModelDecoded
 offsetXYDecoder =
-  Decode.map3 (\x y zoom -> {x=x,y=y,zoom=zoom})
+  Decode.map2 (\x y -> {x=x,y=y})
     (Decode.field "offsetX" Decode.float)
     (Decode.field "offsetY" Decode.float)
-    -- (Decode.Decoder ZoomIn)
-    (Decode.field "deltaY" Decode.float)
-
 
 toWheelMsg: WheelEventWithOffsetXY -> Msg
 toWheelMsg wheelEvent = 
