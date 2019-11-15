@@ -285,15 +285,7 @@ getTileRange pixelCoordinateWindow zoom =
   
   
 
-
+-- calculates amount of available tiles along x OR y axis for zoom
 tilesFromZoom: Int -> Int
 tilesFromZoom zoom = 
-  case zoom of 
-    0 ->
-      1
-    1 ->
-      2
-    other ->
-      2 * (tilesFromZoom (other - 1))
-  -- (zoom + 1) ^ 2
-  --zoom ^ 2
+  2 ^ zoom
