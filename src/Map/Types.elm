@@ -54,8 +54,8 @@ type alias ZoomPlusPixel =
 type alias TileRange = 
   { rangeX: List Int
   , rangeY: List Int
-  , panFromLeft: Int
-  , panFromTop: Int 
+  -- , panFromLeft: Int
+  -- , panFromTop: Int 
   }
 
 type alias CompleteMapConfiguration =
@@ -251,12 +251,12 @@ getTileRange pixelCoordinateWindow zoom =
     xTileRight = (Basics.ceiling ( rightX / 256 )) + 1
     yTileTop = (Basics.floor ( topY / 256 )) - 1
     yTileBottom = (Basics.ceiling ( bottomY / 256 )) + 1
-    amountTiles = tilesFromZoom zoom
+    -- amountTiles = tilesFromZoom zoom
   in
     { rangeX = List.range xTileLeft xTileRight--getTileRangeHelper xTileLeft xTileRight amountTiles --List.range xTileLeft xTileRight
     , rangeY = List.range yTileTop yTileBottom --amountTiles
-    , panFromLeft = (modBy 256 pixelCoordinateWindow.leftX) -- + 256 -- is this still used ?
-    , panFromTop = (modBy 256 pixelCoordinateWindow.topY) -- + 256 -- is this still used ?
+    -- , panFromLeft = (modBy 256 pixelCoordinateWindow.leftX) -- + 256 -- is this still used ?
+    -- , panFromTop = (modBy 256 pixelCoordinateWindow.topY) -- + 256 -- is this still used ?
     }
 
 -- getTileRangeHelper min max maxTiles =
