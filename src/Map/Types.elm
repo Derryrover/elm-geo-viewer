@@ -232,30 +232,27 @@ panPixelCoordinateWindow coordinates window xFloat yFloat zoom =
   let 
     x = round xFloat
     y = round yFloat
-    leftX = coordinates.leftX - x
-    rightX = coordinates.rightX - x
-    topY = coordinates.topY - y
-    bottomY = coordinates.bottomY - y
     maxBottomY = 256 * (tilesFromZoom zoom)
-  in
-    if topY < 0 then
-      { leftX = coordinates.leftX - x
-      , rightX = coordinates.rightX - x
-      , topY = 0
-      , bottomY = window.height
-      }
-    else if (topY + window.height) > maxBottomY then --bottomY > maxBottomY then
-      { leftX = coordinates.leftX - x
-      , rightX = coordinates.rightX - x
-      , topY = maxBottomY - window.height
-      , bottomY = maxBottomY
-      }
-    else
-      { leftX = coordinates.leftX - x
+    result = 
+      {
+        leftX = coordinates.leftX - x
       , rightX = coordinates.rightX - x
       , topY = coordinates.topY - y
       , bottomY = coordinates.bottomY - y
       }
+  in
+    if result.topY < 0 then
+      { result
+      | topY = 0
+      , bottomY = window.height
+      }
+    else if (result.topY + window.height) > maxBottomY then --bottomY > maxBottomY then
+      { result
+      | topY = maxBottomY - window.height
+      , bottomY = maxBottomY
+      }
+    else
+      result
 
 
 
