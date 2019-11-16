@@ -141,7 +141,7 @@ getZoomRecursiveHelper testZoom window geoCoordinateWindow =
       deltaX = abs (pixelCoordinateWindow.rightX - pixelCoordinateWindow.leftX)
       deltaY = abs (pixelCoordinateWindow.topY - pixelCoordinateWindow.bottomY)
   in
-    if (testZoom == 0) then
+    if (testZoom < 1) then
       result
     else if (deltaX < window.width && deltaY < window.height) then
       result
