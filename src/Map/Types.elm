@@ -1,7 +1,7 @@
 module Types exposing (..)
 
 import ProjectionWebMercator
-import Maybe exposing(..)
+-- import Maybe exposing(..)
 
 type alias Window = 
   { width: Int
@@ -82,7 +82,8 @@ type alias CompleteMapConfiguration =
 getCompleteMapConfigurationFromWindowAndGeoCoordinateWindow: Window -> GeoCoordinateWindow -> CompleteMapConfiguration
 getCompleteMapConfigurationFromWindowAndGeoCoordinateWindow window geoCoordinateWindow = 
   let
-    zoomPlusPixel = mapSettingsToZoomAndPixelCoordinateWindow window geoCoordinateWindow
+    -- zoomPlusPixel = mapSettingsToZoomAndPixelCoordinateWindow window geoCoordinateWindow
+    zoomPlusPixel = getZoom window geoCoordinateWindow
     adaptedPixelCoordinateWindow = adaptPixelCoordinateWindowForWindow window zoomPlusPixel.pixelCoordinateWindow
     newGeo = transformPixelToGeoCoordinateWindow zoomPlusPixel.zoom adaptedPixelCoordinateWindow
   in
@@ -95,25 +96,25 @@ getCompleteMapConfigurationFromWindowAndGeoCoordinateWindow window geoCoordinate
     , tileRange = getTileRange adaptedPixelCoordinateWindow zoomPlusPixel.zoom
     }
 
-mapSettingsToZoomAndPixelCoordinateWindow: Window -> GeoCoordinateWindow -> ZoomPlusPixel
-mapSettingsToZoomAndPixelCoordinateWindow window geoCoordinateWindow = 
-  let 
-    maybeZoomCoordinates = getZoomLevelHelper 0 window geoCoordinateWindow
-  in
-    case maybeZoomCoordinates of
-      Nothing -> -- return dummie value cry cry. this should never happen. Should we throw error ?
-        { zoom = 1
-        , pixelCoordinateWindow = 
-          { leftX = 1
-          , rightX = 2
-          , topY = 1
-          , bottomY = 2 
-          }
-        }
-      Just result ->
-        result
+-- mapSettingsToZoomAndPixelCoordinateWindow: Window -> GeoCoordinateWindow -> ZoomPlusPixel
+-- mapSettingsToZoomAndPixelCoordinateWindow window geoCoordinateWindow = 
+--   let 
+--     maybeZoomCoordinates = getZoomLevelHelper 0 window geoCoordinateWindow
+--   in
+--     case maybeZoomCoordinates of
+--       Nothing -> -- return dummie value cry cry. this should never happen. Should we throw error ?
+--         { zoom = 1
+--         , pixelCoordinateWindow = 
+--           { leftX = 1
+--           , rightX = 2
+--           , topY = 1
+--           , bottomY = 2 
+--           }
+--         }
+--       Just result ->
+--         result
 
-maxZoomLevel = 16
+
 
 getPixelCoordinateWindowHelper: Int -> GeoCoordinateWindow -> PixelCoordinateWindow
 getPixelCoordinateWindowHelper zoom geoCoordinateWindow = 
@@ -123,36 +124,59 @@ getPixelCoordinateWindowHelper zoom geoCoordinateWindow =
   , bottomY = round (ProjectionWebMercator.latToY geoCoordinateWindow.latBottom zoom) 
   }
 
--- always call with teszoom=0 , function will call itself recursive with higher testzoom untill it finds correct zoom or untill maxZoomLevel is reached
-getZoomLevelHelper: Int -> Window -> GeoCoordinateWindow -> Maybe ZoomPlusPixel
-getZoomLevelHelper testZoom window geoCoordinateWindow  = 
+maxZoomLevel = 16
+
+getZoom: Window -> GeoCoordinateWindow -> ZoomPlusPixel
+getZoom window geoCoordinateWindow = 
+  getZoomRecursiveHelper maxZoomLevel window geoCoordinateWindow
+
+getZoomRecursiveHelper: Int -> Window -> GeoCoordinateWindow -> ZoomPlusPixel
+getZoomRecursiveHelper testZoom window geoCoordinateWindow = 
   let
-    pixelCoordinateWindow = getPixelCoordinateWindowHelper testZoom geoCoordinateWindow
-    deltaX = abs (pixelCoordinateWindow.rightX - pixelCoordinateWindow.leftX)
-    deltaY = abs (pixelCoordinateWindow.topY - pixelCoordinateWindow.bottomY)
+      pixelCoordinateWindow = getPixelCoordinateWindowHelper testZoom geoCoordinateWindow
+      deltaX = abs (pixelCoordinateWindow.rightX - pixelCoordinateWindow.leftX)
+      deltaY = abs (pixelCoordinateWindow.topY - pixelCoordinateWindow.bottomY)
   in
-    if (deltaX > window.width || deltaY > window.height) then -- current scale is too big to fit in window
-      if testZoom == 0 then -- is already smallest zoom -> return smallest zoom 
-        Just  { zoom = 0
-              , pixelCoordinateWindow = pixelCoordinateWindow
-              }
-      else -- zoom level to high -> return fail
-        Nothing
-    else if testZoom == maxZoomLevel then -- map bigger then maximum resolution zoomlevel
-      Just  { zoom = maxZoomLevel
-            , pixelCoordinateWindow = pixelCoordinateWindow
-            } 
-    else -- zoom level maybe not yet high enough check next zoomlevel
-      let
-        testBiggerZoom = getZoomLevelHelper (testZoom+1) window geoCoordinateWindow
-      in
-        case testBiggerZoom of 
-          Nothing ->
-            Just  { zoom = testZoom
-                  , pixelCoordinateWindow = pixelCoordinateWindow
-                  }
-          Just result ->
-            Just result
+    if (deltaX > window.width || deltaY > window.height) then
+      getZoomRecursiveHelper (testZoom - 1) window geoCoordinateWindow
+    else 
+      { zoom = testZoom
+      , pixelCoordinateWindow = pixelCoordinateWindow
+      }
+
+  
+
+
+-- always call with teszoom=0 , function will call itself recursive with higher testzoom untill it finds correct zoom or untill maxZoomLevel is reached
+-- getZoomLevelHelper: Int -> Window -> GeoCoordinateWindow -> Maybe ZoomPlusPixel
+-- getZoomLevelHelper testZoom window geoCoordinateWindow  = 
+--   let
+--     pixelCoordinateWindow = getPixelCoordinateWindowHelper testZoom geoCoordinateWindow
+--     deltaX = abs (pixelCoordinateWindow.rightX - pixelCoordinateWindow.leftX)
+--     deltaY = abs (pixelCoordinateWindow.topY - pixelCoordinateWindow.bottomY)
+--   in
+--     if (deltaX > window.width || deltaY > window.height) then -- current scale is too big to fit in window
+--       if testZoom == 0 then -- is already smallest zoom -> return smallest zoom 
+--         Just  { zoom = 0
+--               , pixelCoordinateWindow = pixelCoordinateWindow
+--               }
+--       else -- zoom level to high -> return fail
+--         Nothing
+--     else if testZoom == maxZoomLevel then -- map bigger then maximum resolution zoomlevel
+--       Just  { zoom = maxZoomLevel
+--             , pixelCoordinateWindow = pixelCoordinateWindow
+--             } 
+--     else -- zoom level maybe not yet high enough check next zoomlevel
+--       let
+--         testBiggerZoom = getZoomLevelHelper (testZoom+1) window geoCoordinateWindow
+--       in
+--         case testBiggerZoom of 
+--           Nothing ->
+--             Just  { zoom = testZoom
+--                   , pixelCoordinateWindow = pixelCoordinateWindow
+--                   }
+--           Just result ->
+--             Just result
 
 adaptPixelCoordinateWindowForWindow: Window -> PixelCoordinateWindow -> PixelCoordinateWindow
 adaptPixelCoordinateWindowForWindow window pixelCoordinateWindow = 
