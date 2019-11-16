@@ -134,15 +134,19 @@ getZoomRecursiveHelper: Int -> Window -> GeoCoordinateWindow -> ZoomPlusPixel
 getZoomRecursiveHelper testZoom window geoCoordinateWindow = 
   let
       pixelCoordinateWindow = getPixelCoordinateWindowHelper testZoom geoCoordinateWindow
+      result = 
+        { zoom = testZoom
+        , pixelCoordinateWindow = pixelCoordinateWindow
+        }
       deltaX = abs (pixelCoordinateWindow.rightX - pixelCoordinateWindow.leftX)
       deltaY = abs (pixelCoordinateWindow.topY - pixelCoordinateWindow.bottomY)
   in
-    if (deltaX > window.width || deltaY > window.height) then
-      getZoomRecursiveHelper (testZoom - 1) window geoCoordinateWindow
+    if (testZoom == 0) then
+      result
+    else if (deltaX < window.width && deltaY < window.height) then
+      result
     else 
-      { zoom = testZoom
-      , pixelCoordinateWindow = pixelCoordinateWindow
-      }
+      getZoomRecursiveHelper (testZoom - 1) window geoCoordinateWindow
 
   
 
