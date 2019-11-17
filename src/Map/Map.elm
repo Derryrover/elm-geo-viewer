@@ -67,13 +67,14 @@ init _ =
     )
 
 type Msg 
-  = Click (Float, Float)
-  | MouseDown (Float, Float)
+  = 
+  -- Click (Float, Float)
+  -- | 
+    MouseDown (Float, Float)
   | MouseMove (Float, Float)
   | MouseUp (Float, Float)
   | ZoomLevelMsg ZoomLevel.Msg
   | WheelDecoderMsg WheelDecoder.Msg
-  | None
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -107,8 +108,8 @@ update msg model =
         newMap = ZoomLevel.updateWholeMapForZoom newZoom mapCenter map
       in
         ({model | map = newMap}, Cmd.none)
-    Click (x, y) ->
-      ({ model | x = x, y = y }, Cmd.none)
+    -- Click (x, y) ->
+    --   ({ model | x = x, y = y }, Cmd.none)
     MouseDown (x, y) ->
       ({ model 
           | mouseDown = True
@@ -156,8 +157,6 @@ update msg model =
         }
         , Cmd.none
       )
-    None ->
-      (model, Cmd.none)
 
 
 view : Model -> Html Msg
@@ -194,8 +193,8 @@ view model =
           , ( Html.Attributes.map WheelDecoderMsg  WheelDecoder.mouseWheelListener)
           ],(
         ElmStyle.createStyleList 
-          [ ("height", (String.fromInt model.map.window.height) ++ "px")
-          , ("width", (String.fromInt model.map.window.width)++"px")
+          [ ("height", ElmStyle.intToPxString model.map.window.height )
+          , ("width", ElmStyle.intToPxString model.map.window.width )
           , ("overflow", "hidden")
           , ("position", "relative")
           ] 
@@ -207,15 +206,11 @@ view model =
            
             ElmStyle.createStyleList 
               [ ("position", "absolute")
-              -- , ("top", (String.fromInt -model.map.tileRange.panFromTop)++"px")
-              -- , ("left", (String.fromInt -model.map.tileRange.panFromLeft)++"px")
-              , ("top", (String.fromInt -model.map.finalPixelCoordinateWindow.topY)++"px")
-              , ("left", (String.fromInt -model.map.finalPixelCoordinateWindow.leftX)++"px")
-              -- , ("transition", "top 0.02s, left 0.02s")
+              , ("top", ElmStyle.intToPxString -model.map.finalPixelCoordinateWindow.topY)
+              , ("left", ElmStyle.intToPxString -model.map.finalPixelCoordinateWindow.leftX)
               , ("pointer-events", "none")
               ] 
           )
-          -- (List.concat
           (
           List.map
           (
