@@ -44,15 +44,17 @@ type alias Model =
   }
 
 init : () -> (Model, Cmd Msg)
-init _ =
+init _ = 
+  let map = map2
+  in
     (
         { dragStart = 
           { x = 0
           , y = 0
           }
-        , dragStartPixels = map2.finalPixelCoordinateWindow
+        , dragStartPixels = map.finalPixelCoordinateWindow
         , mouseDown = False
-        , map = map2
+        , map = map
         }
       , Cmd.batch []
     )
