@@ -16,6 +16,7 @@ import CoordinateUtils exposing(Coordinate2d(..), PixelPoint)
 import MapBoxUtils exposing (createMapBoxUrl)
 import ZoomLevel
 import MapLayer
+import MapLayerDeeperZoom
 
 import Json.Decode as Decode
 
