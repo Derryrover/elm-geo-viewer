@@ -188,7 +188,7 @@ view model =
               ( ElmStyle.createStyleList 
                   [ ("height", ElmStyle.intToPxString Types.tilePixelSize)
                   , ("position", "absolute")
-                  , ("top", ElmStyle.intToPxString (256 * y))
+                  , ("top", ElmStyle.intToPxString (Types.tilePixelSize * y))
                   ] 
               )
               (List.map (\x ->
@@ -198,7 +198,7 @@ view model =
                           [ ("height", ElmStyle.intToPxString Types.tilePixelSize)
                           , ("width", ElmStyle.intToPxString Types.tilePixelSize)
                           , ("position", "absolute")
-                          , ("left", ElmStyle.intToPxString (256 * x)) ])
+                          , ("left", ElmStyle.intToPxString (Types.tilePixelSize * x)) ])
                 [ img
                   (List.concat [ 
                     [ (src (createMapBoxUrl model.map.zoom (modBy maxTilesOnAxis x) (modBy maxTilesOnAxis y)))]
