@@ -41,7 +41,7 @@ type alias Model =
   , y: Float
   , dragStart: PixelPoint
   , dragStartPixels: Types.PixelCoordinateWindow
-  , dragPrevious: PixelPoint
+  -- , dragPrevious: PixelPoint
   , mouseDown: Bool
   , map: Types.CompleteMapConfiguration
   }
@@ -55,10 +55,10 @@ init _ =
           { x = 0
           , y = 0
           }
-        , dragPrevious = 
-          { x = 0
-          , y = 0
-          }
+        -- , dragPrevious = 
+        --   { x = 0
+        --   , y = 0
+        --   }
         , dragStartPixels = map2.finalPixelCoordinateWindow
         , mouseDown = False
         , map = map2
@@ -113,7 +113,7 @@ update msg model =
       ({ model 
           | mouseDown = True
           , dragStart = {x = x, y = y}
-          , dragPrevious = {x = x, y = y}
+          -- , dragPrevious = {x = x, y = y}
           , dragStartPixels = model.map.finalPixelCoordinateWindow
         }
         , Cmd.none
@@ -121,9 +121,12 @@ update msg model =
     MouseMove (x, y) ->
       case model.mouseDown of
         False ->
-          ( { model 
-              | dragPrevious = {x = x, y = y}
-            }
+          ( 
+            --{ 
+            model 
+            --}
+            --   | dragPrevious = {x = x, y = y}
+            -- }
             , Cmd.none
           )
         True ->
@@ -141,8 +144,9 @@ update msg model =
                         }
           in
           ({ model 
-              | dragPrevious = {x = x, y = y}
-              , map = newMap
+              | --dragPrevious = {x = x, y = y}
+              --, 
+              map = newMap
             }
             , Cmd.none
           )
@@ -165,23 +169,13 @@ view model =
   div 
     []
     [ 
-      --CoordinateViewer.view model.x model.y model.map.zoom    
-     --CoordinateUtils.view model.dragPrevious model.map.tileRange.panFromLeft model.map.tileRange.panFromTop
-      CoordinateUtils.view model.dragPrevious model.map.finalPixelCoordinateWindow.leftX model.map.finalPixelCoordinateWindow.topY
-    --, CoordinateUtils.view model.dragPrevious model.map.tileRange.panFromLeft model.map.tileRange.panFromTop
-    , CoordinateUtils.view model.dragPrevious model.map.finalPixelCoordinateWindow.rightX model.map.finalPixelCoordinateWindow.bottomY
+      CoordinateUtils.view model.dragStart model.map.finalPixelCoordinateWindow.leftX model.map.finalPixelCoordinateWindow.topY
+    , CoordinateUtils.view model.dragStart model.map.finalPixelCoordinateWindow.rightX model.map.finalPixelCoordinateWindow.bottomY
     , Html.map ZoomLevelMsg (ZoomLevel.view model.map.zoom)
     , div
       ( 
          List.concat [
           [
-            -- Pointer.onDown 
-            --   (\event -> 
-            --     let (x,y) = event.pointer.offsetPos 
-            --     in Click ( x + toFloat model.map.finalPixelCoordinateWindow.leftX
-            --              , y + toFloat model.map.finalPixelCoordinateWindow.topY
-            --              )
-            --   )
            Pointer.onDown 
               (\event -> 
                 let (x,y) = event.pointer.offsetPos 
@@ -274,7 +268,6 @@ view model =
           ))
           model.map.tileRange.rangeY
         )
-        -- )
       ]
     ]
 

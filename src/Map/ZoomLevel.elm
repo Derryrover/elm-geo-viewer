@@ -60,7 +60,6 @@ view model =
     [] 
     [ button [ onClick Plus] [text "+"]
     , div [] [text (String.fromInt model)]
-    -- , div [] [text (toString model)]
     , button [ onClick Minus] [text "-"]
     ] 
 
