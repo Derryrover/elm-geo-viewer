@@ -95,6 +95,11 @@ pixelPointToGeoPointCoordinates zoom pixelPoint =
   { long = ProjectionWebMercator.xToLong pixelPoint.x zoom
   , lat = ProjectionWebMercator.yToLat pixelPoint.y zoom
   }
+geoPoinCoordinatesToPixelPoint: Int -> GeoCoordinatePoint -> PixelCoordinatePoint
+geoPoinCoordinatesToPixelPoint zoom geoPoint = 
+      { x = round (ProjectionWebMercator.longToX geoPoint.long zoom)
+      , y = round (ProjectionWebMercator.latToY geoPoint.lat zoom)
+      }
 
 transformPixelToGeoCoordinateWindow: Int -> PixelCoordinateWindow -> GeoCoordinateWindow
 transformPixelToGeoCoordinateWindow zoom pixelCoordinateWindow =
