@@ -37,9 +37,7 @@ subscriptions model =
   Sub.none
 
 type alias Model = 
-  { x: Float
-  , y: Float
-  , dragStart: PixelPoint
+  { dragStart: PixelPoint
   , dragStartPixels: Types.PixelCoordinateWindow
   , mouseDown: Bool
   , map: Types.CompleteMapConfiguration
@@ -48,9 +46,7 @@ type alias Model =
 init : () -> (Model, Cmd Msg)
 init _ =
     (
-        { x = 0
-        , y = 0
-        , dragStart = 
+        { dragStart = 
           { x = 0
           , y = 0
           }
@@ -149,12 +145,10 @@ view model =
     [ 
       CoordinateUtils.view model.dragStart model.map.finalPixelCoordinateWindow.leftX model.map.finalPixelCoordinateWindow.topY
     , CoordinateUtils.view model.dragStart model.map.finalPixelCoordinateWindow.rightX model.map.finalPixelCoordinateWindow.bottomY
-    , Html.map ZoomLevelMsg (ZoomLevel.view model.map.zoom)
+    --, Html.map ZoomLevelMsg (ZoomLevel.view model.map.zoom)
     , div
-      ( 
-         List.concat [
-          [
-           Pointer.onDown 
+      ( List.concat [
+          [ Pointer.onDown 
               (\event -> 
                 let (x,y) = event.pointer.offsetPos 
                 in MouseDown (x,y)
@@ -190,7 +184,7 @@ view model =
             ( ("keyed_div_y_value_"++(String.fromInt y)) 
             , keyedDiv
               ( ElmStyle.createStyleList 
-                  [ ("height", "256px")
+                  [ ("height", ElmStyle.intToPxString Types.tilePixelSize)
                   , ("position", "absolute")
                   , ("top", ElmStyle.intToPxString (256 * y))
                   ] 
@@ -199,12 +193,17 @@ view model =
                 ( ("keyed_div_x_y_value_"++(String.fromInt x) ++ "_"++(String.fromInt y)) 
                 , div
                 ( ElmStyle.createStyleList 
-                          [ ("height", "256px")
-                          , ("width", "256px")
+                          [ ("height", ElmStyle.intToPxString Types.tilePixelSize)
+                          , ("width", ElmStyle.intToPxString Types.tilePixelSize)
                           , ("position", "absolute")
                           , ("left", ElmStyle.intToPxString (256 * x)) ])
                 [ img
-                  [ src (createMapBoxUrl model.map.zoom (modBy maxTilesOnAxis x) (modBy maxTilesOnAxis y))]
+                  (List.concat [ 
+                    [ (src (createMapBoxUrl model.map.zoom (modBy maxTilesOnAxis x) (modBy maxTilesOnAxis y)))]
+                  , ( ElmStyle.createStyleList 
+                      [ ("height", "100%")
+                      , ("width", "100%") ]
+                    )])
                   [] ]
                 )) 
                 model.map.tileRange.rangeX
