@@ -23,9 +23,10 @@ mapLayer model createTileUrl =
    keyedDiv 
           (ElmStyle.createStyleList 
             [ ("position", "absolute")
-            , ("top", ElmStyle.intToPxString -model.map.finalPixelCoordinateWindow.topY)
-            , ("left", ElmStyle.intToPxString -model.map.finalPixelCoordinateWindow.leftX)
+            , ("top", ElmStyle.intToPxString (round ( toFloat (-model.map.finalPixelCoordinateWindow.topY) * 0.5)))
+            , ("left", ElmStyle.intToPxString (round (toFloat (-model.map.finalPixelCoordinateWindow.leftX) * 0.5)))
             , ("pointer-events", "none")
+            , ("transform", "scale(0.5)")
             ] 
           )
            (flatten2D 

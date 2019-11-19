@@ -177,7 +177,9 @@ view model =
           ] 
           )])
       [ 
-        MapLayer.mapLayer model createMapBoxUrl
+        -- MapLayer.mapLayer model createMapBoxUrl
+      -- , 
+        MapLayerDeeperZoom.mapLayer model createMapBoxUrl  
       ]
     ]
 
