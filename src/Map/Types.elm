@@ -30,6 +30,11 @@ type alias PixelCoordinateWindow =
   , topY: Int
   , bottomY: Int 
   }
+-- getPixelPointCenter: PixelCoordinateWindow -> PixelCoordinatePoint
+-- getPixelPointCenter pixelWindow = 
+--   { x = (pixelWindow.leftX + pixelWindow.rightX) // 2
+--   , y = (pixelWindow.topY + pixelWindow.bottomY) // 2
+--   }
 
 type alias ZoomPlusPixel = 
   { zoom: Int

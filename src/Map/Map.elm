@@ -177,9 +177,16 @@ view model =
           ] 
           )])
       [ 
-        -- MapLayer.mapLayer model createMapBoxUrl
-      -- , 
-        MapLayerDeeperZoom.mapLayer model createMapBoxUrl  
+          
+        MapLayerDeeperZoom.mapLayer 
+          {model | map = (ZoomLevel.updateWholeMapForZoom 
+            (model.map.zoom - 1)  
+            { x = model.map.window.width // 2
+            , y = model.map.window.height // 2}
+            model.map)} 
+          createMapBoxUrl
+        , MapLayer.mapLayer model createMapBoxUrl
+      
       ]
     ]
 

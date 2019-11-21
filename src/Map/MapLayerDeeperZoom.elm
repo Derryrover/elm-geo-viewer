@@ -20,13 +20,30 @@ mapLayer model createTileUrl =
   let
     maxTilesOnAxis = Types.tilesFromZoom model.map.zoom
   in
-   keyedDiv 
+    div 
+      (ElmStyle.createStyleList 
+        [ 
+        --   ("position", "absolute")
+        -- -- , ("top", ElmStyle.intToPxString (round ( toFloat (-model.map.finalPixelCoordinateWindow.topY) * 2)))
+        -- -- , ("left", ElmStyle.intToPxString (round (toFloat (-model.map.finalPixelCoordinateWindow.leftX) * 2)))
+        -- , ("top", ElmStyle.intToPxString -model.map.finalPixelCoordinateWindow.topY)
+        -- , ("left", ElmStyle.intToPxString -model.map.finalPixelCoordinateWindow.leftX)
+          ("position", "absolute")
+        , ("top", (ElmStyle.intToPxString -(model.map.window.height // 2)))
+        , ("left", (ElmStyle.intToPxString -(model.map.window.width // 2)))
+        , ("pointer-events", "none")
+        , ("transform", "scale(2)")
+        ] 
+      )
+      [keyedDiv 
           (ElmStyle.createStyleList 
             [ ("position", "absolute")
-            , ("top", ElmStyle.intToPxString (round ( toFloat (-model.map.finalPixelCoordinateWindow.topY) * 0.5)))
-            , ("left", ElmStyle.intToPxString (round (toFloat (-model.map.finalPixelCoordinateWindow.leftX) * 0.5)))
+            -- , ("top", ElmStyle.intToPxString (round ( toFloat (-model.map.finalPixelCoordinateWindow.topY) * 2)))
+            -- , ("left", ElmStyle.intToPxString (round (toFloat (-model.map.finalPixelCoordinateWindow.leftX) * 2)))
+            , ("top", ElmStyle.intToPxString -model.map.finalPixelCoordinateWindow.topY)
+            , ("left", ElmStyle.intToPxString -model.map.finalPixelCoordinateWindow.leftX)
             , ("pointer-events", "none")
-            , ("transform", "scale(0.5)")
+            -- , ("transform", "scale(2)")
             ] 
           )
            (flatten2D 
@@ -38,7 +55,7 @@ mapLayer model createTileUrl =
                   model.map.tileRange.rangeX
                 )
               model.map.tileRange.rangeY
-            ))
+            ))]
 
 imageDiv model createTileUrl x y = 
   let
