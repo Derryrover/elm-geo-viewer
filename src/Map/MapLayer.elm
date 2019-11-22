@@ -16,15 +16,12 @@ flatten2D : List (List a) -> List a
 flatten2D list =
   List.foldr (++) [] list
 
-mapLayer model createTileUrl = 
-  let
-    maxTilesOnAxis = Types.tilesFromZoom model.map.zoom
-  in
+mapLayer map createTileUrl = 
    keyedDiv 
           (ElmStyle.createStyleList 
             [ ("position", "absolute")
-            , ("top", ElmStyle.intToPxString -model.map.finalPixelCoordinateWindow.topY)
-            , ("left", ElmStyle.intToPxString -model.map.finalPixelCoordinateWindow.leftX)
+            , ("top", ElmStyle.intToPxString -map.finalPixelCoordinateWindow.topY)
+            , ("left", ElmStyle.intToPxString -map.finalPixelCoordinateWindow.leftX)
             , ("pointer-events", "none")
             ] 
           )
@@ -32,19 +29,19 @@ mapLayer model createTileUrl =
             ( List.map (\y ->
                 List.map (\x ->
                   ( createKey x y 
-                  , imageDiv model createTileUrl x y 
+                  , imageDiv map createTileUrl x y 
                   )) 
-                  model.map.tileRange.rangeX
+                  map.tileRange.rangeX
                 )
-              model.map.tileRange.rangeY
+              map.tileRange.rangeY
             ))
 
-imageDiv model createTileUrl x y = 
+imageDiv map createTileUrl x y = 
   let
-    maxTilesOnAxis = Types.tilesFromZoom model.map.zoom
+    maxTilesOnAxis = Types.tilesFromZoom map.zoom
     xMod = modBy maxTilesOnAxis x
     yMod = modBy maxTilesOnAxis y
-    url = createTileUrl model.map.zoom xMod yMod
+    url = createTileUrl map.zoom xMod yMod
   in
     div
       ( ElmStyle.createStyleList 

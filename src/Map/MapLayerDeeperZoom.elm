@@ -7,6 +7,7 @@ import List
 
 import ElmStyle
 import Types
+import MapLayer
 
 keyedDiv = Html.Keyed.node "div"
 
@@ -16,9 +17,9 @@ flatten2D : List (List a) -> List a
 flatten2D list =
   List.foldr (++) [] list
 
-mapLayer model createTileUrl = 
+mapLayer map createTileUrl relativeZoom = 
   let
-    maxTilesOnAxis = Types.tilesFromZoom model.map.zoom
+    maxTilesOnAxis = Types.tilesFromZoom map.zoom
   in
     div 
       (ElmStyle.createStyleList 
@@ -29,10 +30,10 @@ mapLayer model createTileUrl =
         -- , ("top", ElmStyle.intToPxString -model.map.finalPixelCoordinateWindow.topY)
         -- , ("left", ElmStyle.intToPxString -model.map.finalPixelCoordinateWindow.leftX)
           ("position", "absolute")
-        , ("top", (ElmStyle.intToPxString -(model.map.window.height // 2)))
-        , ("left", (ElmStyle.intToPxString -(model.map.window.width // 2)))
+        , ("top", (ElmStyle.intToPxString -(map.window.height // relativeZoom)))
+        , ("left", (ElmStyle.intToPxString -(map.window.width // relativeZoom)))
         , ("pointer-events", "none")
-        , ("transform", "scale(2)")
+        , ("transform", "scale("++ (String.fromInt relativeZoom) ++")")
         ] 
       )
       [keyedDiv 
@@ -40,8 +41,8 @@ mapLayer model createTileUrl =
             [ ("position", "absolute")
             -- , ("top", ElmStyle.intToPxString (round ( toFloat (-model.map.finalPixelCoordinateWindow.topY) * 2)))
             -- , ("left", ElmStyle.intToPxString (round (toFloat (-model.map.finalPixelCoordinateWindow.leftX) * 2)))
-            , ("top", ElmStyle.intToPxString -model.map.finalPixelCoordinateWindow.topY)
-            , ("left", ElmStyle.intToPxString -model.map.finalPixelCoordinateWindow.leftX)
+            , ("top", ElmStyle.intToPxString -map.finalPixelCoordinateWindow.topY)
+            , ("left", ElmStyle.intToPxString -map.finalPixelCoordinateWindow.leftX)
             , ("pointer-events", "none")
             -- , ("transform", "scale(2)")
             ] 
@@ -50,29 +51,29 @@ mapLayer model createTileUrl =
             ( List.map (\y ->
                 List.map (\x ->
                   ( createKey x y 
-                  , imageDiv model createTileUrl x y 
+                  , MapLayer.imageDiv map createTileUrl x y 
                   )) 
-                  model.map.tileRange.rangeX
+                  map.tileRange.rangeX
                 )
-              model.map.tileRange.rangeY
+              map.tileRange.rangeY
             ))]
 
-imageDiv model createTileUrl x y = 
-  let
-    maxTilesOnAxis = Types.tilesFromZoom model.map.zoom
-    xMod = modBy maxTilesOnAxis x
-    yMod = modBy maxTilesOnAxis y
-    url = createTileUrl model.map.zoom xMod yMod
-  in
-    div
-      ( ElmStyle.createStyleList 
-                [ ("position", "absolute")
-                , ("top", ElmStyle.intToPxString (Types.tilePixelSize * y))
-                , ("left", ElmStyle.intToPxString (Types.tilePixelSize * x)) 
-                ])
-      [ img
-        [ src url]
-        []]
+-- imageDiv model createTileUrl x y = 
+--   let
+--     maxTilesOnAxis = Types.tilesFromZoom model.map.zoom
+--     xMod = modBy maxTilesOnAxis x
+--     yMod = modBy maxTilesOnAxis y
+--     url = createTileUrl model.map.zoom xMod yMod
+--   in
+--     div
+--       ( ElmStyle.createStyleList 
+--                 [ ("position", "absolute")
+--                 , ("top", ElmStyle.intToPxString (Types.tilePixelSize * y))
+--                 , ("left", ElmStyle.intToPxString (Types.tilePixelSize * x)) 
+--                 ])
+--       [ img
+--         [ src url]
+--         []]
 
 
 -- [ ("position", "absolute")

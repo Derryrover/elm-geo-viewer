@@ -143,12 +143,13 @@ view : Model -> Html Msg
 view model = 
   let
     maxTilesOnAxis = Types.tilesFromZoom model.map.zoom
+    map = model.map
   in
   div 
     []
     [ 
-      CoordinateUtils.view model.dragStart model.map.finalPixelCoordinateWindow.leftX model.map.finalPixelCoordinateWindow.topY
-    , CoordinateUtils.view model.dragStart model.map.finalPixelCoordinateWindow.rightX model.map.finalPixelCoordinateWindow.bottomY
+      CoordinateUtils.view model.dragStart map.finalPixelCoordinateWindow.leftX map.finalPixelCoordinateWindow.topY
+    , CoordinateUtils.view model.dragStart map.finalPixelCoordinateWindow.rightX map.finalPixelCoordinateWindow.bottomY
     --, Html.map ZoomLevelMsg (ZoomLevel.view model.map.zoom)
     , div
       ( List.concat [
@@ -170,23 +171,50 @@ view model =
           , ( Html.Attributes.map WheelDecoderMsg  WheelDecoder.mouseWheelListener)
           ],(
         ElmStyle.createStyleList 
-          [ ("height", ElmStyle.intToPxString model.map.window.height )
-          , ("width", ElmStyle.intToPxString model.map.window.width )
+          [ ("height", ElmStyle.intToPxString map.window.height )
+          , ("width", ElmStyle.intToPxString map.window.width )
           , ("overflow", "hidden")
           , ("position", "relative")
           ] 
           )])
       [ 
-          
         MapLayerDeeperZoom.mapLayer 
-          {model | map = (ZoomLevel.updateWholeMapForZoom 
-            (model.map.zoom - 1)  
-            { x = model.map.window.width // 2
-            , y = model.map.window.height // 2}
-            model.map)} 
-          createMapBoxUrl
-        , MapLayer.mapLayer model createMapBoxUrl
-      
+          (ZoomLevel.updateWholeMapForZoom 
+            (map.zoom - 2)  
+            { x = map.window.width // 2
+            , y = map.window.height // 2}
+            { map | 
+              window =  {
+                width = model.map.window.width // 4
+              , height = model.map.window.height // 4  
+              }
+              , finalPixelCoordinateWindow = {
+                  leftX = map.finalPixelCoordinateWindow.leftX + Basics.round ((toFloat(model.map.window.width)) * (3/8))
+                , rightX = map.finalPixelCoordinateWindow.rightX - Basics.round (( toFloat(model.map.window.width)) * (3/8))
+                , topY = map.finalPixelCoordinateWindow.topY + Basics.round (( toFloat(model.map.window.height)) * (3/8))
+                , bottomY = map.finalPixelCoordinateWindow.bottomY - Basics.round (( toFloat(model.map.window.height)) * (3/8))
+              } }) 
+            createMapBoxUrl
+            4
+        -- ,  MapLayerDeeperZoom.mapLayer 
+        --   (ZoomLevel.updateWholeMapForZoom 
+        --     (map.zoom - 1)  
+        --     { x = map.window.width // 2
+        --     , y = map.window.height // 2}
+        --     { map | 
+        --       window =  {
+        --         width = model.map.window.width // 2
+        --       , height = model.map.window.height // 2  
+        --       }
+        --       , finalPixelCoordinateWindow = {
+        --           leftX = map.finalPixelCoordinateWindow.leftX + model.map.window.width // 4
+        --         , rightX = map.finalPixelCoordinateWindow.rightX - model.map.window.width // 4
+        --         , topY = map.finalPixelCoordinateWindow.topY + model.map.window.height // 4
+        --         , bottomY = map.finalPixelCoordinateWindow.bottomY - model.map.window.height // 4
+        --       } }) 
+        --     createMapBoxUrl
+        --     2
+        --  , MapLayer.mapLayer model.map createMapBoxUrl
       ]
     ]
 
