@@ -30,8 +30,8 @@ mapLayer map createTileUrl relativeZoom =
         -- , ("top", ElmStyle.intToPxString -model.map.finalPixelCoordinateWindow.topY)
         -- , ("left", ElmStyle.intToPxString -model.map.finalPixelCoordinateWindow.leftX)
           ("position", "absolute")
-        , ("top", (ElmStyle.intToPxString -(map.window.height // 2)))
-        , ("left", (ElmStyle.intToPxString -(map.window.width // 2)))
+        -- , ("top", (ElmStyle.intToPxString -((map.window.height*(relativeZoom-1)) // 2)))
+        -- , ("left", (ElmStyle.intToPxString -((map.window.width*(relativeZoom-1)) // 2)))
         , ("pointer-events", "none")
         , ("transform", "scale(" ++ (String.fromInt relativeZoom) ++ ")")
         ] 
@@ -41,10 +41,11 @@ mapLayer map createTileUrl relativeZoom =
             [ ("position", "absolute")
             -- , ("top", ElmStyle.intToPxString (round ( toFloat (-model.map.finalPixelCoordinateWindow.topY) * 2)))
             -- , ("left", ElmStyle.intToPxString (round (toFloat (-model.map.finalPixelCoordinateWindow.leftX) * 2)))
-            , ("top", ElmStyle.intToPxString -(map.finalPixelCoordinateWindow.topY + map.window.height))
-            , ("left", ElmStyle.intToPxString -(map.finalPixelCoordinateWindow.leftX + map.window.width))
+            , ("top", ElmStyle.intToPxString -(map.finalPixelCoordinateWindow.topY))
+            , ("left", ElmStyle.intToPxString -(map.finalPixelCoordinateWindow.leftX))
             , ("pointer-events", "none")
             -- , ("transform", "scale(2)")
+            -- , ("visibility", "hidden")
             ] 
           )
            (flatten2D 
@@ -56,7 +57,8 @@ mapLayer map createTileUrl relativeZoom =
                   map.tileRange.rangeX
                 )
               map.tileRange.rangeY
-            ))]
+            ))
+            ]
 
 -- imageDiv model createTileUrl x y = 
 --   let
