@@ -268,19 +268,20 @@ view model =
         --     createMapBoxUrl
         --     1
         -- ,  
-        MapLayerDeeperZoom.mapLayer 
-          map
-          createMapBoxUrl
-          -3
-        , MapLayerDeeperZoom.mapLayer 
-          map
-          createMapBoxUrl
-          -2
-        , MapLayerDeeperZoom.mapLayer 
-          map
-          createMapBoxUrl
-          -0
-        --  , MapLayer.mapLayer model.map createMapBoxUrl
+        -- MapLayerDeeperZoom.mapLayer 
+        --   map
+        --   createMapBoxUrl
+        --   -3
+        -- , MapLayerDeeperZoom.mapLayer 
+        --   map
+        --   createMapBoxUrl
+        --   -2
+        -- , MapLayerDeeperZoom.mapLayer 
+        --   map
+        --   createMapBoxUrl
+        --   -0
+        --  , 
+         MapLayer.mapLayer model.map createMapBoxUrl
       ]
     ]
 

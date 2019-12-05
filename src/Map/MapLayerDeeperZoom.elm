@@ -10,15 +10,6 @@ import Types
 import MapLayer
 import ZoomLevel
 
-
-keyedDiv = Html.Keyed.node "div"
-
-createKey x y = "keyed_str_x_y_"++(String.fromInt x) ++ "_"++(String.fromInt y)
-
-flatten2D : List (List a) -> List a
-flatten2D list =
-  List.foldr (++) [] list
-
 newMapForMinusZoom map zoomMinus relativeZoom = 
   ZoomLevel.updateWholeMapForZoom 
             (map.zoom + zoomMinus)  
@@ -57,5 +48,5 @@ mapLayer map createTileUrl zoomMinus =
         ] 
       )
       [
-        MapLayer.mapLayer mapZoomed createTileUrl
+        MapLayer.mapLayerTiles mapZoomed createTileUrl
             ]

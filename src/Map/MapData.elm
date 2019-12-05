@@ -19,8 +19,8 @@ map1 =
 map2: CompleteMapConfiguration
 map2 = 
   getCompleteMapConfigurationFromWindowAndGeoCoordinateWindow
-    { width = 800
-    , height = 450
+    { width = 1200
+    , height = 800
     }
     -- { longLeft = degrees 3.409191 -- west zeeland
     -- , longRight = degrees 12.252712 -- Oost Groningen
