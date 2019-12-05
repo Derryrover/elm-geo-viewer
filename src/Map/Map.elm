@@ -16,7 +16,6 @@ import CoordinateUtils exposing(Coordinate2d(..), PixelPoint)
 import MapBoxUtils exposing (createMapBoxUrl)
 import ZoomLevel
 import MapLayer
-import MapLayerDeeperZoom
 
 import Json.Decode as Decode
 
@@ -178,109 +177,6 @@ view model =
           ] 
           )])
       [ 
-        -- MapLayerDeeperZoom.mapLayer 
-        --   (ZoomLevel.updateWholeMapForZoom 
-        --     (map.zoom - 3)  
-        --     { x = map.window.width // 16
-        --     , y = map.window.height // 16}
-        --     { map | 
-        --       window =  {
-        --         width = model.map.window.width // 8
-        --       , height = model.map.window.height // 8  
-        --       }
-        --       , finalPixelCoordinateWindow = 
-        --         let 
-        --           halfW = map.window.width // 16
-        --           halfH = map.window.height // 16
-        --           centerHorizontal = (map.finalPixelCoordinateWindow.leftX + map.finalPixelCoordinateWindow.rightX) // 2
-        --           centerVertical = (map.finalPixelCoordinateWindow.topY + map.finalPixelCoordinateWindow.bottomY) // 2
-        --         in
-        --         {
-        --           --   leftX = map.finalPixelCoordinateWindow.leftX + model.map.window.width // 4
-        --           -- , rightX = map.finalPixelCoordinateWindow.rightX - model.map.window.width // 4
-        --           -- , topY = map.finalPixelCoordinateWindow.topY + model.map.window.height // 4
-        --           -- , bottomY = map.finalPixelCoordinateWindow.bottomY - model.map.window.height // 4
-        --             leftX = centerHorizontal - halfW
-        --           , rightX = centerHorizontal + halfW
-        --           , topY = centerVertical - halfH
-        --           , bottomY = centerVertical + halfH
-        --         } }) 
-        --     createMapBoxUrl
-        --     8
-        -- ,
-        -- MapLayerDeeperZoom.mapLayer 
-        --   (ZoomLevel.updateWholeMapForZoom 
-        --     (map.zoom - 2)  
-        --     { x = map.window.width // 8
-        --     , y = map.window.height // 8}
-        --     { map | 
-        --       window =  {
-        --         width = model.map.window.width // 4
-        --       , height = model.map.window.height // 4  
-        --       }
-        --       , finalPixelCoordinateWindow = 
-        --         let 
-        --           halfW = map.window.width // 8
-        --           halfH = map.window.height // 8
-        --           centerHorizontal = (map.finalPixelCoordinateWindow.leftX + map.finalPixelCoordinateWindow.rightX) // 2
-        --           centerVertical = (map.finalPixelCoordinateWindow.topY + map.finalPixelCoordinateWindow.bottomY) // 2
-        --         in
-        --         {
-        --           --   leftX = map.finalPixelCoordinateWindow.leftX + model.map.window.width // 4
-        --           -- , rightX = map.finalPixelCoordinateWindow.rightX - model.map.window.width // 4
-        --           -- , topY = map.finalPixelCoordinateWindow.topY + model.map.window.height // 4
-        --           -- , bottomY = map.finalPixelCoordinateWindow.bottomY - model.map.window.height // 4
-        --             leftX = centerHorizontal - halfW
-        --           , rightX = centerHorizontal + halfW
-        --           , topY = centerVertical - halfH
-        --           , bottomY = centerVertical + halfH
-        --         } }) 
-        --     createMapBoxUrl
-        --     4
-        -- ,
-        -- MapLayerDeeperZoom.mapLayer 
-        --   (ZoomLevel.updateWholeMapForZoom 
-        --     (map.zoom - 0)  
-        --     { x = map.window.width // 2
-        --     , y = map.window.height // 2}
-        --     { map | 
-        --       window =  {
-        --         width = model.map.window.width // 1
-        --       , height = model.map.window.height // 1 
-        --       }
-        --       , finalPixelCoordinateWindow = 
-        --         let 
-        --           halfW = map.window.width // 2
-        --           halfH = map.window.height // 2
-        --           centerHorizontal = (map.finalPixelCoordinateWindow.leftX + map.finalPixelCoordinateWindow.rightX) // 2
-        --           centerVertical = (map.finalPixelCoordinateWindow.topY + map.finalPixelCoordinateWindow.bottomY) // 2
-        --         in
-        --         {
-        --           --   leftX = map.finalPixelCoordinateWindow.leftX + model.map.window.width // 4
-        --           -- , rightX = map.finalPixelCoordinateWindow.rightX - model.map.window.width // 4
-        --           -- , topY = map.finalPixelCoordinateWindow.topY + model.map.window.height // 4
-        --           -- , bottomY = map.finalPixelCoordinateWindow.bottomY - model.map.window.height // 4
-        --             leftX = centerHorizontal - halfW
-        --           , rightX = centerHorizontal + halfW
-        --           , topY = centerVertical - halfH
-        --           , bottomY = centerVertical + halfH
-        --         } }) 
-        --     createMapBoxUrl
-        --     1
-        -- ,  
-        -- MapLayerDeeperZoom.mapLayer 
-        --   map
-        --   createMapBoxUrl
-        --   -3
-        -- , MapLayerDeeperZoom.mapLayer 
-        --   map
-        --   createMapBoxUrl
-        --   -2
-        -- , MapLayerDeeperZoom.mapLayer 
-        --   map
-        --   createMapBoxUrl
-        --   -0
-        --  , 
          MapLayer.mapLayer model.map createMapBoxUrl
       ]
     ]
