@@ -272,6 +272,14 @@ view model =
           map
           createMapBoxUrl
           -3
+        , MapLayerDeeperZoom.mapLayer 
+          map
+          createMapBoxUrl
+          -2
+        , MapLayerDeeperZoom.mapLayer 
+          map
+          createMapBoxUrl
+          -0
         --  , MapLayer.mapLayer model.map createMapBoxUrl
       ]
     ]

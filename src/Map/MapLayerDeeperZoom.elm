@@ -19,11 +19,8 @@ flatten2D : List (List a) -> List a
 flatten2D list =
   List.foldr (++) [] list
 
-mapLayer map createTileUrl zoomMinus = 
-  let
-    relativeZoom = 2 ^ (-zoomMinus)
-    maxTilesOnAxis = Types.tilesFromZoom map.zoom
-    mapZoomed = (ZoomLevel.updateWholeMapForZoom 
+newMapForMinusZoom map zoomMinus relativeZoom = 
+  ZoomLevel.updateWholeMapForZoom 
             (map.zoom + zoomMinus)  
             { x = map.window.width // (relativeZoom*2)
             , y = map.window.height // (relativeZoom*2)}
@@ -44,7 +41,12 @@ mapLayer map createTileUrl zoomMinus =
                   , rightX = totalPixelHorizontal + halfW
                   , topY = totalPixelVertical - halfH
                   , bottomY = totalPixelVertical + halfH
-                } })
+                } }
+
+mapLayer map createTileUrl zoomMinus = 
+  let
+    relativeZoom = 2 ^ (-zoomMinus)
+    mapZoomed = newMapForMinusZoom map zoomMinus relativeZoom
   in
     div 
       (ElmStyle.createStyleList 
@@ -54,22 +56,6 @@ mapLayer map createTileUrl zoomMinus =
         , ("transform", "scale(" ++ (String.fromInt relativeZoom) ++ ")")
         ] 
       )
-      [keyedDiv 
-          (ElmStyle.createStyleList 
-            [ ("position", "absolute")
-            , ("top", ElmStyle.intToPxString -(mapZoomed.finalPixelCoordinateWindow.topY))
-            , ("left", ElmStyle.intToPxString -(mapZoomed.finalPixelCoordinateWindow.leftX))
-            , ("pointer-events", "none")
-            ] 
-          )
-           (flatten2D 
-            ( List.map (\y ->
-                List.map (\x ->
-                  ( createKey x y 
-                  , MapLayer.imageDiv mapZoomed createTileUrl x y 
-                  )) 
-                  mapZoomed.tileRange.rangeX
-                )
-              mapZoomed.tileRange.rangeY
-            ))
+      [
+        MapLayer.mapLayer mapZoomed createTileUrl
             ]
