@@ -15,6 +15,7 @@ import Svg.Keyed
 import MapVariables exposing (maxZoomLevel, tilePixelSize)
 
 
+keyedSvg = Svg.Keyed.node "svg"
 keyedSvgG = Svg.Keyed.node "g"
 -- keyedSvgImage = Svg.Keyed.node "image"
 
@@ -31,45 +32,14 @@ mapLayer map createMapBoxUrl =
       (ElmStyle.createStyleList 
             [ ("position", "absolute")
             , ("pointer-events", "none")])
-    [
-        -- mapLayerZoom 
-        --   map
-        --   createMapBoxUrl
-        --   -4
-        -- , 
-        -- mapLayerZoom 
-        --   map
-        --   createMapBoxUrl
-        --   -3
-        -- , mapLayerZoom 
-        --   map
-        --   createMapBoxUrl
-        --   -2
-        -- , 
-        mapLayerZoom 
-          map
-          createMapBoxUrl
-          -1
-        , 
-        mapLayerZoom 
-          map
-          createMapBoxUrl
-          0
-        , 
-        mapLayerZoom 
-          map
-          createMapBoxUrl
-          1
-        -- ,
-        -- mapLayerZoom 
-        --   map
-        --   createMapBoxUrl
-        --   2
-    ]
+      (List.map 
+        (\zoomLevel -> mapLayerZoom map createMapBoxUrl zoomLevel )
+        [-2,-1,0,1]
+      )
 
 mapLayerZoom map createTileUrl zoomMinus = 
   let
-    mapZoomed = newMapForMinusZoom map zoomMinus
+    mapZoomed = ZoomLevel.newMapForMinusZoom map zoomMinus
     zoomFactor = 2 ^ (maxZoomLevel - (map.zoom + zoomMinus))
   in
     ( (String.fromInt (map.zoom + zoomMinus) ) -- KEY FOR ZOOM LAYER
@@ -83,22 +53,6 @@ mapLayerZoom map createTileUrl zoomMinus =
       [
         mapLayerTiles mapZoomed map createTileUrl zoomFactor
             ])
-
--- [ ("position", "absolute")
--- , ("top", ElmStyle.intToPxString (MapVariables.tilePixelSize * y))
--- , ("left", ElmStyle.intToPxString (MapVariables.tilePixelSize * x)) 
--- , ("height", ElmStyle.intToPxString MapVariables.tilePixelSize)
--- , ("width", ElmStyle.intToPxString MapVariables.tilePixelSize)
--- ])
-
-  -- [ img
-  --       (List.concat [ 
-  --         [ (src (tileUrl model.map.zoom (modBy maxTilesOnAxis x) (modBy maxTilesOnAxis y)))]
-  --       , ( ElmStyle.createStyleList 
-  --           [ ("height", "100%")
-  --           , ("width", "100%") ]
-  --         )])
-  --       [] ]
 
 mapLayerTiles map mapOriginal createTileUrl zoomFactor = 
   --  keyedDiv
@@ -144,40 +98,4 @@ imageDiv map createTileUrl zoomFactor x y =
       , Svg.Attributes.height (String.fromInt (zoomFactor * tilePixelSize))
       ]
       []
-
-
-newMapForMinusZoom map zoomMinus = 
-  let
-      relativeZoom = 2 ^ (-zoomMinus)
-      zoom = (map.zoom + zoomMinus)
-      center = 
-            { x = map.window.width // (relativeZoom*2)
-            , y = map.window.height // (relativeZoom*2)}
-      window =  
-              {
-                width = map.window.width // relativeZoom
-              , height = map.window.height // relativeZoom  
-              }
-      finalPixelCoordinateWindow = 
-                let 
-                  halfW = map.window.width // (relativeZoom*2)
-                  halfH = map.window.height // (relativeZoom*2)
-                  totalPixelHorizontal = (map.finalPixelCoordinateWindow.leftX + map.finalPixelCoordinateWindow.rightX) // 2
-                  totalPixelVertical = (map.finalPixelCoordinateWindow.topY + map.finalPixelCoordinateWindow.bottomY) // 2
-                in
-                {
-                    leftX = totalPixelHorizontal - halfW
-                  , rightX = totalPixelHorizontal + halfW
-                  , topY = totalPixelVertical - halfH
-                  , bottomY = totalPixelVertical + halfH
-                }
-  in
-  
-  ZoomLevel.updateWholeMapForZoom 
-            zoom 
-            center
-            { map | 
-              window =  window
-            , finalPixelCoordinateWindow = finalPixelCoordinateWindow
-            }
 

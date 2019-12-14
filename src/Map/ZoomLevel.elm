@@ -21,6 +21,15 @@ update msg model =
     Plus -> model + 1
     Minus -> model - 1
 
+view : Model -> Html Msg
+view model = 
+  div 
+    [] 
+    [ button [ onClick Plus] [text "+"]
+    , div [] [text (String.fromInt model)]
+    , button [ onClick Minus] [text "-"]
+    ] 
+
 updateWholeMapForZoom : Model -> Types.PixelCoordinatePoint ->  Types.CompleteMapConfiguration -> Types.CompleteMapConfiguration
 updateWholeMapForZoom  newZoom windowZoomCenter oldMapConfiguration = 
   let
@@ -54,12 +63,41 @@ updateWholeMapForZoom  newZoom windowZoomCenter oldMapConfiguration =
     , tileRange = Types.getTileRange newPixelWindow newZoom
     }
 
-view : Model -> Html Msg
-view model = 
-  div 
-    [] 
-    [ button [ onClick Plus] [text "+"]
-    , div [] [text (String.fromInt model)]
-    , button [ onClick Minus] [text "-"]
-    ] 
+
+
+newMapForMinusZoom map zoomMinus = 
+  let
+    relativeZoom = 2 ^ (-zoomMinus)
+    zoom = (map.zoom + zoomMinus)
+    center = 
+      { x = map.window.width // (relativeZoom*2)
+      , y = map.window.height // (relativeZoom*2)}
+    window =  
+      {
+        width = map.window.width // relativeZoom
+      , height = map.window.height // relativeZoom  
+      }
+    finalPixelCoordinateWindow = 
+      let 
+        halfW = map.window.width // (relativeZoom*2)
+        halfH = map.window.height // (relativeZoom*2)
+        totalPixelHorizontal = (map.finalPixelCoordinateWindow.leftX + map.finalPixelCoordinateWindow.rightX) // 2
+        totalPixelVertical = (map.finalPixelCoordinateWindow.topY + map.finalPixelCoordinateWindow.bottomY) // 2
+      in
+      {
+          leftX = totalPixelHorizontal - halfW
+        , rightX = totalPixelHorizontal + halfW
+        , topY = totalPixelVertical - halfH
+        , bottomY = totalPixelVertical + halfH
+      }
+  in
+    updateWholeMapForZoom 
+            zoom 
+            center
+            { map | 
+              window =  window
+            , finalPixelCoordinateWindow = finalPixelCoordinateWindow
+            }
+
+
 
