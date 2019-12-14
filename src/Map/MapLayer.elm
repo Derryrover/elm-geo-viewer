@@ -36,7 +36,8 @@ mapLayer map createMapBoxUrl =
         --   map
         --   createMapBoxUrl
         --   -4
-        -- , mapLayerZoom 
+        -- , 
+        -- mapLayerZoom 
         --   map
         --   createMapBoxUrl
         --   -3
@@ -44,20 +45,21 @@ mapLayer map createMapBoxUrl =
         --   map
         --   createMapBoxUrl
         --   -2
-        -- , mapLayerZoom 
-        --   map
-        --   createMapBoxUrl
-        --   -1
         -- , 
         mapLayerZoom 
           map
           createMapBoxUrl
+          -1
+        , 
+        mapLayerZoom 
+          map
+          createMapBoxUrl
           0
-        -- , 
-        -- mapLayerZoom 
-        --   map
-        --   createMapBoxUrl
-        --   1
+        , 
+        mapLayerZoom 
+          map
+          createMapBoxUrl
+          1
         -- ,
         -- mapLayerZoom 
         --   map
@@ -67,14 +69,8 @@ mapLayer map createMapBoxUrl =
 
 mapLayerZoom map createTileUrl zoomMinus = 
   let
-    relativeZoom = 2 ^ (-zoomMinus)
-    mapZoomed = newMapForMinusZoom map zoomMinus relativeZoom
-
-    originalZoomFactor = 2 ^ (map.zoom - zoomMinus)
-    tileSize = MapVariables.tilePixelSize / (toFloat originalZoomFactor)
-    -- tileSize = (maxZoomLevel - map.zoom) * MapVariables.tilePixelSize
+    mapZoomed = newMapForMinusZoom map zoomMinus
     zoomFactor = 2 ^ (maxZoomLevel - (map.zoom + zoomMinus))
-    
   in
     ( (String.fromInt (map.zoom + zoomMinus) ) -- KEY FOR ZOOM LAYER
     , div 
@@ -82,13 +78,10 @@ mapLayerZoom map createTileUrl zoomMinus =
         [ 
           ("position", "absolute")
         , ("pointer-events", "none")
-        -- , ("transform", "scale(" ++ (String.fromInt relativeZoom) ++ ")")
-        -- , ("transition", "transform  1s")
-        -- , ("transition-timing-function", "linear")
         ] 
       )
       [
-        mapLayerTiles mapZoomed createTileUrl tileSize originalZoomFactor zoomFactor
+        mapLayerTiles mapZoomed map createTileUrl zoomFactor
             ])
 
 -- [ ("position", "absolute")
@@ -107,7 +100,7 @@ mapLayerZoom map createTileUrl zoomMinus =
   --         )])
   --       [] ]
 
-mapLayerTiles map createTileUrl tileSize originalZoomFactor zoomFactor = 
+mapLayerTiles map mapOriginal createTileUrl zoomFactor = 
   --  keyedDiv
     Svg.svg 
       [
@@ -118,21 +111,15 @@ mapLayerTiles map createTileUrl tileSize originalZoomFactor zoomFactor =
             ( String.fromInt ( map.window.width * zoomFactor  ))  ++ " " ++
             ( String.fromInt ( map.window.height * zoomFactor ))
           )
-          -- ( 
-          --   ( String.fromFloat ((toFloat map.finalPixelCoordinateWindow.leftX) /  (toFloat originalZoomFactor)) ) ++ " " ++
-          --   ( String.fromFloat ((toFloat map.finalPixelCoordinateWindow.topY) /  (toFloat originalZoomFactor)) )  ++ " " ++
-          --   ( String.fromFloat tileSize )  ++ " " ++
-          --   ( String.fromFloat tileSize )
-          -- )
-      , Svg.Attributes.width (String.fromInt map.window.width)
-      , Svg.Attributes.height (String.fromInt map.window.height)
+      , Svg.Attributes.width (String.fromInt mapOriginal.window.width)
+      , Svg.Attributes.height (String.fromInt mapOriginal.window.height)
       ]
       [keyedSvgG [] 
            (flatten2D 
             ( List.map (\y ->
                 List.map (\x ->
                   ( createKey x y map.zoom 
-                  , imageDiv map createTileUrl tileSize zoomFactor x y 
+                  , imageDiv map createTileUrl zoomFactor x y 
                   )) 
                   map.tileRange.rangeX
                 )
@@ -140,7 +127,7 @@ mapLayerTiles map createTileUrl tileSize originalZoomFactor zoomFactor =
             ))
       ]
 
-imageDiv map createTileUrl tileSize zoomFactor x y = 
+imageDiv map createTileUrl zoomFactor x y = 
   let
     maxTilesOnAxis = Types.tilesFromZoom map.zoom
     xMod = modBy maxTilesOnAxis x
@@ -157,17 +144,13 @@ imageDiv map createTileUrl tileSize zoomFactor x y =
       , Svg.Attributes.height (String.fromInt (zoomFactor * tilePixelSize))
       ]
       []
-      -- ( ElmStyle.createStyleList 
-      --           [ ("position", "absolute")
-      --           , ("top", ElmStyle.intToPxString (MapVariables.tilePixelSize * y))
-      --           , ("left", ElmStyle.intToPxString (MapVariables.tilePixelSize * x)) 
-      --           ])
-      -- [ img
-      --   [ src url]
-      --   []]
 
 
-newMapForMinusZoom map zoomMinus relativeZoom = 
+newMapForMinusZoom map zoomMinus = 
+  let
+      relativeZoom = 2 ^ (-zoomMinus)
+  in
+  
   ZoomLevel.updateWholeMapForZoom 
             (map.zoom + zoomMinus)  
             { x = map.window.width // (relativeZoom*2)
