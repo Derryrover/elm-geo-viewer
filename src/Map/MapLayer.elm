@@ -12,14 +12,14 @@ import ZoomLevel
 
 keyedDiv = Html.Keyed.node "div"
 
-createKey x y = "keyed_str_x_y_"++(String.fromInt x) ++ "_"++(String.fromInt y)
+createKey x y zoom = "keyed_str_x_y_"++(String.fromInt x) ++ "_"++(String.fromInt y) ++ "_" ++ (String.fromInt zoom)
 
 flatten2D : List (List a) -> List a
 flatten2D list =
   List.foldr (++) [] list
 
 mapLayer map createMapBoxUrl = 
-  div 
+  keyedDiv 
       (ElmStyle.createStyleList 
             [ ("position", "absolute")])
     [
@@ -39,10 +39,21 @@ mapLayer map createMapBoxUrl =
           map
           createMapBoxUrl
           -1
-        , mapLayerZoom 
+        , 
+        mapLayerZoom 
           map
           createMapBoxUrl
           0
+        , 
+        mapLayerZoom 
+          map
+          createMapBoxUrl
+          1
+        ,
+        mapLayerZoom 
+          map
+          createMapBoxUrl
+          2
     ]
 
 mapLayerTiles map createTileUrl = 
@@ -52,12 +63,14 @@ mapLayerTiles map createTileUrl =
             , ("top", ElmStyle.intToPxString -map.finalPixelCoordinateWindow.topY)
             , ("left", ElmStyle.intToPxString -map.finalPixelCoordinateWindow.leftX)
             , ("pointer-events", "none")
+            -- , ("transition", "top 1s, left 1s")
+            -- , ("transition-timing-function", "linear")
             ] 
           )
            (flatten2D 
             ( List.map (\y ->
                 List.map (\x ->
-                  ( createKey x y 
+                  ( createKey x y map.zoom 
                   , imageDiv map createTileUrl x y 
                   )) 
                   map.tileRange.rangeX
@@ -112,17 +125,20 @@ mapLayerZoom map createTileUrl zoomMinus =
     relativeZoom = 2 ^ (-zoomMinus)
     mapZoomed = newMapForMinusZoom map zoomMinus relativeZoom
   in
-    div 
+    ( (String.fromInt (map.zoom + zoomMinus) ) -- KEY FOR ZOOM LAYER
+    , div 
       (ElmStyle.createStyleList 
         [ 
           ("position", "absolute")
         , ("pointer-events", "none")
         , ("transform", "scale(" ++ (String.fromInt relativeZoom) ++ ")")
+        -- , ("transition", "transform  1s")
+        -- , ("transition-timing-function", "linear")
         ] 
       )
       [
         mapLayerTiles mapZoomed createTileUrl
-            ]
+            ])
 
 -- [ ("position", "absolute")
 -- , ("top", ElmStyle.intToPxString (Types.tilePixelSize * y))
