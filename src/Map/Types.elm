@@ -1,6 +1,7 @@
 module Types exposing (..)
 
 import ProjectionWebMercator
+import MapVariables exposing (maxZoomLevel, tilePixelSize)
 
 type alias Window = 
   { width: Int
@@ -40,9 +41,6 @@ type alias ZoomPlusPixel =
   { zoom: Int
   , pixelCoordinateWindow: PixelCoordinateWindow
   }
-
-maxZoomLevel = 16
-tilePixelSize = 256
 
 getZoom: Window -> GeoCoordinateWindow -> ZoomPlusPixel
 getZoom window geoCoordinateWindow = 
