@@ -149,18 +149,16 @@ imageDiv map createTileUrl zoomFactor x y =
 newMapForMinusZoom map zoomMinus = 
   let
       relativeZoom = 2 ^ (-zoomMinus)
-  in
-  
-  ZoomLevel.updateWholeMapForZoom 
-            (map.zoom + zoomMinus)  
+      zoom = (map.zoom + zoomMinus)
+      center = 
             { x = map.window.width // (relativeZoom*2)
             , y = map.window.height // (relativeZoom*2)}
-            { map | 
-              window =  {
+      window =  
+              {
                 width = map.window.width // relativeZoom
               , height = map.window.height // relativeZoom  
               }
-              , finalPixelCoordinateWindow = 
+      finalPixelCoordinateWindow = 
                 let 
                   halfW = map.window.width // (relativeZoom*2)
                   halfH = map.window.height // (relativeZoom*2)
@@ -172,5 +170,14 @@ newMapForMinusZoom map zoomMinus =
                   , rightX = totalPixelHorizontal + halfW
                   , topY = totalPixelVertical - halfH
                   , bottomY = totalPixelVertical + halfH
-                } }
+                }
+  in
+  
+  ZoomLevel.updateWholeMapForZoom 
+            zoom 
+            center
+            { map | 
+              window =  window
+            , finalPixelCoordinateWindow = finalPixelCoordinateWindow
+            }
 
