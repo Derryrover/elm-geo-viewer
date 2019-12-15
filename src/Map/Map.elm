@@ -4,7 +4,7 @@ import Html.Attributes exposing (style, class,value, src, alt, id)
 import Html.Events exposing (onInput, onClick)
 import Browser exposing(element)
 import Html exposing (..)
-import Html.Keyed exposing(node)
+import Html.Keyed
 import Html.Events
 import Html.Events.Extra.Pointer as Pointer
 -- self made modules
@@ -27,7 +27,7 @@ import MapData exposing ( map1, map2 )
 import Browser
 import Browser.Events
 
-keyedDiv = node "div"
+keyedDiv = Html.Keyed.node "div"
 
 main = Browser.element
   { init = init
@@ -228,7 +228,7 @@ view model =
           ] 
           )])
       [ 
-         MapLayer.mapLayer model.map createMapBoxUrl
+         MapLayer.mapLayer model.map createMapBoxUrl model.currentAnimationZoom
       ]
     ]
 

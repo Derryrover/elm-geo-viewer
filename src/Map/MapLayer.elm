@@ -25,9 +25,11 @@ flatten2D : List (List a) -> List a
 flatten2D list =
   List.foldr (++) [] list
 
-mapLayer map createMapBoxUrl = 
+mapLayer map createMapBoxUrl currentAnimationZoom = 
   let
-    zoomFactor = 2 ^ (maxZoomLevel - (map.zoom))
+    zoomFactor = 2 ^ ((toFloat maxZoomLevel) - currentAnimationZoom)
+    zoomFactorNoAnimation = 2 ^ ((toFloat maxZoomLevel) - (toFloat map.zoom))
+    -- zoomFactor = 2 ^ (maxZoomLevel - (map.zoom))
   in
     div 
       (ElmStyle.createStyleList 
@@ -37,11 +39,17 @@ mapLayer map createMapBoxUrl =
          keyedSvg 
           [
             Svg.Attributes.viewBox 
+              -- ( 
+              --   ( String.fromInt ( map.finalPixelCoordinateWindow.leftX  * zoomFactor) ) ++ " " ++
+              --   ( String.fromInt ( map.finalPixelCoordinateWindow.topY * zoomFactor) )  ++ " " ++
+              --   ( String.fromInt ( map.window.width * zoomFactor  ))  ++ " " ++
+              --   ( String.fromInt ( map.window.height * zoomFactor ))
+              -- )
               ( 
-                ( String.fromInt ( map.finalPixelCoordinateWindow.leftX  * zoomFactor) ) ++ " " ++
-                ( String.fromInt ( map.finalPixelCoordinateWindow.topY * zoomFactor) )  ++ " " ++
-                ( String.fromInt ( map.window.width * zoomFactor  ))  ++ " " ++
-                ( String.fromInt ( map.window.height * zoomFactor ))
+                ( String.fromFloat ( (toFloat map.finalPixelCoordinateWindow.leftX)  * ( zoomFactorNoAnimation)) ) ++ " " ++
+                ( String.fromFloat ( (toFloat map.finalPixelCoordinateWindow.topY) * ( zoomFactorNoAnimation)) )  ++ " " ++
+                ( String.fromFloat ( ( toFloat map.window.width) * zoomFactor  ))  ++ " " ++
+                ( String.fromFloat ( (toFloat map.window.height) * zoomFactor ))
               )
           , Svg.Attributes.width (String.fromInt map.window.width)
           , Svg.Attributes.height (String.fromInt map.window.height)
