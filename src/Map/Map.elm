@@ -24,6 +24,9 @@ import WheelDecoder
 -- self made data
 import MapData exposing ( map1, map2 )
 
+import Browser
+import Browser.Events
+
 keyedDiv = node "div"
 
 main = Browser.element
@@ -35,13 +38,18 @@ main = Browser.element
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-  Sub.none
+  if model.currentAnimationTimeLeft /= 0 then
+    Browser.Events.onAnimationFrameDelta TimeDelta
+  else 
+    Sub.none
 
 type alias Model = 
   { dragStart: PixelPoint
   , dragStartPixels: Types.PixelCoordinateWindow
   , mouseDown: Bool
   , map: Types.CompleteMapConfiguration
+  , currentAnimationZoom: Float
+  , currentAnimationTimeLeft: Float
   }
 
 init : () -> (Model, Cmd Msg)
@@ -56,12 +64,16 @@ init _ =
         , dragStartPixels = map.finalPixelCoordinateWindow
         , mouseDown = False
         , map = map
+        , currentAnimationZoom = toFloat map.zoom
+        , currentAnimationTimeLeft = 0.0
         }
       , Cmd.batch []
     )
 
 type Msg 
-  = MouseDown (Float, Float)
+  = 
+    TimeDelta Float
+  | MouseDown (Float, Float)
   | MouseMove (Float, Float)
   | MouseUp (Float, Float)
   | ZoomLevelMsg ZoomLevel.Msg
@@ -71,6 +83,42 @@ type Msg
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model = 
   case msg of
+    TimeDelta delta ->
+      let
+          eventualZoom = toFloat model.map.zoom
+          tempAnimationTimeLeft = model.currentAnimationTimeLeft - delta
+          animationZoomDelta = model.currentAnimationZoom - eventualZoom
+          timeFraction = delta / model.currentAnimationTimeLeft
+          improvedTimeFraction = 
+            if timeFraction > 1 then
+              1
+            else
+              timeFraction
+
+          newZoom = 
+            model.currentAnimationZoom - (improvedTimeFraction * animationZoomDelta)
+          improvedNewZoom = 
+            if model.currentAnimationZoom > eventualZoom then
+              if newZoom < eventualZoom then
+                eventualZoom
+              else
+                newZoom
+            else 
+              if newZoom > eventualZoom then
+                eventualZoom
+              else
+                newZoom
+      in
+      
+      (
+      { model 
+        | currentAnimationTimeLeft = 
+          if tempAnimationTimeLeft > 0 then
+            tempAnimationTimeLeft
+          else
+            0
+        , currentAnimationZoom = improvedNewZoom
+      } , Cmd.none)
     WheelDecoderMsg wheelDecoderMsg ->
       let
         mousePosition = 
@@ -87,6 +135,8 @@ update msg model =
       
       ( {model 
         | map = newMap
+        , currentAnimationTimeLeft = 1000 --miliseconds ?
+        , currentAnimationZoom = toFloat model.map.zoom
         }
       , Cmd.none
       )
@@ -147,7 +197,8 @@ view model =
   div 
     []
     [ 
-      CoordinateUtils.view model.dragStart map.window.width map.finalPixelCoordinateWindow.rightX
+      -- CoordinateUtils.view model.dragStart map.window.width map.finalPixelCoordinateWindow.rightX
+      CoordinateUtils.view {x=model.currentAnimationTimeLeft, y=model.currentAnimationZoom} map.window.width map.finalPixelCoordinateWindow.rightX
     -- , CoordinateUtils.view model.dragStart map.finalPixelCoordinateWindow.rightX map.finalPixelCoordinateWindow.bottomY
     --, Html.map ZoomLevelMsg (ZoomLevel.view model.map.zoom)
     , div

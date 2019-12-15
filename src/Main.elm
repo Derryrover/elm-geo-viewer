@@ -56,4 +56,5 @@ update msg model =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-  Sub.none
+  --Sub.none
+  Sub.batch [Sub.map MapMsg (Map.subscriptions model.map)]

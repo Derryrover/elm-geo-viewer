@@ -18,6 +18,7 @@ import MapVariables exposing (maxZoomLevel, tilePixelSize)
 keyedSvg = Svg.Keyed.node "svg"
 keyedSvgG = Svg.Keyed.node "g"
 
+
 createKey x y zoom = "keyed_str_x_y_"++(String.fromInt x) ++ "_"++(String.fromInt y) ++ "_" ++ (String.fromInt zoom)
 
 flatten2D : List (List a) -> List a
