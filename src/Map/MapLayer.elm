@@ -25,10 +25,16 @@ flatten2D : List (List a) -> List a
 flatten2D list =
   List.foldr (++) [] list
 
-mapLayer map createMapBoxUrl currentAnimationZoom = 
+mapLayer map createMapBoxUrl currentAnimationZoom currentAnimationLeftX currentAnimationTopY 
+  currentAnimationViewBoxLeftX
+  currentAnimationViewBoxTopY
+  currentAnimationViewBoxWidth
+  currentAnimationViewBoxHeight
+  
+  = 
   let
     zoomFactor = 2 ^ ((toFloat maxZoomLevel) - currentAnimationZoom)
-    zoomFactorNoAnimation = 2 ^ ((toFloat maxZoomLevel) - (toFloat map.zoom))
+    zoomFactorNoAnimation = 2 ^ (( maxZoomLevel) - (map.zoom))
     -- zoomFactor = 2 ^ (maxZoomLevel - (map.zoom))
   in
     div 
@@ -40,23 +46,24 @@ mapLayer map createMapBoxUrl currentAnimationZoom =
           [
             Svg.Attributes.viewBox 
               -- ( 
-              --   ( String.fromInt ( map.finalPixelCoordinateWindow.leftX  * zoomFactor) ) ++ " " ++
-              --   ( String.fromInt ( map.finalPixelCoordinateWindow.topY * zoomFactor) )  ++ " " ++
-              --   ( String.fromInt ( map.window.width * zoomFactor  ))  ++ " " ++
-              --   ( String.fromInt ( map.window.height * zoomFactor ))
+              --   ( String.fromInt ( map.finalPixelCoordinateWindow.leftX  * zoomFactorNoAnimation) ) ++ " " ++
+              --   ( String.fromInt ( map.finalPixelCoordinateWindow.topY * zoomFactorNoAnimation) )  ++ " " ++
+              --   ( String.fromInt ( map.window.width * zoomFactorNoAnimation  ))  ++ " " ++
+              --   ( String.fromInt ( map.window.height * zoomFactorNoAnimation ))
               -- )
               ( 
-                ( String.fromFloat ( (toFloat map.finalPixelCoordinateWindow.leftX)  * ( zoomFactorNoAnimation)) ) ++ " " ++
-                ( String.fromFloat ( (toFloat map.finalPixelCoordinateWindow.topY) * ( zoomFactorNoAnimation)) )  ++ " " ++
-                ( String.fromFloat ( ( toFloat map.window.width) * zoomFactor  ))  ++ " " ++
-                ( String.fromFloat ( (toFloat map.window.height) * zoomFactor ))
+                ( String.fromFloat currentAnimationViewBoxLeftX ) ++ " " ++
+                ( String.fromFloat currentAnimationViewBoxTopY )  ++ " " ++
+                ( String.fromFloat currentAnimationViewBoxWidth)  ++ " " ++
+                ( String.fromFloat currentAnimationViewBoxHeight)
               )
           , Svg.Attributes.width (String.fromInt map.window.width)
           , Svg.Attributes.height (String.fromInt map.window.height)
           ]
           (List.map 
             (\zoomLevel -> mapLayerZoom map createMapBoxUrl zoomLevel )
-            [-2,-1,0,1]
+            -- [-3, -2,-1,0,1]
+            [-1,0,1]
           )
        ]
       

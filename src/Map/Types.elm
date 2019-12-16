@@ -77,10 +77,10 @@ getTileRange pixelCoordinateWindow zoom =
     rightX = toFloat pixelCoordinateWindow.rightX
     topY = toFloat pixelCoordinateWindow.topY
     bottomY = toFloat pixelCoordinateWindow.bottomY
-    xTileLeft = (Basics.floor ( leftX / tilePixelSize ))-- - 1
-    xTileRight = (Basics.ceiling ( rightX / tilePixelSize ))-- + 1
-    yTileTop = (Basics.floor ( topY / tilePixelSize ))-- - 1
-    yTileBottom = (Basics.ceiling ( bottomY / tilePixelSize ))-- + 1
+    xTileLeft = (Basics.floor ( leftX / tilePixelSize )) - 1
+    xTileRight = (Basics.ceiling ( rightX / tilePixelSize )) + 1
+    yTileTop = (Basics.floor ( topY / tilePixelSize )) - 1
+    yTileBottom = (Basics.ceiling ( bottomY / tilePixelSize )) + 1
   in
     { rangeX = List.range xTileLeft xTileRight
     , rangeY = List.range yTileTop yTileBottom
@@ -179,6 +179,8 @@ panPixelCoordinateWindow coordinates window xFloat yFloat zoom =
       {
         leftX = coordinates.leftX - x
       , rightX = coordinates.rightX - x
+      --   leftX = modBy  (2^zoom*256) (coordinates.leftX - x)
+      -- , rightX = modBy   (2^zoom*256) (coordinates.rightX - x)
       , topY = coordinates.topY - y
       , bottomY = coordinates.bottomY - y
       }

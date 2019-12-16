@@ -48,13 +48,24 @@ type alias Model =
   , dragStartPixels: Types.PixelCoordinateWindow
   , mouseDown: Bool
   , map: Types.CompleteMapConfiguration
-  , currentAnimationZoom: Float
   , currentAnimationTimeLeft: Float
+  
+  , currentAnimationViewBoxLeftX: Float
+  , currentAnimationViewBoxTopY: Float
+  , currentAnimationViewBoxWidth: Float
+  , currentAnimationViewBoxHeight: Float
+  
+  , currentAnimationZoom: Float
+  , currentAnimationLeftX: Float
+  , currentAnimationTopY: Float
   }
+
 
 init : () -> (Model, Cmd Msg)
 init _ = 
-  let map = map2
+  let 
+    map = map2
+    zoomFactor = ZoomLevel.getZoomFactor (toFloat map.zoom)
   in
     (
         { dragStart = 
@@ -64,8 +75,16 @@ init _ =
         , dragStartPixels = map.finalPixelCoordinateWindow
         , mouseDown = False
         , map = map
-        , currentAnimationZoom = toFloat map.zoom
         , currentAnimationTimeLeft = 0.0
+
+        , currentAnimationViewBoxLeftX = (toFloat map.finalPixelCoordinateWindow.leftX)  * zoomFactor
+        , currentAnimationViewBoxTopY = (toFloat map.finalPixelCoordinateWindow.topY)  * zoomFactor
+        , currentAnimationViewBoxWidth = (toFloat map.window.width)  * zoomFactor
+        , currentAnimationViewBoxHeight = (toFloat map.window.height)  * zoomFactor
+
+        , currentAnimationZoom = toFloat map.zoom
+        , currentAnimationLeftX = toFloat map.finalPixelCoordinateWindow.leftX
+        , currentAnimationTopY = toFloat map.finalPixelCoordinateWindow.topY
         }
       , Cmd.batch []
     )
@@ -79,37 +98,45 @@ type Msg
   | ZoomLevelMsg ZoomLevel.Msg
   | WheelDecoderMsg WheelDecoder.Msg
 
+calculateAnimationValue timeFraction currentValue eventualValue = 
+  let
+    valueDelta = currentValue - eventualValue
+    newValue = currentValue - (timeFraction * valueDelta)
+  in
+    if currentValue > eventualValue then
+      if newValue < eventualValue then
+        eventualValue
+      else
+        newValue
+    else 
+      if newValue > eventualValue then
+        eventualValue
+      else
+        newValue
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model = 
   case msg of
     TimeDelta delta ->
       let
-          eventualZoom = toFloat model.map.zoom
+          map = model.map
+          
           tempAnimationTimeLeft = model.currentAnimationTimeLeft - delta
-          animationZoomDelta = model.currentAnimationZoom - eventualZoom
           timeFraction = delta / model.currentAnimationTimeLeft
           improvedTimeFraction = 
             if timeFraction > 1 then
               1
             else
               timeFraction
+          zoomFactor = ZoomLevel.getZoomFactor (toFloat map.zoom)
 
-          newZoom = 
-            model.currentAnimationZoom - (improvedTimeFraction * animationZoomDelta)
-          improvedNewZoom = 
-            if model.currentAnimationZoom > eventualZoom then
-              if newZoom < eventualZoom then
-                eventualZoom
-              else
-                newZoom
-            else 
-              if newZoom > eventualZoom then
-                eventualZoom
-              else
-                newZoom
+          eventualZoom = toFloat model.map.zoom
+          eventualLeftX = toFloat model.map.finalPixelCoordinateWindow.leftX
+          eventualTopY = toFloat model.map.finalPixelCoordinateWindow.topY
+          newZoom = calculateAnimationValue improvedTimeFraction model.currentAnimationZoom eventualZoom
+          newLeftX = calculateAnimationValue improvedTimeFraction model.currentAnimationLeftX eventualLeftX
+          newTopY = calculateAnimationValue improvedTimeFraction model.currentAnimationTopY eventualTopY
       in
-      
       (
       { model 
         | currentAnimationTimeLeft = 
@@ -117,7 +144,31 @@ update msg model =
             tempAnimationTimeLeft
           else
             0
-        , currentAnimationZoom = improvedNewZoom
+
+        , currentAnimationViewBoxLeftX = 
+            calculateAnimationValue 
+              improvedTimeFraction 
+              model.currentAnimationViewBoxLeftX 
+              ((toFloat map.finalPixelCoordinateWindow.leftX)  * zoomFactor)
+        , currentAnimationViewBoxTopY = 
+            calculateAnimationValue 
+              improvedTimeFraction 
+              model.currentAnimationViewBoxTopY 
+              ((toFloat map.finalPixelCoordinateWindow.topY)  * zoomFactor)
+        , currentAnimationViewBoxWidth = 
+            calculateAnimationValue 
+              improvedTimeFraction 
+              model.currentAnimationViewBoxWidth 
+              ((toFloat map.window.width)  * zoomFactor)
+        , currentAnimationViewBoxHeight = 
+            calculateAnimationValue 
+              improvedTimeFraction 
+              model.currentAnimationViewBoxHeight  
+              ((toFloat map.window.height)  * zoomFactor)
+
+        , currentAnimationZoom = newZoom
+        , currentAnimationLeftX = newLeftX
+        , currentAnimationTopY = newTopY
       } , Cmd.none)
     WheelDecoderMsg wheelDecoderMsg ->
       let
@@ -131,12 +182,21 @@ update msg model =
         newZoom = ZoomLevel.update plusOrMinus zoom
         zoomCenter = {x=round mousePosition.x, y= round  mousePosition.y}
         newMap = ZoomLevel.updateWholeMapForZoom newZoom zoomCenter map
+        zoomFactor = ZoomLevel.getZoomFactor (toFloat map.zoom)
       in
       
       ( {model 
         | map = newMap
-        , currentAnimationTimeLeft = 1000 --miliseconds ?
+        , currentAnimationTimeLeft = 400 --miliseconds ?
+
+        -- , currentAnimationViewBoxLeftX = (toFloat map.finalPixelCoordinateWindow.leftX)  * zoomFactor
+        -- , currentAnimationViewBoxTopY = (toFloat map.finalPixelCoordinateWindow.topY)  * zoomFactor
+        -- , currentAnimationViewBoxWidth = (toFloat map.window.width)  * zoomFactor
+        -- , currentAnimationViewBoxHeight = (toFloat map.window.height)  * zoomFactor
+
         , currentAnimationZoom = toFloat model.map.zoom
+        , currentAnimationLeftX = toFloat model.map.finalPixelCoordinateWindow.leftX
+        , currentAnimationTopY = toFloat model.map.finalPixelCoordinateWindow.topY
         }
       , Cmd.none
       )
@@ -174,9 +234,14 @@ update msg model =
                         , finalGeoCoordinateWindow = newGeoCoordinateWindow
                         , tileRange = newTileRange tempMap.zoom
                         }
+            zoomFactor = ZoomLevel.getZoomFactor (toFloat newMap.zoom)
           in
           ({ model 
               | map = newMap
+              , currentAnimationViewBoxLeftX = (toFloat newMap.finalPixelCoordinateWindow.leftX)  * zoomFactor
+              , currentAnimationViewBoxTopY = (toFloat newMap.finalPixelCoordinateWindow.topY)  * zoomFactor
+              , currentAnimationViewBoxWidth = (toFloat newMap.window.width)  * zoomFactor
+              , currentAnimationViewBoxHeight = (toFloat newMap.window.height)  * zoomFactor
             }
             , Cmd.none
           )
@@ -228,7 +293,18 @@ view model =
           ] 
           )])
       [ 
-         MapLayer.mapLayer model.map createMapBoxUrl model.currentAnimationZoom
+         MapLayer.mapLayer 
+            model.map 
+            createMapBoxUrl 
+            
+            model.currentAnimationZoom 
+            model.currentAnimationLeftX 
+            model.currentAnimationTopY
+            
+            model.currentAnimationViewBoxLeftX
+            model.currentAnimationViewBoxTopY
+            model.currentAnimationViewBoxWidth
+            model.currentAnimationViewBoxHeight
       ]
     ]
 

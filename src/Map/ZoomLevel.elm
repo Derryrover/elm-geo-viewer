@@ -8,6 +8,7 @@ import Html.Events
 import Html.Events.Extra.Pointer as Pointer
 import Types
 import ProjectionWebMercator
+import MapVariables
 
 type alias Model = Int
 
@@ -29,6 +30,8 @@ view model =
     , div [] [text (String.fromInt model)]
     , button [ onClick Minus] [text "-"]
     ] 
+
+getZoomFactor currentZoom = 2 ^ ((toFloat MapVariables.maxZoomLevel) - currentZoom)
 
 updateWholeMapForZoom : Model -> Types.PixelCoordinatePoint ->  Types.CompleteMapConfiguration -> Types.CompleteMapConfiguration
 updateWholeMapForZoom  newZoom windowZoomCenter oldMapConfiguration = 
