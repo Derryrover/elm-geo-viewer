@@ -8,3 +8,5 @@ AuthElm
 
 # generated javascript file
 dist/main.js
+
+node_modules
