@@ -81,9 +81,22 @@ getTileRange pixelCoordinateWindow zoom =
     xTileRight = (Basics.ceiling ( rightX / tilePixelSize )) + 1
     yTileTop = (Basics.floor ( topY / tilePixelSize )) - 1
     yTileBottom = (Basics.ceiling ( bottomY / tilePixelSize )) + 1
+    -- Make sure y tile range cannot be less then 0 and does not exceed the maximum
+    yTileTopNotNull = 
+      if yTileTop < 0 then
+        0
+      else
+        yTileTop
+    maxYTileNumber = (tilesFromZoom zoom) - 1 -- the -1 because the tilerange starts from 0
+    yTileBottomMax = 
+      if yTileBottom > maxYTileNumber then
+        maxYTileNumber
+      else 
+        yTileBottom
+          
   in
     { rangeX = List.range xTileLeft xTileRight
-    , rangeY = List.range yTileTop yTileBottom
+    , rangeY = List.range yTileTopNotNull yTileBottomMax
     }
 
 
