@@ -12,7 +12,12 @@ import ZoomLevel
 import Svg
 import Svg.Attributes
 import Svg.Keyed
-import MapVariables exposing (maxZoomLevel, tilePixelSize)
+import MapVariables exposing (
+  maxZoomLevel
+  -- , tilePixelSize
+  )
+
+tilePixelSize = 1--256
 
 
 keyedSvg = Svg.Keyed.node "svg"
@@ -52,10 +57,10 @@ mapLayer map createMapBoxUrl currentAnimationZoom currentAnimationLeftX currentA
               --   ( String.fromInt ( map.window.height * zoomFactorNoAnimation ))
               -- )
               ( 
-                ( String.fromFloat currentAnimationViewBoxLeftX ) ++ " " ++
-                ( String.fromFloat currentAnimationViewBoxTopY )  ++ " " ++
-                ( String.fromFloat currentAnimationViewBoxWidth)  ++ " " ++
-                ( String.fromFloat currentAnimationViewBoxHeight)
+                ( String.fromFloat (currentAnimationViewBoxLeftX / 256) ) ++ " " ++
+                ( String.fromFloat (currentAnimationViewBoxTopY/ 256) )  ++ " " ++
+                ( String.fromFloat (currentAnimationViewBoxWidth/ 256))  ++ " " ++
+                ( String.fromFloat (currentAnimationViewBoxHeight/ 256))
               )
           , Svg.Attributes.width (String.fromInt map.window.width)
           , Svg.Attributes.height (String.fromInt map.window.height)
@@ -63,7 +68,7 @@ mapLayer map createMapBoxUrl currentAnimationZoom currentAnimationLeftX currentA
           (List.map 
             (\zoomLevel -> mapLayerZoom map createMapBoxUrl zoomLevel )
             -- [-3, -2,-1,0,1]
-            [-1,0,1]
+            [0]
           )
        ]
       

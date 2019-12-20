@@ -175,10 +175,13 @@ panPixelCoordinateWindow coordinates window xFloat yFloat zoom =
     x = round xFloat
     y = round yFloat
     maxBottomY = tilePixelSize * (tilesFromZoom zoom)
+    doubleMapWidth = 2 * tilePixelSize * (tilesFromZoom zoom)
+    leftX = modBy doubleMapWidth (coordinates.leftX - x)
+    rightX = leftX + (coordinates.rightX - coordinates.leftX)
     result = 
       {
-        leftX = coordinates.leftX - x
-      , rightX = coordinates.rightX - x
+        leftX = leftX 
+      , rightX = rightX
       --   leftX = modBy  (2^zoom*256) (coordinates.leftX - x)
       -- , rightX = modBy   (2^zoom*256) (coordinates.rightX - x)
       , topY = coordinates.topY - y
