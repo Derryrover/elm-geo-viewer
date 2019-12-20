@@ -200,16 +200,32 @@ panPixelCoordinateWindow coordinates window xFloat yFloat zoom =
       , topY = coordinates.topY - y
       , bottomY = coordinates.bottomY - y
       }
+    maxHeight = tilePixelSize * (tilesFromZoom zoom)
   in
-    if result.topY < 0 then
-      { result
-      | topY = 0
-      , bottomY = window.height
-      }
-    else if (result.topY + window.height) > maxBottomY then --bottomY > maxBottomY then
-      { result
-      | topY = maxBottomY - window.height
-      , bottomY = maxBottomY
-      }
+    if maxHeight > window.height then 
+      if result.topY < 0 && coordinates.topY >= 0 then
+        { result
+        | topY = 0
+        , bottomY = window.height
+        }
+      else if (result.topY + window.height) > maxBottomY && (coordinates.topY + window.height) <= maxBottomY then
+        { result
+        | topY = maxBottomY - window.height
+        , bottomY = maxBottomY
+        }
+      else
+        result
     else
-      result
+      if result.topY > 0 && coordinates.topY <= 0  then
+        { result
+        | topY = 0
+        , bottomY = window.height
+        }
+      else if (result.topY + window.height) < maxBottomY && (coordinates.topY + window.height) >= maxBottomY then
+        { result
+        | topY = maxBottomY - window.height
+        , bottomY = maxBottomY
+        }
+      else
+        result
+
