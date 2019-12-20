@@ -278,6 +278,11 @@ view model =
                 let (x,y) = event.pointer.offsetPos 
                 in MouseUp  (x,y)
               )
+          , Pointer.onLeave
+              (\event -> 
+                let (x,y) = event.pointer.offsetPos 
+                in MouseUp  (x,y)
+              )
           , Pointer.onMove 
               (\event -> 
                 let (x,y) = event.pointer.offsetPos 
