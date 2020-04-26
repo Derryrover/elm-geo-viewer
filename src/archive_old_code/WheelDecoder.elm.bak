@@ -1,40 +1,20 @@
 module WheelDecoder exposing(getFromMsg, mouseWheelListener, Msg)
 
-import Html 
+import Html exposing (div, text)
 import Html.Events
 import Html.Events.Extra.Wheel as Wheel
 import Json.Decode as Decode
 import ZoomLevel
 
-
-mouseWheelListener: Html.Attribute Msg
-mouseWheelListener = 
-  Html.Events.custom 
-    "wheel" 
-    decoder
-
-decoder = 
-  Decode.map 
-    options
-    (
-      Decode.map 
-        toWheelMsg
-        decodeWeelWithOffsetXY
-    )
-    
-options message =
-  { message = message
-  , stopPropagation = True
-  , preventDefault = True
-  }
-
-type alias Model = 
-  { x: Float
-  , y: Float
-  , zoom: ZoomLevel.Msg
-  }
+type alias ModelDecoded = {x: Float, y: Float}
+type alias Model = {x: Float, y: Float, zoom: ZoomLevel.Msg}
 type Msg
   = WheelMsg Model
+
+type alias WheelEventWithOffsetXY =
+  { wheelEvent : Wheel.Event
+  , offsetXY : ModelDecoded
+  }
 
 getFromMsg: Msg -> Model
 getFromMsg (WheelMsg record) = record
@@ -44,13 +24,6 @@ decodeWeelWithOffsetXY =
   Decode.map2 WheelEventWithOffsetXY
     Wheel.eventDecoder
     offsetXYDecoder
-
-type alias WheelEventWithOffsetXY =
-  { wheelEvent : Wheel.Event
-  , offsetXY : ModelDecoded
-  }
-
-type alias ModelDecoded = {x: Float, y: Float}
 
 offsetXYDecoder : Decode.Decoder ModelDecoded
 offsetXYDecoder =
@@ -63,7 +36,7 @@ toWheelMsg wheelEvent =
   WheelMsg 
   { x= (wheelEvent.offsetXY.x)
   , y= (wheelEvent.offsetXY.y)
-  , zoom = getZoomFromWheelEvent wheelEvent
+  , zoom = getZoomFromWheelEvent wheelEvent 
   }
 
 getZoomFromWheelEvent: WheelEventWithOffsetXY -> ZoomLevel.Msg
@@ -74,3 +47,24 @@ getZoomFromWheelEvent wheelEvent =
       ZoomLevel.Minus
     else
       ZoomLevel.Plus
+
+
+onWheelOffsetXY : (WheelEventWithOffsetXY -> msg) -> Html.Attribute msg
+onWheelOffsetXY tag =
+  let
+    options message =
+        { message = message
+        , stopPropagation = True
+        , preventDefault = True
+        }
+    decoder =
+        decodeWeelWithOffsetXY
+        |> Decode.map tag 
+        |> Decode.map options
+  in
+    Html.Events.custom "wheel" decoder
+
+
+mouseWheelListener: Html.Attribute Msg
+mouseWheelListener = 
+  onWheelOffsetXY toWheelMsg

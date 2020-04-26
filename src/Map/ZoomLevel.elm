@@ -22,17 +22,18 @@ update msg model =
     Minus -> model - 1
 
 updateWholeMapForZoom : Model -> Types.PixelCoordinatePoint ->  Types.CompleteMapConfiguration -> Types.CompleteMapConfiguration
-updateWholeMapForZoom  newZoom windowZoomCenter oldMapConfiguration = --oldMapConfiguration
+updateWholeMapForZoom  newZoom windowZoomCenter oldMapConfiguration = 
   let
-    pixelZoomCenter = --Types.getPixelCenterFromWindow oldMapConfiguration.finalPixelCoordinateWindow
+    -- transform center of zoom: from pixel offsetxy on element -> to pixel offsetxy on all existing tiles for that zoom level
+    pixelZoomCenter = 
       { x = oldMapConfiguration.finalPixelCoordinateWindow.leftX + windowZoomCenter.x
       , y = oldMapConfiguration.finalPixelCoordinateWindow.topY + windowZoomCenter.y
       }
+    -- transform the center of zoom: from pixels -> to lat long
     geoZoomCenter = Types.pixelPointToGeoPointCoordinates oldMapConfiguration.zoom pixelZoomCenter
-    pixelCenterNewZoom = --Types.getPixelCenterFromWindow oldMapConfiguration.finalPixelCoordinateWindow
-      { x = round (ProjectionWebMercator.longToX geoZoomCenter.long newZoom)
-      , y = round (ProjectionWebMercator.latToY geoZoomCenter.lat newZoom)
-      }
+    -- transform the center of zoom: from lat long -> to pixel offsetxy for the new zoom level
+    pixelCenterNewZoom = Types.geoPoinCoordinatesToPixelPoint newZoom geoZoomCenter
+    -- calculate from the new pixel zoom center the borders of the map shown
     newPixelWindowLeftX = pixelCenterNewZoom.x - windowZoomCenter.x
     newPixelWindowRightX = newPixelWindowLeftX + oldMapConfiguration.window.width
     newPixelWindowTopY = pixelCenterNewZoom.y - windowZoomCenter.y
@@ -43,6 +44,7 @@ updateWholeMapForZoom  newZoom windowZoomCenter oldMapConfiguration = --oldMapCo
       , topY = newPixelWindowTopY
       , bottomY = newPixelWindowBottomY
       }
+    -- transform pixel borders to lat long borders
     newGeoWindow = Types.transformPixelToGeoCoordinateWindow newZoom newPixelWindow
   in
     { oldMapConfiguration
@@ -58,7 +60,6 @@ view model =
     [] 
     [ button [ onClick Plus] [text "+"]
     , div [] [text (String.fromInt model)]
-    -- , div [] [text (toString model)]
     , button [ onClick Minus] [text "-"]
     ] 
 
