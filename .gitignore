@@ -1,12 +1,15 @@
-# elm-package generated files
-elm-stuff
 # elm-repl generated files
 repl-temp-*
 
 # authentication for mapbox and such
 AuthElm
 
-# generated javascript file
-dist/main.js
+# App artifacts
+/dist
+/.cache
+/elm-stuff
+/node_modules
+.vscode
 
-node_modules
+# Generated on crash by NPM
+npm-debug.log
