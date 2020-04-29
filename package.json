@@ -4,7 +4,7 @@
   "description": "",
   "main": "/src/index.js",
   "scripts": {
-    "start": "node start-proxy-2.js",
+    "start": "python3 start_proxy_with_python3_for_credentials.py",
     "build": "parcel build src/index.html",
     "test": "elm-test"
   },
