@@ -13,3 +13,7 @@ AuthElm
 
 # Generated on crash by NPM
 npm-debug.log
+
+# dev proxy server temp files
+server.cert
+server.key
