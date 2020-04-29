@@ -2,7 +2,7 @@ const ParcelProxyServer = require('parcel-proxy-server');
  
 // configure the proxy server
 const server = new ParcelProxyServer({
-  entryPoint: 'src/index.html',
+  entryPoint: './src/index.html',
   parcelOptions: {
     // provide parcel options here
     // these are directly passed into the
