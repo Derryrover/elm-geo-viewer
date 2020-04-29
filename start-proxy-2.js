@@ -15,9 +15,9 @@ function relayResponseHeaders(proxyRes, req, res) {
 };
 
 const options = {
-target: 'https://nxt3.staging.lizard.net/api/v3/',
+target: 'https://nxt3.staging.lizard.net/',
 changeOrigin: true,
-pathRewrite: { '/api/v3': '' },
+// pathRewrite: { '/api/v3': '/api/v3' },
 logLevel: 'debug',
 // onProxyReq: relayRequestHeaders,
 // onProxyRes: relayResponseHeaders,
