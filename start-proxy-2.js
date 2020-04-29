@@ -15,17 +15,34 @@ function relayResponseHeaders(proxyRes, req, res) {
 };
 
 const options = {
-target: 'https://nxt3.staging.lizard.net/',
-changeOrigin: true,
-// pathRewrite: { '/api/v3': '/api/v3' },
-logLevel: 'debug',
-// onProxyReq: relayRequestHeaders,
-// onProxyRes: relayResponseHeaders,
+  target: 'https://nxt3.staging.lizard.net/',
+  changeOrigin: true,
+  // pathRewrite: { '/api/v3': '/api/v3' },
+  logLevel: 'debug',
+  // onProxyReq: relayRequestHeaders,
+  // onProxyRes: relayResponseHeaders,
+  "headers": {
+    "username": "",
+    "password": ""
+  }
+}
+
+const password = process.env.PROXY_PASSWORD;
+const username = process.env.PROXY_USERNAME;
+
+if (password && username) {
+  options.headers.username = username;
+  options.headers.password = password;
+} else {
+  console.log("Please set PROXY_PASSWORD and PROXY_USERNAME variables!");
+  process.exit(1);
 }
 
 const app = express();
 
 app.use(createProxyMiddleware('/api/v3', options));
+// probably not a good idea since the login will be over http
+// app.use(createProxyMiddleware('/api-auth/login', options))
 
 const bundler = new Bundler('src/index.html');
 app.use(bundler.middleware());
