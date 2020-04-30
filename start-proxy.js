@@ -8,7 +8,7 @@ const theseUrlPostFixesAreProxied = ['/api/v3'];
 const options = {
   target: proxyUrlTarget,
   changeOrigin: proxyUrlTarget.indexOf('localhost') < 0, 
-  logLevel: 'debug',
+  // logLevel: 'debug',
   "headers": {
     // if username password left '' will continue without credentials !
     "username": '', 
@@ -31,7 +31,7 @@ const usernamePrompt = new Prompt({
 });
 const passwordPrompt = new Prompt({
   type: 'password',
-  message: 'Enter your password please (will be displayed as ***)',
+  message: 'Enter your password',
   name: 'password',
 });
 
@@ -39,6 +39,7 @@ console.log('Please enter credentials for ' + proxyUrlTarget + ' \n Leaving user
 usernamePrompt.run()
 .then (function(username){
   console.log('Use username: ' + username);
+  console.log('Entered password will appear in terminal as * signs');
   passwordPrompt.run()
   .then(function(password) {
     // appearently they become undefined when using empty string
@@ -55,7 +56,7 @@ usernamePrompt.run()
     })
     const bundler = new Bundler(bundlerStartingPoint);
     app.use(bundler.middleware());
-    console.log('starting dev server at: http://localhost:' + portNumber )
+    console.log('\n \n starting dev server at: http://localhost:' + portNumber )
     app.listen(portNumber);
   });
 })
