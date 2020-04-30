@@ -1,49 +1,63 @@
-const Bundler = require('parcel-bundler');
-const express = require('express');
-const { createProxyMiddleware } = require('http-proxy-middleware');
 
-// function relayRequestHeaders(proxyReq, req) {
-//   Object.keys(req.headers).forEach(function (key) {
-//       proxyReq.setHeader(key, req.headers[key]);
-//   });
-// };
 
-// function relayResponseHeaders(proxyRes, req, res) {
-//   Object.keys(proxyRes.headers).forEach(function (key) {
-//       res.append(key, proxyRes.headers[key]);
-//   });
-// };
+const proxyUrlTarget = 'https://nxt3.staging.lizard.net/';
+const portNumber = Number(process.env.PORT || 1234);
+const bundlerStartingPoint = 'src/index.html';
+const theseUrlPostFixesAreProxied = ['/api/v3'];
 
 const options = {
-  target: 'https://nxt3.staging.lizard.net/',
-  changeOrigin: true,
-  // not needed
-  // pathRewrite: { '/api/v3': '/api/v3' },
+  target: proxyUrlTarget,
+  changeOrigin: proxyUrlTarget.indexOf('localhost') < 0, 
   logLevel: 'debug',
-  // not needed
-  // onProxyReq: relayRequestHeaders,
-  // onProxyRes: relayResponseHeaders,
   "headers": {
-    "username": "",
-    "password": ""
+    // if username password left '' will continue without credentials !
+    "username": '', 
+    "password": '',
   }
 }
 
-const password = process.env.PROXY_PASSWORD;
-const username = process.env.PROXY_USERNAME;
+const Bundler = require('parcel-bundler');
+const express = require('express');
+const { createProxyMiddleware } = require('http-proxy-middleware');
+const Prompt = require('prompt-password');
 
-if (password && username) {
-  options.headers.username = username;
-  options.headers.password = password;
-} else {
-  console.log("Currently no username password used !");
-}
+const usernamePrompt = new Prompt({
+  type: 'username',
+  message: 'Enter your username',
+  name: 'username',
+  mask: function(input) {
+    return input;
+  }
+});
+const passwordPrompt = new Prompt({
+  type: 'password',
+  message: 'Enter your password please (will be displayed as ***)',
+  name: 'password',
+});
 
-const app = express();
+console.log('Please enter credentials for ' + proxyUrlTarget + ' \n Leaving username or password empty will continue without credentials. ');
+usernamePrompt.run()
+.then (function(username){
+  console.log('Use username: ' + username);
+  passwordPrompt.run()
+  .then(function(password) {
+    // appearently they become undefined when using empty string
+    if (username != undefined && password != undefined) {
+      options.headers.username = username;
+      options.headers.password = password;
+    } else {
+      console.log("Currently no username password used, because one of them was empty string ! \n Continue without credentials");
+    }
+    
+    const app = express();
+    theseUrlPostFixesAreProxied.forEach(function(urlPostfix){
+      app.use(createProxyMiddleware(urlPostfix, options));
+    })
+    const bundler = new Bundler(bundlerStartingPoint);
+    app.use(bundler.middleware());
+    console.log('starting dev server at: http://localhost:' + portNumber )
+    app.listen(portNumber);
+  });
+})
 
-app.use(createProxyMiddleware('/api/v3', options));
 
-const bundler = new Bundler('src/index.html');
-app.use(bundler.middleware());
-
-app.listen(Number(process.env.PORT || 1234));
