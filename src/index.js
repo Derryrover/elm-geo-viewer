@@ -20,6 +20,6 @@ const app = Elm.Main.init({
   flags: 6
 })
 
-app.ports.toJs.subscribe(data => {
-    console.log(data);
-})
+// app.ports.toJs.subscribe(data => {
+//     console.log(data);
+// })
