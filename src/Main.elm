@@ -1,113 +1,182 @@
-module Main exposing (..)
+port module Main exposing (Model, Msg(..), add1, init, main, toJs, update, view)
 
--- core
-import Html exposing (Html, div, text, input, img)
-import Html.Attributes exposing (style, class,value, src, alt)
-import Html.Events exposing (onInput, onClick)
-import Browser exposing(element)
+import Browser
+import Html exposing (..)
+import Html.Attributes exposing (..)
+import Html.Events exposing (onClick)
+import Http exposing (Error(..))
+import Json.Decode as Decode
 
--- self made modules
-import ElmStyle
-import SelfMadeMath
-import Time
-import Clock
 import Map exposing(..)
 
--- Authentication
--- import MapboxAuth
 
 
-type alias Model = 
-  { time: Time.Model
-  , map: Map.Model }
+-- ---------------------------
+-- PORTS
+-- ---------------------------
 
-type Msg 
-  = Hour Int
-  | Minute Int
-  | None
-  | MapMsg Map.Msg
 
-main = Browser.element
-  { init = init
-  , view = view
-  , update = update
-  , subscriptions = subscriptions
-  }
+port toJs : String -> Cmd msg
 
-init : () -> (Model, Cmd Msg)
-init _ =
-  let (map, mapCmd) = Map.init ()
-  in
-    (
-       { time = Time.Model 11 39
-       , map = map }
-      --, Cmd.batch [Cmd.map SvgElementMsg svgElementMsg]
-      , Cmd.batch [Cmd.map  MapMsg mapCmd]
-    )
 
-toIntMsg: (Int -> Msg) -> String -> Msg
-toIntMsg msg str =
-  case String.toInt str of
-    Nothing -> 
-      case str of
-        "" -> msg 0
-        _  -> None
-    Just val -> msg val
 
-mapBoxApiBaseUrl = "https://api.mapbox.com/styles/v1/mapbox/streets-v10/static/"
-boundingBox = "-122.337798,37.810550,9.67,0.00,0.00/1000x600@2x"
--- accesToken = "?access_token=" ++ MapboxAuth.key
--- mapBoxUrl = mapBoxApiBaseUrl ++ boundingBox ++ accesToken
+-- ---------------------------
+-- MODEL
+-- ---------------------------
+
+
+type alias Model =
+    { counter : Int
+    , serverMessage : String
+    , map: Map.Model
+    }
+
+
+init : Int -> ( Model, Cmd Msg )
+init flags =
+    let (map, mapCmd) = Map.init ()
+    in
+    ( { 
+        counter = flags, serverMessage = "" 
+        , map = map
+        }, Cmd.batch [Cmd.none, Cmd.map  MapMsg mapCmd] )
+
+
+
+-- ---------------------------
+-- UPDATE
+-- ---------------------------
+
+
+type Msg
+    = Inc
+    | Set Int
+    | TestServer
+    | OnServerResponse (Result Http.Error String)
+    | MapMsg Map.Msg
+
+
+update : Msg -> Model -> ( Model, Cmd Msg )
+update message model =
+    case message of
+        MapMsg mapMsg ->
+            let (map, mapMsgNew) = Map.update mapMsg model.map 
+            in ({model | map = map}, Cmd.map MapMsg mapMsgNew)
+        Inc ->
+            ( add1 model, toJs "Hello Js" )
+
+        Set m ->
+            ( { model | counter = m }, toJs "Hello Js" )
+
+        TestServer ->
+            let
+                expect =
+                    Http.expectJson OnServerResponse (Decode.field "result" Decode.string)
+            in
+            ( model
+            , Http.get { url = "/test", expect = expect }
+            )
+
+        OnServerResponse res ->
+            case res of
+                Ok r ->
+                    ( { model | serverMessage = r }, Cmd.none )
+
+                Err err ->
+                    ( { model | serverMessage = "Error: " ++ httpErrorToString err }, Cmd.none )
+
+
+httpErrorToString : Http.Error -> String
+httpErrorToString err =
+    case err of
+        BadUrl url ->
+            "BadUrl: " ++ url
+
+        Timeout ->
+            "Timeout"
+
+        NetworkError ->
+            "NetworkError"
+
+        BadStatus _ ->
+            "BadStatus"
+
+        BadBody s ->
+            "BadBody: " ++ s
+
+
+{-| increments the counter
+
+    add1 5 --> 6
+
+-}
+add1 : Model -> Model
+add1 model =
+    { model | counter = model.counter + 1 }
+
+
+
+-- ---------------------------
+-- VIEW
+-- ---------------------------
 
 
 view : Model -> Html Msg
-view model = 
-  div 
-    []
+view model =
+    div [ class "container" ]
+        [ 
+        -- header []
+        --     [ -- img [ src "/images/logo.png" ] []
+        --       span [ class "logo" ] []
+        --     , h1 [] [ text "Elm 0.19.1 Webpack Starter, with hot-reloading" ]
+        --     ]
+        -- , p [] [ text "Click on the button below to increment the state." ]
+        -- , div [ class "pure-g" ]
+        --     [ div [ class "pure-u-1-3" ]
+        --         [ button
+        --             [ class "pure-button pure-button-primary"
+        --             , onClick Inc
+        --             ]
+        --             [ text "+ 1" ]
+        --         , text <| String.fromInt model.counter
+        --         ]
+        --     , div [ class "pure-u-1-3" ] []
+        --     , div [ class "pure-u-1-3" ]
+        --         [ button
+        --             [ class "pure-button pure-button-primary"
+        --             , onClick TestServer
+        --             ]
+        --             [ text "ping dev server" ]
+        --         , text model.serverMessage
+        --         ]
+        --     ]
+        -- , p [] [ text "Then make a change to the source code and see how the state is retained after you recompile." ]
+        -- , p []
+        --     [ text "And now don't forget to add a star to the Github repo "
+        --     , a [ href "https://github.com/simonh1000/elm-webpack-starter" ] [ text "elm-webpack-starter" ]
+        --     ]
+        -- , 
+          div [class "test_class"] []
+        , Html.map MapMsg (Map.view model.map)
+        , img [src "/api/v3/wms/?SERVICE=WMS&REQUEST=GetMap&VERSION=1.1.1&LAYERS=users%3Atom-test-upload-data-18-januari&STYLES=dem_nl&FORMAT=image%2Fpng&TRANSPARENT=false&HEIGHT=256&WIDTH=256&TIME=2020-02-07T10%3A00%3A00&SRS=EPSG%3A3857&BBOX=386465.61500985106,6687322.730613498,391357.5848201024,6692214.700423751"] []
+        ]
 
 
-    [ 
-      Html.map MapMsg (Map.view model.map)
-      -- img
-      -- [ alt "static Mapbox map of the San Francisco bay area"
-      -- , src mapBoxUrl
-      -- ]
-      -- []
-    -- , input 
-    --   [ value (String.fromInt model.time.hours)
-    --   , onInput (toIntMsg Hour)
-    --   ] 
-    --   []
-    -- , input 
-    --   [ value (String.fromInt model.time.minutes)
-    --   , onInput (toIntMsg Minute)
-    --   ] 
-    --   []
-    -- , (Clock.view model.time)
-    ]
 
-update : Msg -> Model -> ( Model, Cmd Msg )
-update msg model = 
-  case msg of
-    MapMsg mapMsg ->
-      let (map, mapMsg2) = Map.update mapMsg model.map 
-      in ({model | map = map}, Cmd.map MapMsg mapMsg2)
-    Hour hr ->
-      let 
-        time = model.time
-        newTime = {time | hours = hr}
-      in ({model | time = newTime}, Cmd.none)
-    Minute mn ->
-      let 
-        time = model.time
-        newTime = {time | minutes = mn}
-      in ({model | time = newTime}, Cmd.none)
-    None ->
-      (model, Cmd.none)
-    -- ClockMsg Clock.Msg ->
-    --   (model, Cmd.none)
+-- ---------------------------
+-- MAIN
+-- ---------------------------
 
 
-subscriptions : Model -> Sub Msg
-subscriptions model =
-  Sub.none
+main : Program Int Model Msg
+main =
+    Browser.document
+        { init = init
+        , update = update
+        , view =
+            \m ->
+                { title = "Elm 0.19 starter"
+                , body = [ view m ]
+                }
+        , subscriptions = \model -> Sub.map MapMsg (Map.subscriptions model.map)
+        }

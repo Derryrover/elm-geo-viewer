@@ -4,32 +4,30 @@ import Html.Attributes exposing (style, class,value, src, alt, id)
 import Html.Events exposing (onInput, onClick)
 import Browser exposing(element)
 import Html exposing (..)
-import Html.Keyed exposing(node)
+import Html.Keyed
 import Html.Events
 import Html.Events.Extra.Pointer as Pointer
 -- self made modules
 import ElmStyle
--- import SizeXYLongLat exposing(getTileRange)
 import List
--- import ProjectionWebMercator exposing(..)
-import Types exposing(..)
+import Types 
+
 import CoordinateUtils exposing(Coordinate2d(..), PixelPoint)
-import CoordinateViewer
 import MapBoxUtils exposing (createMapBoxUrl)
 import ZoomLevel
+import MapLayer
 
 import Json.Decode as Decode
-import MousePosition
 
 import WheelDecoder
--- import MouseCustomEvent
 
 -- self made data
 import MapData exposing ( map1, map2 )
--- Authentication
---import MapboxAuth
 
-keyedDiv = node "div"
+import Browser
+import Browser.Events
+
+keyedDiv = Html.Keyed.node "div"
 
 main = Browser.element
   { init = init
@@ -40,56 +38,139 @@ main = Browser.element
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-  Sub.none
+  if model.currentAnimationTimeLeft /= 0 then
+    Browser.Events.onAnimationFrameDelta TimeDelta
+  else 
+    Sub.none
 
 type alias Model = 
-  { x: Float
-  , y: Float
-  , dragStart: PixelPoint
-  , dragStartPixels: PixelCoordinateWindow
-  , dragPrevious: PixelPoint
+  { dragStart: PixelPoint
+  , dragStartPixels: Types.PixelCoordinateWindow
   , mouseDown: Bool
-  , map: CompleteMapConfiguration
-  , mousePosition: MousePosition.Model
+  , map: Types.CompleteMapConfiguration
+  , currentAnimationTimeLeft: Float
+  
+  , currentAnimationViewBoxLeftX: Float
+  , currentAnimationViewBoxTopY: Float
+  , currentAnimationViewBoxWidth: Float
+  , currentAnimationViewBoxHeight: Float
+  
+  , currentAnimationZoom: Float
+  , currentAnimationLeftX: Float
+  , currentAnimationTopY: Float
   }
 
+
 init : () -> (Model, Cmd Msg)
-init _ =
+init _ = 
+  let 
+    map = map2
+    zoomFactor = ZoomLevel.getZoomFactor (toFloat map.zoom)
+  in
     (
-        { x = 0
-        , y = 0
-        , dragStart = 
+        { dragStart = 
           { x = 0
           , y = 0
           }
-        , dragPrevious = 
-          { x = 0
-          , y = 0
-          }
-        , dragStartPixels = map2.finalPixelCoordinateWindow
+        , dragStartPixels = map.finalPixelCoordinateWindow
         , mouseDown = False
-        , map = map2
-        , mousePosition = MousePosition.init
+        , map = map
+        , currentAnimationTimeLeft = 0.0
+
+        , currentAnimationViewBoxLeftX = (toFloat map.finalPixelCoordinateWindow.leftX)  * zoomFactor
+        , currentAnimationViewBoxTopY = (toFloat map.finalPixelCoordinateWindow.topY)  * zoomFactor
+        , currentAnimationViewBoxWidth = (toFloat map.window.width)  * zoomFactor
+        , currentAnimationViewBoxHeight = (toFloat map.window.height)  * zoomFactor
+
+        , currentAnimationZoom = toFloat map.zoom
+        , currentAnimationLeftX = toFloat map.finalPixelCoordinateWindow.leftX
+        , currentAnimationTopY = toFloat map.finalPixelCoordinateWindow.topY
         }
       , Cmd.batch []
     )
 
 type Msg 
-  = Click (Float, Float)
+  = 
+    TimeDelta Float
   | MouseDown (Float, Float)
   | MouseMove (Float, Float)
   | MouseUp (Float, Float)
   | ZoomLevelMsg ZoomLevel.Msg
-  | MousePositionMsg MousePosition.Msg
   | WheelDecoderMsg WheelDecoder.Msg
-  | None
 
+calculateAnimationValue timeFraction currentValue eventualValue = 
+  let
+    valueDelta = currentValue - eventualValue
+    newValue = currentValue - (timeFraction * valueDelta)
+  in
+    if currentValue > eventualValue then
+      if newValue < eventualValue then
+        eventualValue
+      else
+        newValue
+    else 
+      if newValue > eventualValue then
+        eventualValue
+      else
+        newValue
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model = 
   case msg of
+    TimeDelta delta ->
+      let
+          map = model.map
+          
+          tempAnimationTimeLeft = model.currentAnimationTimeLeft - delta
+          timeFraction = delta / model.currentAnimationTimeLeft
+          improvedTimeFraction = 
+            if timeFraction > 1 then
+              1
+            else
+              timeFraction
+          zoomFactor = ZoomLevel.getZoomFactor (toFloat map.zoom)
+
+          eventualZoom = toFloat model.map.zoom
+          eventualLeftX = toFloat model.map.finalPixelCoordinateWindow.leftX
+          eventualTopY = toFloat model.map.finalPixelCoordinateWindow.topY
+          newZoom = calculateAnimationValue improvedTimeFraction model.currentAnimationZoom eventualZoom
+          newLeftX = calculateAnimationValue improvedTimeFraction model.currentAnimationLeftX eventualLeftX
+          newTopY = calculateAnimationValue improvedTimeFraction model.currentAnimationTopY eventualTopY
+      in
+      (
+      { model 
+        | currentAnimationTimeLeft = 
+          if tempAnimationTimeLeft > 0 then
+            tempAnimationTimeLeft
+          else
+            0
+
+        , currentAnimationViewBoxLeftX = 
+            calculateAnimationValue 
+              improvedTimeFraction 
+              model.currentAnimationViewBoxLeftX 
+              ((toFloat map.finalPixelCoordinateWindow.leftX)  * zoomFactor)
+        , currentAnimationViewBoxTopY = 
+            calculateAnimationValue 
+              improvedTimeFraction 
+              model.currentAnimationViewBoxTopY 
+              ((toFloat map.finalPixelCoordinateWindow.topY)  * zoomFactor)
+        , currentAnimationViewBoxWidth = 
+            calculateAnimationValue 
+              improvedTimeFraction 
+              model.currentAnimationViewBoxWidth 
+              ((toFloat map.window.width)  * zoomFactor)
+        , currentAnimationViewBoxHeight = 
+            calculateAnimationValue 
+              improvedTimeFraction 
+              model.currentAnimationViewBoxHeight  
+              ((toFloat map.window.height)  * zoomFactor)
+
+        , currentAnimationZoom = newZoom
+        , currentAnimationLeftX = newLeftX
+        , currentAnimationTopY = newTopY
+      } , Cmd.none)
     WheelDecoderMsg wheelDecoderMsg ->
-      --  ({model | mousePosition = WheelDecoder.getFromMsg wheelDecoderMsg}, Cmd.none)
       let
         mousePosition = 
           { x = (WheelDecoder.getFromMsg wheelDecoderMsg).x
@@ -99,20 +180,26 @@ update msg model =
         map = model.map
         zoom = map.zoom
         newZoom = ZoomLevel.update plusOrMinus zoom
-        -- mapCenter = { x =  map.window.width // 2, y = map.window.height // 2}
-        mapCenter = {x=round mousePosition.x, y= round  mousePosition.y}
-        newMap = ZoomLevel.updateWholeMapForZoom newZoom mapCenter map
+        zoomCenter = {x=round mousePosition.x, y= round  mousePosition.y}
+        newMap = ZoomLevel.updateWholeMapForZoom newZoom zoomCenter map
+        zoomFactor = ZoomLevel.getZoomFactor (toFloat map.zoom)
       in
       
       ( {model 
-        | mousePosition = mousePosition
-        , map = newMap
+        | map = newMap
+        , currentAnimationTimeLeft = 400 --miliseconds ?
+
+        -- , currentAnimationViewBoxLeftX = (toFloat map.finalPixelCoordinateWindow.leftX)  * zoomFactor
+        -- , currentAnimationViewBoxTopY = (toFloat map.finalPixelCoordinateWindow.topY)  * zoomFactor
+        -- , currentAnimationViewBoxWidth = (toFloat map.window.width)  * zoomFactor
+        -- , currentAnimationViewBoxHeight = (toFloat map.window.height)  * zoomFactor
+
+        , currentAnimationZoom = toFloat model.map.zoom
+        , currentAnimationLeftX = toFloat model.map.finalPixelCoordinateWindow.leftX
+        , currentAnimationTopY = toFloat model.map.finalPixelCoordinateWindow.topY
         }
       , Cmd.none
       )
-    MousePositionMsg mousePositionMsg ->
-      -- ({model | mousePosition = MousePosition.update mousePositionMsg model.mousePosition}, Cmd.none)
-      (model, Cmd.none)
     ZoomLevelMsg plusOrMinus ->
       let 
         map = model.map
@@ -122,13 +209,10 @@ update msg model =
         newMap = ZoomLevel.updateWholeMapForZoom newZoom mapCenter map
       in
         ({model | map = newMap}, Cmd.none)
-    Click (x, y) ->
-      ({ model | x = x, y = y }, Cmd.none)
     MouseDown (x, y) ->
       ({ model 
           | mouseDown = True
           , dragStart = {x = x, y = y}
-          , dragPrevious = {x = x, y = y}
           , dragStartPixels = model.map.finalPixelCoordinateWindow
         }
         , Cmd.none
@@ -136,28 +220,28 @@ update msg model =
     MouseMove (x, y) ->
       case model.mouseDown of
         False ->
-          ( model 
-              -- | dragPrevious = {x = x, y = y}
-            -- }
-            , Cmd.none
-          )
+          ( model , Cmd.none )
         True ->
           let 
             tempMap = model.map
             deltaX = x - model.dragStart.x
             deltaY = y - model.dragStart.y
-            newPixelCoordinateWindow = panPixelCoordinateWindow model.dragStartPixels model.map.window deltaX deltaY model.map.zoom
-            newGeoCoordinateWindow = transformPixelToGeoCoordinateWindow model.map.zoom newPixelCoordinateWindow
+            newPixelCoordinateWindow = Types.panPixelCoordinateWindow model.dragStartPixels model.map.window deltaX deltaY model.map.zoom
+            newGeoCoordinateWindow = Types.transformPixelToGeoCoordinateWindow model.map.zoom newPixelCoordinateWindow
             newTileRange = Types.getTileRange newPixelCoordinateWindow
             newMap = { tempMap 
                         | finalPixelCoordinateWindow = newPixelCoordinateWindow
                         , finalGeoCoordinateWindow = newGeoCoordinateWindow
                         , tileRange = newTileRange tempMap.zoom
                         }
+            zoomFactor = ZoomLevel.getZoomFactor (toFloat newMap.zoom)
           in
           ({ model 
-              | dragPrevious = {x = x, y = y}
-              , map = newMap
+              | map = newMap
+              , currentAnimationViewBoxLeftX = (toFloat newMap.finalPixelCoordinateWindow.leftX)  * zoomFactor
+              , currentAnimationViewBoxTopY = (toFloat newMap.finalPixelCoordinateWindow.topY)  * zoomFactor
+              , currentAnimationViewBoxWidth = (toFloat newMap.window.width)  * zoomFactor
+              , currentAnimationViewBoxHeight = (toFloat newMap.window.height)  * zoomFactor
             }
             , Cmd.none
           )
@@ -167,38 +251,24 @@ update msg model =
         }
         , Cmd.none
       )
-    None ->
-      (model, Cmd.none)
 
 
 view : Model -> Html Msg
 view model = 
   let
     maxTilesOnAxis = Types.tilesFromZoom model.map.zoom
+    map = model.map
   in
-  
   div 
     []
     [ 
-      --CoordinateViewer.view model.x model.y model.map.zoom    
-     --CoordinateUtils.view model.dragPrevious model.map.tileRange.panFromLeft model.map.tileRange.panFromTop
-      CoordinateUtils.view model.dragPrevious model.map.finalPixelCoordinateWindow.leftX model.map.finalPixelCoordinateWindow.topY
-    , CoordinateUtils.view model.dragPrevious model.map.tileRange.panFromLeft model.map.tileRange.panFromTop
-     
-    , Html.map ZoomLevelMsg (ZoomLevel.view model.map.zoom)
-    , MousePosition.view model.mousePosition
+      -- CoordinateUtils.view model.dragStart map.window.width map.finalPixelCoordinateWindow.rightX
+      CoordinateUtils.view {x=model.currentAnimationTimeLeft, y=model.currentAnimationZoom} map.window.width map.finalPixelCoordinateWindow.rightX
+    -- , CoordinateUtils.view model.dragStart map.finalPixelCoordinateWindow.rightX map.finalPixelCoordinateWindow.bottomY
+    --, Html.map ZoomLevelMsg (ZoomLevel.view model.map.zoom)
     , div
-      ( 
-         List.concat [
-          [
-            -- Pointer.onDown 
-            --   (\event -> 
-            --     let (x,y) = event.pointer.offsetPos 
-            --     in Click ( x + toFloat model.map.finalPixelCoordinateWindow.leftX
-            --              , y + toFloat model.map.finalPixelCoordinateWindow.topY
-            --              )
-            --   )
-           Pointer.onDown 
+      ( List.concat [
+          [ Pointer.onDown 
               (\event -> 
                 let (x,y) = event.pointer.offsetPos 
                 in MouseDown (x,y)
@@ -208,90 +278,38 @@ view model =
                 let (x,y) = event.pointer.offsetPos 
                 in MouseUp  (x,y)
               )
+          , Pointer.onLeave
+              (\event -> 
+                let (x,y) = event.pointer.offsetPos 
+                in MouseUp  (x,y)
+              )
           , Pointer.onMove 
               (\event -> 
                 let (x,y) = event.pointer.offsetPos 
                 in MouseMove  (x,y)
               )
-          , ( Html.Attributes.map MousePositionMsg MousePosition.mouseMoveListener)
           , ( Html.Attributes.map WheelDecoderMsg  WheelDecoder.mouseWheelListener)
           ],(
         ElmStyle.createStyleList 
-          [ ("height", (String.fromInt model.map.window.height) ++ "px")
-          , ("width", (String.fromInt model.map.window.width)++"px")
+          [ ("height", ElmStyle.intToPxString map.window.height )
+          , ("width", ElmStyle.intToPxString map.window.width )
           , ("overflow", "hidden")
           , ("position", "relative")
           ] 
-          )]
-      )
-      [
-        keyedDiv 
-          (
-           
-            ElmStyle.createStyleList 
-              [ ("position", "absolute")
-              -- , ("top", (String.fromInt -model.map.tileRange.panFromTop)++"px")
-              -- , ("left", (String.fromInt -model.map.tileRange.panFromLeft)++"px")
-              , ("top", (String.fromInt -model.map.finalPixelCoordinateWindow.topY)++"px")
-              , ("left", (String.fromInt -model.map.finalPixelCoordinateWindow.leftX)++"px")
-              -- , ("transition", "top 0.02s, left 0.02s")
-              , ("pointer-events", "none")
-              ] 
-          )
-          -- (List.concat
-          (
-          List.map
-          (
-            \y ->
-            (
-              ("y_value_"++(String.fromInt y)) 
-            ,keyedDiv
-              ( ElmStyle.createStyleList 
-                  [ ("height", "256px")
-                  , ("position", "absolute")
-                  , ("top", (String.fromInt (256 * y)++"px"))
-                  -- , ("width", (String.fromInt (256*(List.length model.map.tileRange.rangeX)))++"px")
-                  ] 
-              )
-              (List.map 
-                (
-                  \x ->
-                  (
-                    ("x_y_value_"++(String.fromInt x) ++ "_"++(String.fromInt y)) 
-                  , div
-                  (
-                    List.concat [
-                      [ 
-                        -- src (createMapBoxUrl model.map.zoom x y)
-                        id ("id_backgroundimg_" ++ (String.fromInt x) ++ "_"++(String.fromInt y) )
-                      ]
-                      , 
-                      ( ElmStyle.createStyleList 
-                            [ ("height", "256px")
-                            , ("width", "256px")
-                            , ("position", "absolute")
-                            -- , ("top", (String.fromInt (256 * y)++"px"))
-                            , ("left", (String.fromInt (256 * x)++"px"))
-                            ] )
-                    ]
-                  )
-                  [
-                    img
-                  (
-                    List.concat [
-                      [ src (createMapBoxUrl model.map.zoom (modBy maxTilesOnAxis x) (modBy maxTilesOnAxis y))
-                      ]
-                  ]
-                  )
-                  []
-                  ]
-                )) 
-                model.map.tileRange.rangeX
-              )
-          ))
-          model.map.tileRange.rangeY
-        )
-        -- )
+          )])
+      [ 
+         MapLayer.mapLayer 
+            model.map 
+            createMapBoxUrl 
+            
+            model.currentAnimationZoom 
+            model.currentAnimationLeftX 
+            model.currentAnimationTopY
+            
+            model.currentAnimationViewBoxLeftX
+            model.currentAnimationViewBoxTopY
+            model.currentAnimationViewBoxWidth
+            model.currentAnimationViewBoxHeight
       ]
     ]
 
