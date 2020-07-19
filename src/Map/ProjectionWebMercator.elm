@@ -41,6 +41,9 @@ yToLat yInt zoomInt =
     temp7
 
 
+
+-- For below to functions used this gist as example:
+-- https://gist.github.com/springmeyer/871897
 longToMeters lon = 
   lon * 20037508.34 / 180
     
