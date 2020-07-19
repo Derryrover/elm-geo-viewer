@@ -13,7 +13,7 @@ import List
 import Types 
 
 import CoordinateUtils exposing(Coordinate2d(..), PixelPoint)
-import MapBoxUtils exposing (createMapBoxUrl)
+import MapBoxUtils exposing (createMapBoxUrl,createWmsUrl)
 import ZoomLevel
 import MapLayer
 
@@ -301,6 +301,18 @@ view model =
          MapLayer.mapLayer 
             model.map 
             createMapBoxUrl 
+            
+            model.currentAnimationZoom 
+            model.currentAnimationLeftX 
+            model.currentAnimationTopY
+            
+            model.currentAnimationViewBoxLeftX
+            model.currentAnimationViewBoxTopY
+            model.currentAnimationViewBoxWidth
+            model.currentAnimationViewBoxHeight
+      , MapLayer.mapLayer 
+            model.map 
+            createWmsUrl 
             
             model.currentAnimationZoom 
             model.currentAnimationLeftX 
