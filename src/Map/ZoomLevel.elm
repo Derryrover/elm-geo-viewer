@@ -8,6 +8,7 @@ import Html.Events
 import Html.Events.Extra.Pointer as Pointer
 import Types
 import ProjectionWebMercator
+import MapVariables
 
 type alias Model = Int
 
@@ -21,18 +22,30 @@ update msg model =
     Plus -> model + 1
     Minus -> model - 1
 
+view : Model -> Html Msg
+view model = 
+  div 
+    [] 
+    [ button [ onClick Plus] [text "+"]
+    , div [] [text (String.fromInt model)]
+    , button [ onClick Minus] [text "-"]
+    ] 
+
+getZoomFactor currentZoom = 2 ^ ((toFloat MapVariables.maxZoomLevel) - currentZoom)
+
 updateWholeMapForZoom : Model -> Types.PixelCoordinatePoint ->  Types.CompleteMapConfiguration -> Types.CompleteMapConfiguration
-updateWholeMapForZoom  newZoom windowZoomCenter oldMapConfiguration = --oldMapConfiguration
+updateWholeMapForZoom  newZoom windowZoomCenter oldMapConfiguration = 
   let
-    pixelZoomCenter = --Types.getPixelCenterFromWindow oldMapConfiguration.finalPixelCoordinateWindow
+    -- transform center of zoom: from pixel offsetxy on element -> to pixel offsetxy on all existing tiles for that zoom level
+    pixelZoomCenter = 
       { x = oldMapConfiguration.finalPixelCoordinateWindow.leftX + windowZoomCenter.x
       , y = oldMapConfiguration.finalPixelCoordinateWindow.topY + windowZoomCenter.y
       }
+    -- transform the center of zoom: from pixels -> to lat long
     geoZoomCenter = Types.pixelPointToGeoPointCoordinates oldMapConfiguration.zoom pixelZoomCenter
-    pixelCenterNewZoom = --Types.getPixelCenterFromWindow oldMapConfiguration.finalPixelCoordinateWindow
-      { x = round (ProjectionWebMercator.longToX geoZoomCenter.long newZoom)
-      , y = round (ProjectionWebMercator.latToY geoZoomCenter.lat newZoom)
-      }
+    -- transform the center of zoom: from lat long -> to pixel offsetxy for the new zoom level
+    pixelCenterNewZoom = Types.geoPoinCoordinatesToPixelPoint newZoom geoZoomCenter
+    -- calculate from the new pixel zoom center the borders of the map shown
     newPixelWindowLeftX = pixelCenterNewZoom.x - windowZoomCenter.x
     newPixelWindowRightX = newPixelWindowLeftX + oldMapConfiguration.window.width
     newPixelWindowTopY = pixelCenterNewZoom.y - windowZoomCenter.y
@@ -43,6 +56,7 @@ updateWholeMapForZoom  newZoom windowZoomCenter oldMapConfiguration = --oldMapCo
       , topY = newPixelWindowTopY
       , bottomY = newPixelWindowBottomY
       }
+    -- transform pixel borders to lat long borders
     newGeoWindow = Types.transformPixelToGeoCoordinateWindow newZoom newPixelWindow
   in
     { oldMapConfiguration
@@ -52,13 +66,41 @@ updateWholeMapForZoom  newZoom windowZoomCenter oldMapConfiguration = --oldMapCo
     , tileRange = Types.getTileRange newPixelWindow newZoom
     }
 
-view : Model -> Html Msg
-view model = 
-  div 
-    [] 
-    [ button [ onClick Plus] [text "+"]
-    , div [] [text (String.fromInt model)]
-    -- , div [] [text (toString model)]
-    , button [ onClick Minus] [text "-"]
-    ] 
+
+
+newMapForMinusZoom map zoomMinus = 
+  let
+    relativeZoom = 2 ^ (-zoomMinus)
+    zoom = (map.zoom + zoomMinus)
+    center = 
+      { x = map.window.width // (relativeZoom*2)
+      , y = map.window.height // (relativeZoom*2)}
+    window =  
+      {
+        width = map.window.width // relativeZoom
+      , height = map.window.height // relativeZoom  
+      }
+    finalPixelCoordinateWindow = 
+      let 
+        halfW = map.window.width // (relativeZoom*2)
+        halfH = map.window.height // (relativeZoom*2)
+        totalPixelHorizontal = (map.finalPixelCoordinateWindow.leftX + map.finalPixelCoordinateWindow.rightX) // 2
+        totalPixelVertical = (map.finalPixelCoordinateWindow.topY + map.finalPixelCoordinateWindow.bottomY) // 2
+      in
+      {
+          leftX = totalPixelHorizontal - halfW
+        , rightX = totalPixelHorizontal + halfW
+        , topY = totalPixelVertical - halfH
+        , bottomY = totalPixelVertical + halfH
+      }
+  in
+    updateWholeMapForZoom 
+            zoom 
+            center
+            { map | 
+              window =  window
+            , finalPixelCoordinateWindow = finalPixelCoordinateWindow
+            }
+
+
 

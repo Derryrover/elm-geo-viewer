@@ -1,0 +1,77 @@
+const Bundler = require('parcel-bundler');
+const express = require('express');
+const { createProxyMiddleware } = require('http-proxy-middleware');
+const Prompt = require('prompt-password');
+
+// function relayRequestHeaders(proxyReq, req) {
+//   Object.keys(req.headers).forEach(function (key) {
+//       proxyReq.setHeader(key, req.headers[key]);
+//   });
+// };
+
+// function relayResponseHeaders(proxyRes, req, res) {
+//   Object.keys(proxyRes.headers).forEach(function (key) {
+//       res.append(key, proxyRes.headers[key]);
+//   });
+// };
+
+const portNumber = Number(process.env.PORT || 1234);
+const bundlerStartingPoint = 'src/index.html';
+const theseUrlPostFixesAreProxied = ['/api/v3'];
+const options = {
+  target: 'https://nxt3.staging.lizard.net/',
+  changeOrigin: true,
+  // not needed
+  // pathRewrite: { '/api/v3': '/api/v3' },
+  logLevel: 'debug',
+  // not needed
+  // onProxyReq: relayRequestHeaders,
+  // onProxyRes: relayResponseHeaders,
+  "headers": {
+    "username": undefined, // if left undefined should continue without credentials ! test this
+    "password": undefined, // if left undefined should continue without credentials ! test this
+  }
+}
+
+// const password = process.env.PROXY_PASSWORD;
+// const username = process.env.PROXY_USERNAME;
+
+
+const usernamePrompt = new Prompt({
+  type: 'username',
+  message: 'Enter your username',
+  name: 'username',
+  mask: function(input) {
+    return input;
+  }
+});
+const passwordPrompt = new Prompt({
+  type: 'password',
+  message: 'Enter your password please',
+  name: 'password',
+});
+ 
+usernamePrompt.run()
+.then (function(username){
+  console.log('Use username: ' + username);
+  passwordPrompt.run()
+  .then(function(password) {
+    if (username !== "" && password !== "") {
+      options.headers.username = username;
+      options.headers.password = password;
+    } else {
+      console.log("Currently no username password used, because one of them was empty string !");
+    }
+    
+    const app = express();
+    theseUrlPostFixesAreProxied.forEach(function(urlPostfix){
+      app.use(createProxyMiddleware(urlPostfix, options));
+    })
+    const bundler = new Bundler(bundlerStartingPoint);
+    app.use(bundler.middleware());
+    console.log('starting dev server at: http://localhost:' + portNumber )
+    app.listen(portNumber);
+  });
+})
+
+

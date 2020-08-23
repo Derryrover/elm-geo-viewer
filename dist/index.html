@@ -1,45 +1,17 @@
-<!DOCTYPE HTML>
+<!DOCTYPE html>
 <html>
-<head>
-  <meta charset="UTF-8">
-  <title>Main</title>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Elm hotloading dev environment</title>
+    <link rel="stylesheet" href="/test.3e11d453.css">
+    <link rel="stylesheet" href="/test2.f16c7261.css">
+  <script src="/test.3e11d453.js"></script><script src="/test2.f16c7261.js"></script></head>
 
-  <link rel="stylesheet" type="text/css" href="style/tree.css">
-</head>
+  <body>
+    
+    <main></main>
+    <script src="/src.e31bb0bc.js"></script>
 
-<body>
-
-<script src="main.js"></script> 
-<div id="main_elm" style="height:100%;width:100%;"></div>
-<script>
-var node = document.getElementById('main_elm');
-var app = Elm.Main.init({ node : node });
-// Note: if your Elm module is named "MyThing.Root" you
-// would call "Elm.MyThing.Root.init({ node : node });" instead.
-
-// if elm app should be fullscreen this is also possible
-//var app = Elm.RubicsCube.fullscreen();
-
-// example port
-// app.ports.setSelectToDefault.subscribe(function(id) {
-//   // console.log(id);
-//   var element = document.getElementById(id);
-//   // console.log(element);
-//   element.value = "select new item";
-// });
-
-</script>
-
-<style>
-body {
-    height: 100vh;
-    min-height: 100vh;
-    margin: 0px;
-}
-</style>
-
-
-
-
-</body>
+  </body>
 </html>
