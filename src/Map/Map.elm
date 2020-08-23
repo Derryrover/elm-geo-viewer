@@ -68,7 +68,7 @@ init _ =
   let 
     map = map2
     zoomFactor = ZoomLevel.getZoomFactor (toFloat map.zoom)
-    mapLayerData =  List.map (\int -> MapLayer.init ()) [1,2,3]
+    mapLayerData =  List.map (\int -> MapLayer.init ()) [0,1,2]
     mapLayerCmds = List.map (\(a,b) -> (Cmd.map (MapLayerMsg 1) b)) mapLayerData
     mapLayerModels = List.map (\(a,b) -> a) mapLayerData
   in
@@ -121,13 +121,37 @@ calculateAnimationValue timeFraction currentValue eventualValue =
       else
         newValue
 
+
+
+
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model = 
   case msg of
     MapLayerMsg index mapLayerMessage ->
-      ({ model | mapLayerModels = model.mapLayerModels      
+      -- (model, Cmd.none)
+      let
+          oldMapLayerModel = model.mapLayerModels
+          newMapLayerModelsAndCmds = 
+            List.indexedMap 
+              (\indexInList item ->  
+                -- let
+                --   log1 = Debug.log " indexInList " indexInList
+                --   log2 = Debug.log " index " index
+                -- in
+                -- if log1 == log2 then
+                if index == indexInList then
+                  MapLayer.update mapLayerMessage item
+                else
+                  (item, Cmd.none)
+              ) 
+              oldMapLayerModel
+          mapLayerCmds = List.map (\(a,b) -> (Cmd.map (MapLayerMsg 1) b)) newMapLayerModelsAndCmds
+          mapLayerModels = List.map (\(a,b) -> a) newMapLayerModelsAndCmds 
+      in
+      
+      ({ model | mapLayerModels = mapLayerModels      
        }
-       , Cmd.none
+       , Cmd.batch (List.concat [[],mapLayerCmds])
        )
     TimeDelta delta ->
       let
@@ -311,7 +335,7 @@ view model =
           )])
       [ 
          Html.map 
-            (MapLayerMsg 1) 
+            (MapLayerMsg 0) 
             (MapLayer.mapLayer 
               model.map 
               createMapBoxUrl            
@@ -326,7 +350,7 @@ view model =
             )
       , 
         Html.map 
-          (MapLayerMsg 2) 
+          (MapLayerMsg 1) 
           (MapLayer.mapLayer 
             model.map 
             -- createWmsUrl
@@ -343,8 +367,9 @@ view model =
           )
       ,
          Html.map 
-          (MapLayerMsg 3)    
-          (MapLayer.mapLayer 
+          (MapLayerMsg 2)    
+          (
+            MapLayer.mapLayer 
             model.map 
             (createWmsUrlFromUrl "/api/v3/wms/?SERVICE=WMS&REQUEST=GetMap&VERSION=1.1.1&LAYERS=radar%2F5min&STYLES=radar-5min&FORMAT=image%2Fpng&TRANSPARENT=false&HEIGHT=497&WIDTH=525&TIME=2020-08-12T21%3A35%3A00&ZINDEX=20&SRS=EPSG%3A3857&BBOX=") 
             

@@ -3,6 +3,7 @@ module MapLayer exposing(..)
 import Html.Attributes exposing (style, class,value, src, alt, id)
 import Html exposing (..)
 import Html.Keyed
+import Html.Events
 import List
 
 import ElmStyle
@@ -12,17 +13,21 @@ import ZoomLevel
 import Svg
 import Svg.Attributes
 import Svg.Keyed
+import Svg.Events
 import MapVariables exposing (
   maxZoomLevel
   -- , tilePixelSize
   )
+import Dict exposing (Dict)
+import Json.Decode
 
 type Msg 
   = 
+  -- x y z
   TileLoaded Int Int Int
 
 type alias Model = 
-  { loadedTiles: List Int
+  { loadedTiles: Dict String Bool --List Int
   , a: Int
   }
 
@@ -33,7 +38,7 @@ init _ =
     zoomFactor = 1
   in
     (
-        { loadedTiles = []
+        { loadedTiles = Dict.fromList []
         , a = 0
         }
       , Cmd.batch []
@@ -43,8 +48,12 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model = 
   case msg of
     TileLoaded x y z -> 
+      let
+          key = (String.fromInt x) ++ "-" ++ (String.fromInt y) ++ "-" ++ (String.fromInt z)
+      in
+      
       (
-        { loadedTiles = []
+        { loadedTiles = Dict.insert key True model.loadedTiles --[]
         , a = 0
         }
       , Cmd.none
@@ -146,6 +155,8 @@ imageDiv map createTileUrl zoomFactor x y =
       , Svg.Attributes.y (String.fromInt (zoomFactor * tilePixelSize * ( y)))
       , Svg.Attributes.width (String.fromInt (zoomFactor * tilePixelSize))
       , Svg.Attributes.height (String.fromInt (zoomFactor * tilePixelSize))
+      , Svg.Events.on "load" (Json.Decode.succeed (TileLoaded xMod yMod map.zoom))
+      -- , Html.Events.on "load" (Json.Decode.succeed (TileLoaded xMod yMod map.zoom))
       ]
       []
 
