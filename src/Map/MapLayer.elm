@@ -17,6 +17,39 @@ import MapVariables exposing (
   -- , tilePixelSize
   )
 
+type Msg 
+  = 
+  TileLoaded Int Int Int
+
+type alias Model = 
+  { loadedTiles: List Int
+  , a: Int
+  }
+
+init : () -> (Model, Cmd Msg)
+init _ = 
+  let 
+    map = 1
+    zoomFactor = 1
+  in
+    (
+        { loadedTiles = []
+        , a = 0
+        }
+      , Cmd.batch []
+    )
+
+update : Msg -> Model -> ( Model, Cmd Msg )
+update msg model = 
+  case msg of
+    TileLoaded x y z -> 
+      (
+        { loadedTiles = []
+        , a = 0
+        }
+      , Cmd.none
+      ) 
+
 tilePixelSize = 1--256
 
 

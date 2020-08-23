@@ -7,6 +7,7 @@ import Html exposing (..)
 import Html.Keyed
 import Html.Events
 import Html.Events.Extra.Pointer as Pointer
+import MapBoxUtils exposing (createMapBoxUrl)
 -- self made modules
 import ElmStyle
 import List
@@ -58,6 +59,7 @@ type alias Model =
   , currentAnimationZoom: Float
   , currentAnimationLeftX: Float
   , currentAnimationTopY: Float
+  , mapLayerModels: List MapLayer.Model
   }
 
 
@@ -66,6 +68,9 @@ init _ =
   let 
     map = map2
     zoomFactor = ZoomLevel.getZoomFactor (toFloat map.zoom)
+    mapLayerData =  List.map (\int -> MapLayer.init ()) [1,2,3]
+    mapLayerCmds = List.map (\(a,b) -> (Cmd.map (MapLayerMsg 1) b)) mapLayerData
+    mapLayerModels = List.map (\(a,b) -> a) mapLayerData
   in
     (
         { dragStart = 
@@ -85,8 +90,9 @@ init _ =
         , currentAnimationZoom = toFloat map.zoom
         , currentAnimationLeftX = toFloat map.finalPixelCoordinateWindow.leftX
         , currentAnimationTopY = toFloat map.finalPixelCoordinateWindow.topY
+        , mapLayerModels = mapLayerModels
         }
-      , Cmd.batch []
+      , Cmd.batch (List.concat [[],mapLayerCmds])
     )
 
 type Msg 
@@ -97,6 +103,7 @@ type Msg
   | MouseUp (Float, Float)
   | ZoomLevelMsg ZoomLevel.Msg
   | WheelDecoderMsg WheelDecoder.Msg
+  | MapLayerMsg Int MapLayer.Msg
 
 calculateAnimationValue timeFraction currentValue eventualValue = 
   let
@@ -117,6 +124,11 @@ calculateAnimationValue timeFraction currentValue eventualValue =
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model = 
   case msg of
+    MapLayerMsg index mapLayerMessage ->
+      ({ model | mapLayerModels = model.mapLayerModels      
+       }
+       , Cmd.none
+       )
     TimeDelta delta ->
       let
           map = model.map
@@ -298,19 +310,24 @@ view model =
           ] 
           )])
       [ 
-         MapLayer.mapLayer 
-            model.map 
-            createMapBoxUrl 
-            
-            model.currentAnimationZoom 
-            model.currentAnimationLeftX 
-            model.currentAnimationTopY
-            
-            model.currentAnimationViewBoxLeftX
-            model.currentAnimationViewBoxTopY
-            model.currentAnimationViewBoxWidth
-            model.currentAnimationViewBoxHeight
-      , MapLayer.mapLayer 
+         Html.map 
+            (MapLayerMsg 1) 
+            (MapLayer.mapLayer 
+              model.map 
+              createMapBoxUrl            
+              model.currentAnimationZoom 
+              model.currentAnimationLeftX 
+              model.currentAnimationTopY
+              
+              model.currentAnimationViewBoxLeftX
+              model.currentAnimationViewBoxTopY
+              model.currentAnimationViewBoxWidth
+              model.currentAnimationViewBoxHeight
+            )
+      , 
+        Html.map 
+          (MapLayerMsg 2) 
+          (MapLayer.mapLayer 
             model.map 
             -- createWmsUrl
             (createWmsUrlFromUrl "/api/v3/wms/?SERVICE=WMS&REQUEST=GetMap&VERSION=1.1.1&LAYERS=dem%3Anl&STYLES=dem_nl&FORMAT=image%2Fpng&TRANSPARENT=false&HEIGHT=256&WIDTH=256&TIME=2020-07-19T07%3A47%3A34&SRS=EPSG%3A3857&BBOX=") 
@@ -323,7 +340,11 @@ view model =
             model.currentAnimationViewBoxTopY
             model.currentAnimationViewBoxWidth
             model.currentAnimationViewBoxHeight
-      , MapLayer.mapLayer 
+          )
+      ,
+         Html.map 
+          (MapLayerMsg 3)    
+          (MapLayer.mapLayer 
             model.map 
             (createWmsUrlFromUrl "/api/v3/wms/?SERVICE=WMS&REQUEST=GetMap&VERSION=1.1.1&LAYERS=radar%2F5min&STYLES=radar-5min&FORMAT=image%2Fpng&TRANSPARENT=false&HEIGHT=497&WIDTH=525&TIME=2020-08-12T21%3A35%3A00&ZINDEX=20&SRS=EPSG%3A3857&BBOX=") 
             
@@ -335,6 +356,7 @@ view model =
             model.currentAnimationViewBoxTopY
             model.currentAnimationViewBoxWidth
             model.currentAnimationViewBoxHeight
+          )
       ]
     ]
 
