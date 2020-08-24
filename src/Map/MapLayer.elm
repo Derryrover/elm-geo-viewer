@@ -72,7 +72,7 @@ flatten2D : List (List a) -> List a
 flatten2D list =
   List.foldr (++) [] list
 
-mapLayer map createMapBoxUrl currentAnimationZoom currentAnimationLeftX currentAnimationTopY 
+mapLayer model map createMapBoxUrl currentAnimationZoom currentAnimationLeftX currentAnimationTopY 
   currentAnimationViewBoxLeftX
   currentAnimationViewBoxTopY
   currentAnimationViewBoxWidth
@@ -108,14 +108,14 @@ mapLayer map createMapBoxUrl currentAnimationZoom currentAnimationLeftX currentA
           , Svg.Attributes.height (String.fromInt map.window.height)
           ]
           (List.map 
-            (\zoomLevel -> mapLayerZoom map createMapBoxUrl zoomLevel )
+            (\zoomLevel -> mapLayerZoom model map createMapBoxUrl zoomLevel )
             -- [-3, -2,-1,0,1]
             [0]
           )
        ]
       
 
-mapLayerZoom map createTileUrl zoomMinus = 
+mapLayerZoom model map createTileUrl zoomMinus = 
   let
     mapZoomed = ZoomLevel.newMapForMinusZoom map zoomMinus
     zoomFactor = 2 ^ (maxZoomLevel - (map.zoom + zoomMinus))
@@ -123,9 +123,9 @@ mapLayerZoom map createTileUrl zoomMinus =
     ( (String.fromInt (map.zoom + zoomMinus) ) -- KEY FOR ZOOM LAYER
     , Svg.g 
         []
-        [ mapLayerTiles mapZoomed map createTileUrl zoomFactor ])
+        [ mapLayerTiles model mapZoomed map createTileUrl zoomFactor ])
 
-mapLayerTiles map mapOriginal createTileUrl zoomFactor = 
+mapLayerTiles model map mapOriginal createTileUrl zoomFactor = 
     Svg.g 
       []
       [keyedSvgG [] 
@@ -133,7 +133,7 @@ mapLayerTiles map mapOriginal createTileUrl zoomFactor =
             ( List.map (\y ->
                 List.map (\x ->
                   ( createKey x y map.zoom 
-                  , imageDiv map createTileUrl zoomFactor x y 
+                  , imageDiv model map createTileUrl zoomFactor x y 
                   )) 
                   map.tileRange.rangeX
                 )
@@ -141,7 +141,7 @@ mapLayerTiles map mapOriginal createTileUrl zoomFactor =
             ))
       ]
 
-imageDiv map createTileUrl zoomFactor x y = 
+imageDiv model map createTileUrl zoomFactor x y = 
   let
     maxTilesOnAxis = Types.tilesFromZoom map.zoom
     xMod = modBy maxTilesOnAxis x
