@@ -64,12 +64,30 @@ type alias Model =
   }
 
 
+type alias LayerConfif =
+  {  urlCreator: Int -> Int -> Int -> String
+  , visible: Bool 
+  }
+
+layers: List LayerConfif
+layers = 
+  [ { urlCreator = createMapBoxUrl
+    , visible = True
+    }
+  , { urlCreator = createWmsUrlFromUrl "/api/v3/wms/?SERVICE=WMS&REQUEST=GetMap&VERSION=1.1.1&LAYERS=dem%3Anl&STYLES=dem_nl&FORMAT=image%2Fpng&TRANSPARENT=false&HEIGHT=256&WIDTH=256&TIME=2020-07-19T07%3A47%3A34&SRS=EPSG%3A3857&BBOX="
+    , visible = True
+    }
+  , { urlCreator = createWmsUrlFromUrl "/api/v3/wms/?SERVICE=WMS&REQUEST=GetMap&VERSION=1.1.1&LAYERS=radar%2F5min&STYLES=radar-5min&FORMAT=image%2Fpng&TRANSPARENT=false&HEIGHT=497&WIDTH=525&TIME=2020-08-12T21%3A35%3A00&ZINDEX=20&SRS=EPSG%3A3857&BBOX="
+    , visible = True
+    }
+  ]
+
 init : () -> (Model, Cmd Msg)
 init _ = 
   let 
     map = map2
     zoomFactor = ZoomLevel.getZoomFactor (toFloat map.zoom)
-    mapLayerData =  List.map (\int -> MapLayer.init ()) [0,1,2]
+    mapLayerData =  List.indexedMap (\_ _ -> MapLayer.init ()) layers
     mapLayerCmds = List.map (\(a,b) -> (Cmd.map (MapLayerMsg 1) b)) mapLayerData
     mapLayerModels = List.map (\(a,b) -> a) mapLayerData
   in
@@ -129,17 +147,11 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model = 
   case msg of
     MapLayerMsg index mapLayerMessage ->
-      -- (model, Cmd.none)
       let
           oldMapLayerModel = model.mapLayerModels
           newMapLayerModelsAndCmds = 
             List.indexedMap 
               (\indexInList item ->  
-                -- let
-                --   log1 = Debug.log " indexInList " indexInList
-                --   log2 = Debug.log " index " index
-                -- in
-                -- if log1 == log2 then
                 if index == indexInList then
                   MapLayer.update mapLayerMessage item
                 else
@@ -289,32 +301,35 @@ update msg model =
         , Cmd.none
       )
 
+createLayerHelper model layer urlFunction =
+  MapLayer.mapLayer
+    layer 
+    model.map 
+    urlFunction            
+    model.currentAnimationZoom 
+    model.currentAnimationLeftX 
+    model.currentAnimationTopY
+    
+    model.currentAnimationViewBoxLeftX
+    model.currentAnimationViewBoxTopY
+    model.currentAnimationViewBoxWidth
+    model.currentAnimationViewBoxHeight
 
 view : Model -> Html Msg
 view model = 
   let
     maxTilesOnAxis = Types.tilesFromZoom model.map.zoom
     map = model.map
-    maybeLayer0Model = Array.get 0 (Array.fromList model.mapLayerModels)
-    maybeLayer1Model = Array.get 1 (Array.fromList model.mapLayerModels)
-    maybeLayer2Model = Array.get 2 (Array.fromList model.mapLayerModels)
-    layer0 = 
-      case maybeLayer0Model of
-        Nothing -> 
-          div [] []
-        Just layer ->
-          MapLayer.mapLayer 
-              layer
-              model.map 
-              createMapBoxUrl            
-              model.currentAnimationZoom 
-              model.currentAnimationLeftX 
-              model.currentAnimationTopY
-              
-              model.currentAnimationViewBoxLeftX
-              model.currentAnimationViewBoxTopY
-              model.currentAnimationViewBoxWidth
-              model.currentAnimationViewBoxHeight
+    layerViews = 
+      List.map2 
+        (\modelLayer config -> 
+          createLayerHelper
+            model
+            modelLayer
+            config.urlCreator
+        )    
+        model.mapLayerModels 
+        layers         
 
   in
   div 
@@ -355,58 +370,10 @@ view model =
           , ("position", "relative")
           ] 
           )])
-      [ 
-         Html.map 
-            (MapLayerMsg 0) 
-            layer0
-            -- (MapLayer.mapLayer 
-            --   model.map 
-            --   createMapBoxUrl            
-            --   model.currentAnimationZoom 
-            --   model.currentAnimationLeftX 
-            --   model.currentAnimationTopY
-              
-            --   model.currentAnimationViewBoxLeftX
-            --   model.currentAnimationViewBoxTopY
-            --   model.currentAnimationViewBoxWidth
-            --   model.currentAnimationViewBoxHeight
-            -- )
-      -- , 
-      --   Html.map 
-      --     (MapLayerMsg 1) 
-      --     (MapLayer.mapLayer 
-      --       model.map 
-      --       -- createWmsUrl
-      --       (createWmsUrlFromUrl "/api/v3/wms/?SERVICE=WMS&REQUEST=GetMap&VERSION=1.1.1&LAYERS=dem%3Anl&STYLES=dem_nl&FORMAT=image%2Fpng&TRANSPARENT=false&HEIGHT=256&WIDTH=256&TIME=2020-07-19T07%3A47%3A34&SRS=EPSG%3A3857&BBOX=") 
-            
-      --       model.currentAnimationZoom 
-      --       model.currentAnimationLeftX 
-      --       model.currentAnimationTopY
-            
-      --       model.currentAnimationViewBoxLeftX
-      --       model.currentAnimationViewBoxTopY
-      --       model.currentAnimationViewBoxWidth
-      --       model.currentAnimationViewBoxHeight
-      --     )
-      -- ,
-      --    Html.map 
-      --     (MapLayerMsg 2)    
-      --     (
-      --       MapLayer.mapLayer
-      --       model.mapLayerModels[0]
-      --       model.map 
-      --       (createWmsUrlFromUrl "/api/v3/wms/?SERVICE=WMS&REQUEST=GetMap&VERSION=1.1.1&LAYERS=radar%2F5min&STYLES=radar-5min&FORMAT=image%2Fpng&TRANSPARENT=false&HEIGHT=497&WIDTH=525&TIME=2020-08-12T21%3A35%3A00&ZINDEX=20&SRS=EPSG%3A3857&BBOX=") 
-            
-      --       model.currentAnimationZoom 
-      --       model.currentAnimationLeftX 
-      --       model.currentAnimationTopY
-            
-      --       model.currentAnimationViewBoxLeftX
-      --       model.currentAnimationViewBoxTopY
-      --       model.currentAnimationViewBoxWidth
-      --       model.currentAnimationViewBoxHeight
-      --     )
-      ]
+      (List.indexedMap 
+        (\ind layerView -> Html.map (MapLayerMsg ind) layerView) 
+        layerViews
+      )
     ]
 
 
