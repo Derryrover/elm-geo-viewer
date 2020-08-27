@@ -44,12 +44,15 @@ init _ =
       , Cmd.batch []
     )
 
+
+keyFromXYZ x y z = (String.fromInt x) ++ "-" ++ (String.fromInt y) ++ "-" ++ (String.fromInt z)
+
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model = 
   case msg of
     TileLoaded x y z -> 
       let
-          key = (String.fromInt x) ++ "-" ++ (String.fromInt y) ++ "-" ++ (String.fromInt z)
+          key = keyFromXYZ x y z
       in
       
       (
@@ -147,16 +150,23 @@ imageDiv model map createTileUrl zoomFactor x y =
     xMod = modBy maxTilesOnAxis x
     yMod = modBy maxTilesOnAxis y
     url = createTileUrl map.zoom xMod yMod
-  in
-    Svg.image 
-      [
+    tileLoadedObj = Dict.get (keyFromXYZ x y map.zoom)  model.loadedTiles
+    tileLoaded = 
+      case tileLoadedObj of
+         Nothing -> False
+         Just bool -> bool
+    attributes = [
         Svg.Attributes.xlinkHref url
       , Svg.Attributes.x (String.fromInt (zoomFactor * tilePixelSize  * ( x)))
       , Svg.Attributes.y (String.fromInt (zoomFactor * tilePixelSize * ( y)))
       , Svg.Attributes.width (String.fromInt (zoomFactor * tilePixelSize))
       , Svg.Attributes.height (String.fromInt (zoomFactor * tilePixelSize))
-      , Svg.Events.on "load" (Json.Decode.succeed (TileLoaded xMod yMod map.zoom))
-      -- , Html.Events.on "load" (Json.Decode.succeed (TileLoaded xMod yMod map.zoom))
       ]
+    attributesPlusOnload =
+      if tileLoaded then attributes
+      else List.concat [attributes, [Svg.Events.on "load" (Json.Decode.succeed (TileLoaded xMod yMod map.zoom))] ]
+  in
+    Svg.image 
+      attributesPlusOnload
       []
 
