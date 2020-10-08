@@ -67,18 +67,22 @@ type alias Model =
 type alias LayerConfif =
   {  urlCreator: Int -> Int -> Int -> String
   , visible: Bool 
+  , temporal: Bool
   }
 
 layers: List LayerConfif
 layers = 
   [ { urlCreator = createMapBoxUrl
     , visible = True
+    , temporal = False
     }
   , { urlCreator = createWmsUrlFromUrl "/api/v3/wms/?SERVICE=WMS&REQUEST=GetMap&VERSION=1.1.1&LAYERS=dem%3Anl&STYLES=dem_nl&FORMAT=image%2Fpng&TRANSPARENT=false&HEIGHT=256&WIDTH=256&TIME=2020-07-19T07%3A47%3A34&SRS=EPSG%3A3857&BBOX="
     , visible = True
+    , temporal = False
     }
   , { urlCreator = createWmsUrlFromUrl "/api/v3/wms/?SERVICE=WMS&REQUEST=GetMap&VERSION=1.1.1&LAYERS=radar%2F5min&STYLES=radar-5min&FORMAT=image%2Fpng&TRANSPARENT=false&HEIGHT=497&WIDTH=525&TIME=2020-08-12T21%3A35%3A00&ZINDEX=20&SRS=EPSG%3A3857&BBOX="
     , visible = True
+    , temporal = True
     }
   ]
 
@@ -336,10 +340,11 @@ view model =
     []
     [ 
       -- CoordinateUtils.view model.dragStart map.window.width map.finalPixelCoordinateWindow.rightX
-      CoordinateUtils.view {x=model.currentAnimationTimeLeft, y=model.currentAnimationZoom} map.window.width map.finalPixelCoordinateWindow.rightX
+      -- CoordinateUtils.view {x=model.currentAnimationTimeLeft, y=model.currentAnimationZoom} map.window.width map.finalPixelCoordinateWindow.rightX
     -- , CoordinateUtils.view model.dragStart map.finalPixelCoordinateWindow.rightX map.finalPixelCoordinateWindow.bottomY
     --, Html.map ZoomLevelMsg (ZoomLevel.view model.map.zoom)
-    , div
+    -- , 
+    div
       ( List.concat [
           [ Pointer.onDown 
               (\event -> 
