@@ -8,6 +8,7 @@ import Http exposing (Error(..))
 import Json.Decode as Decode
 
 import Map exposing(..)
+import DateTimePicker
 
 
 
@@ -29,17 +30,21 @@ type alias Model =
     { counter : Int
     , serverMessage : String
     , map: Map.Model
+    , dateTimePicker: DateTimePicker.Model
     }
 
 
 init : Int -> ( Model, Cmd Msg )
 init flags =
-    let (map, mapCmd) = Map.init ()
+    let 
+      (map, mapCmd) = Map.init ()
+      (dateTimePicker, datTimePickerCmd) = DateTimePicker.init ()
     in
     ( { 
         counter = flags, serverMessage = "" 
         , map = map
-        }, Cmd.batch [Cmd.none, Cmd.map  MapMsg mapCmd] )
+        , dateTimePicker = dateTimePicker
+        }, Cmd.batch [Cmd.none, Cmd.map  MapMsg mapCmd, Cmd.map  DateTimePickerMsg datTimePickerCmd] )
 
 
 
@@ -54,11 +59,15 @@ type Msg
     | TestServer
     | OnServerResponse (Result Http.Error String)
     | MapMsg Map.Msg
+    | DateTimePickerMsg DateTimePicker.Msg
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update message model =
     case message of
+        DateTimePickerMsg datTimePickerMsg ->
+            let (dateTimePickerModel, dateTimePickerModelMsgNew) = DateTimePicker.update datTimePickerMsg model.dateTimePicker 
+            in ({model | dateTimePicker = dateTimePickerModel}, Cmd.map DateTimePickerMsg dateTimePickerModelMsgNew)
         MapMsg mapMsg ->
             let (map, mapMsgNew) = Map.update mapMsg model.map 
             in ({model | map = map}, Cmd.map MapMsg mapMsgNew)
@@ -158,7 +167,8 @@ view model =
         -- , 
         --   div [class "test_class"] []
         -- , 
-        Html.map MapMsg (Map.view model.map)
+        Html.map DateTimePickerMsg (DateTimePicker.view model.dateTimePicker)
+        , Html.map MapMsg (Map.view model.map)
         -- , img [src "/api/v3/wms/?SERVICE=WMS&REQUEST=GetMap&VERSION=1.1.1&LAYERS=users%3Atom-test-upload-data-18-januari&STYLES=dem_nl&FORMAT=image%2Fpng&TRANSPARENT=false&HEIGHT=256&WIDTH=256&TIME=2020-02-07T10%3A00%3A00&SRS=EPSG%3A3857&BBOX=386465.61500985106,6687322.730613498,391357.5848201024,6692214.700423751"] []
         ]
 
