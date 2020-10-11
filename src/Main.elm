@@ -19,7 +19,8 @@ import DateTimePicker
 
 port toJs : String -> Cmd msg
 
-
+port localDateTimePosix: String -> Cmd msg
+port receivePosixFromDate : (Int -> msg) -> Sub msg
 
 -- ---------------------------
 -- MODEL
@@ -31,6 +32,8 @@ type alias Model =
     , serverMessage : String
     , map: Map.Model
     , dateTimePicker: DateTimePicker.Model
+    , htmlDateTime: String
+    , htmlDatePosix: Int
     }
 
 
@@ -44,6 +47,8 @@ init flags =
         counter = flags, serverMessage = "" 
         , map = map
         , dateTimePicker = dateTimePicker
+        , htmlDateTime = "2020-10-10T20:05:00"
+        , htmlDatePosix = 0
         }, Cmd.batch [Cmd.none, Cmd.map  MapMsg mapCmd, Cmd.map  DateTimePickerMsg datTimePickerCmd] )
 
 
@@ -60,11 +65,17 @@ type Msg
     | OnServerResponse (Result Http.Error String)
     | MapMsg Map.Msg
     | DateTimePickerMsg DateTimePicker.Msg
+    | UpdateHtmlDateTime String
+    | ReceivePosix Int
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update message model =
     case message of
+        ReceivePosix posix ->
+            ({model | htmlDatePosix = posix}, Cmd.none)
+        UpdateHtmlDateTime dateTime ->
+            ({model | htmlDateTime = dateTime}, localDateTimePosix dateTime)
         DateTimePickerMsg datTimePickerMsg ->
             let (dateTimePickerModel, dateTimePickerModelMsgNew) = DateTimePicker.update datTimePickerMsg model.dateTimePicker 
             in ({model | dateTimePicker = dateTimePickerModel}, Cmd.map DateTimePickerMsg dateTimePickerModelMsgNew)
@@ -167,7 +178,12 @@ view model =
         -- , 
         --   div [class "test_class"] []
         -- , 
-        Html.map DateTimePickerMsg (DateTimePicker.view model.dateTimePicker)
+        -- Html.map DateTimePickerMsg (DateTimePicker.view model.dateTimePicker)
+        Html.input 
+            [ Html.Attributes.type_ "datetime-local"
+            , value model.htmlDateTime
+            , Html.Events.onInput UpdateHtmlDateTime
+            ] []
         , Html.map MapMsg (Map.view model.map)
         -- , img [src "/api/v3/wms/?SERVICE=WMS&REQUEST=GetMap&VERSION=1.1.1&LAYERS=users%3Atom-test-upload-data-18-januari&STYLES=dem_nl&FORMAT=image%2Fpng&TRANSPARENT=false&HEIGHT=256&WIDTH=256&TIME=2020-02-07T10%3A00%3A00&SRS=EPSG%3A3857&BBOX=386465.61500985106,6687322.730613498,391357.5848201024,6692214.700423751"] []
         ]
@@ -189,5 +205,9 @@ main =
                 { title = "Elm 0.19 starter"
                 , body = [ view m ]
                 }
-        , subscriptions = \model -> Sub.map MapMsg (Map.subscriptions model.map)
+        , subscriptions = \model -> Sub.batch[dateToPosixsubscription model ,(Sub.map MapMsg (Map.subscriptions model.map))]
         }
+
+dateToPosixsubscription : Model -> Sub Msg
+dateToPosixsubscription _ =
+  receivePosixFromDate ReceivePosix

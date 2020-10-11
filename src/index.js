@@ -23,3 +23,12 @@ const app = Elm.Main.init({
 // app.ports.toJs.subscribe(data => {
 //     console.log(data);
 // })
+
+app.ports.localDateTimePosix.subscribe(data => {
+    console.log(data);
+    const dateTimeObj = new Date(data);
+    console.log(dateTimeObj);
+    const posix = dateTimeObj.getTime() / 1000;
+    console.log(posix);
+    app.ports.receivePosixFromDate.send(posix);
+})
