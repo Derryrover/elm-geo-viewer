@@ -36,6 +36,27 @@ months =
 monthToString: Month -> String
 monthToString month = ""
 
+type WeekDay = 
+    Monday 
+  | Tuesday
+  | Wednesday
+  | Thursday
+  | Friday
+  | Saturday
+  | Sunday
+
+weekdays: List WeekDay
+weekdays = 
+  [ Monday 
+  , Tuesday
+  , Wednesday
+  , Thursday
+  , Friday
+  , Saturday
+  , Sunday
+  ]
+
+
 -- week1 = List.range 1 13
 -- week2 = List.range 8 20
 -- week3 = List.range 15 27
@@ -46,6 +67,7 @@ week2 = List.range 2 14
 week3 = List.range 9 21
 week4 = List.range 16 28
 week5 = List.range 23 31
+week6 = List.range 30 31
 
 type alias Model = 
   { 
@@ -53,6 +75,8 @@ type alias Model =
   -- , 
     openYear: Int
   , openMonth: Month
+  , numberOfDaysInOpenMonth: Int
+  , firstWeekDayOfMonth: WeekDay
   }
 
 init : () -> (Model, Cmd Msg)
@@ -60,6 +84,8 @@ init _ =
   ({ 
     openYear = 2020
   , openMonth = Januari
+  , numberOfDaysInOpenMonth = 29
+  , firstWeekDayOfMonth = Tuesday
   }, Cmd.none)
 
 type Msg = SetOpenMonth Month | SetOpenYear Int
@@ -77,8 +103,12 @@ view model =
   Html.div [] 
     [ Html.table []
       [ Html.tbody [] 
-        [ Html.tr [] (List.map (\day -> (Html.td [] [Html.text (String.fromInt day)])) week1 )
-
+        [ Html.tr [] (List.map (\day -> (Html.td [] [Html.text (if day > 0 then (String.fromInt day) else "")])) week1 )
+        , Html.tr [] (List.map (\day -> (Html.td [] [Html.text (String.fromInt day)])) week2 )
+        , Html.tr [] (List.map (\day -> (Html.td [] [Html.text (String.fromInt day)])) week3 )
+        , Html.tr [] (List.map (\day -> (Html.td [] [Html.text (String.fromInt day)])) week4 )
+        , Html.tr [] (List.map (\day -> (Html.td [] [Html.text (if day <= model.numberOfDaysInOpenMonth then (String.fromInt day) else "")])) week5 )
+        , Html.tr [] (List.map (\day -> (Html.td [] [Html.text (if day <= model.numberOfDaysInOpenMonth then (String.fromInt day) else "")])) week6 )
         ]
       ]
     ]
