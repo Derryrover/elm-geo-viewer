@@ -28,7 +28,7 @@ app.ports.localDateTimePosix.subscribe(data => {
     console.log(data);
     const dateTimeObj = new Date(data);
     console.log(dateTimeObj);
-    const posix = dateTimeObj.getTime() / 1000;
+    const posix = dateTimeObj.getTime();
     console.log(posix);
     app.ports.receivePosixFromDate.send(posix);
 })

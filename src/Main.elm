@@ -9,6 +9,8 @@ import Json.Decode as Decode
 
 import Map exposing(..)
 import DateTimePicker
+import DateTime
+import Time
 
 
 
@@ -34,6 +36,7 @@ type alias Model =
     , dateTimePicker: DateTimePicker.Model
     , htmlDateTime: String
     , htmlDatePosix: Int
+    , htmlElmDateTime: DateTime.DateTime
     }
 
 
@@ -49,6 +52,7 @@ init flags =
         , dateTimePicker = dateTimePicker
         , htmlDateTime = "2020-10-10T20:05:00"
         , htmlDatePosix = 0
+        , htmlElmDateTime = DateTime.fromPosix (Time.millisToPosix 0)
         }, Cmd.batch [Cmd.none, Cmd.map  MapMsg mapCmd, Cmd.map  DateTimePickerMsg datTimePickerCmd] )
 
 
@@ -73,7 +77,9 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update message model =
     case message of
         ReceivePosix posix ->
-            ({model | htmlDatePosix = posix}, Cmd.none)
+            ({model | htmlDatePosix = posix
+                    , htmlElmDateTime = DateTime.fromPosix (Time.millisToPosix posix)
+             }, Cmd.none)
         UpdateHtmlDateTime dateTime ->
             ({model | htmlDateTime = dateTime}, localDateTimePosix dateTime)
         DateTimePickerMsg datTimePickerMsg ->
