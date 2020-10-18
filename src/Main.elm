@@ -37,6 +37,7 @@ type alias Model =
     , htmlDateTime: String
     , htmlDatePosix: Int
     , htmlElmDateTime: DateTime.DateTime
+    , dateTimeGlobalTimezoneString: String
     }
 
 
@@ -53,6 +54,7 @@ init flags =
         , htmlDateTime = "2020-10-10T20:05:00"
         , htmlDatePosix = 0
         , htmlElmDateTime = DateTime.fromPosix (Time.millisToPosix 0)
+        , dateTimeGlobalTimezoneString = ""
         }, Cmd.batch [Cmd.none, Cmd.map  MapMsg mapCmd, Cmd.map  DateTimePickerMsg datTimePickerCmd] )
 
 
@@ -73,12 +75,51 @@ type Msg
     | ReceivePosix Int
 
 
+monthToInt : Time.Month -> Int
+monthToInt month =
+  case month of
+    Time.Jan -> 1
+    Time.Feb -> 2
+    Time.Mar -> 3
+    Time.Apr -> 4
+    Time.May -> 5
+    Time.Jun -> 6
+    Time.Jul -> 7
+    Time.Aug -> 8
+    Time.Sep -> 9
+    Time.Oct -> 10
+    Time.Nov -> 11
+    Time.Dec -> 12
+
+dateIntToString: Int -> String
+dateIntToString integ = 
+  if integ < 10 then "0" ++ (String.fromInt integ)
+  else String.fromInt integ
+
+dateTimeToString: DateTime.DateTime -> String
+dateTimeToString dateTime = 
+  let
+    year = dateIntToString (DateTime.getYear dateTime)
+    month = dateIntToString (monthToInt (DateTime.getMonth dateTime))
+    day = dateIntToString (DateTime.getDay dateTime)
+    hour = dateIntToString (DateTime.getHours dateTime)
+    minute  = dateIntToString (DateTime.getMinutes dateTime)
+    second = dateIntToString (DateTime.getSeconds dateTime)
+  in
+    year++"-"++month++"-"++day++"T"++hour++":"++minute++":"++second
+
 update : Msg -> Model -> ( Model, Cmd Msg )
 update message model =
     case message of
-        ReceivePosix posix ->
+        ReceivePosix posix -> 
+            let
+                htmlElmDateTime = DateTime.fromPosix (Time.millisToPosix posix)
+                dateTimeGlobalTimezoneString = dateTimeToString htmlElmDateTime
+            in
+            
             ({model | htmlDatePosix = posix
-                    , htmlElmDateTime = DateTime.fromPosix (Time.millisToPosix posix)
+                    , htmlElmDateTime = htmlElmDateTime
+                    , dateTimeGlobalTimezoneString = dateTimeGlobalTimezoneString
              }, Cmd.none)
         UpdateHtmlDateTime dateTime ->
             ({model | htmlDateTime = dateTime}, localDateTimePosix dateTime)
@@ -190,7 +231,7 @@ view model =
             , value model.htmlDateTime
             , Html.Events.onInput UpdateHtmlDateTime
             ] []
-        , Html.map MapMsg (Map.view model.map)
+        , Html.map MapMsg (Map.view model.map model.dateTimeGlobalTimezoneString)
         -- , img [src "/api/v3/wms/?SERVICE=WMS&REQUEST=GetMap&VERSION=1.1.1&LAYERS=users%3Atom-test-upload-data-18-januari&STYLES=dem_nl&FORMAT=image%2Fpng&TRANSPARENT=false&HEIGHT=256&WIDTH=256&TIME=2020-02-07T10%3A00%3A00&SRS=EPSG%3A3857&BBOX=386465.61500985106,6687322.730613498,391357.5848201024,6692214.700423751"] []
         ]
 

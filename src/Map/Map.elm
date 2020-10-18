@@ -29,14 +29,15 @@ import Browser
 import Browser.Events
 import Array
 
+
 keyedDiv = Html.Keyed.node "div"
 
-main = Browser.element
-  { init = init
-  , view = view
-  , update = update
-  , subscriptions = subscriptions
-  }
+-- main = Browser.element
+--   { init = init
+--   , view = view
+--   , update = update
+--   , subscriptions = subscriptions
+--   }
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
@@ -63,9 +64,11 @@ type alias Model =
   , mapLayerModels: List MapLayer.Model
   }
 
+type alias DateModel = String
+
 
 type alias LayerConfif =
-  {  urlCreator: Int -> Int -> Int -> String
+  {  urlCreator: Int -> Int -> Int -> String -> String
   , visible: Bool 
   , temporal: Bool
   }
@@ -80,7 +83,10 @@ layers =
     , visible = True
     , temporal = False
     }
-  , { urlCreator = createWmsUrlFromUrl "/api/v3/wms/?SERVICE=WMS&REQUEST=GetMap&VERSION=1.1.1&LAYERS=radar%2F5min&STYLES=radar-5min&FORMAT=image%2Fpng&TRANSPARENT=false&HEIGHT=497&WIDTH=525&TIME=2020-08-12T21%3A35%3A00&ZINDEX=20&SRS=EPSG%3A3857&BBOX="
+  , { 
+    --  urlCreator = createWmsUrlFromUrl "/api/v3/wms/?SERVICE=WMS&REQUEST=GetMap&VERSION=1.1.1&LAYERS=radar%2F5min&STYLES=radar-5min&FORMAT=image%2Fpng&TRANSPARENT=false&HEIGHT=497&WIDTH=525&TIME=2020-08-12T21%3A35%3A00&ZINDEX=20&SRS=EPSG%3A3857&BBOX="
+    -- urlCreator = createWmsUrlFromUrl "/api/v3/wms/?SERVICE=WMS&REQUEST=GetMap&VERSION=1.1.1&LAYERS=radar%2F5min&STYLES=radar-5min&FORMAT=image%2Fpng&TRANSPARENT=false&HEIGHT=497&WIDTH=525&TIME=2020-08-12T21:35:00&ZINDEX=20&SRS=EPSG%3A3857&BBOX="
+        urlCreator = createWmsUrlFromUrl "/api/v3/wms/?SERVICE=WMS&REQUEST=GetMap&VERSION=1.1.1&LAYERS=radar%2F5min&STYLES=radar-5min&FORMAT=image%2Fpng&TRANSPARENT=false&HEIGHT=256&WIDTH=256&TIME=${DateTime}&ZINDEX=20&SRS=EPSG%3A3857&BBOX="
     , visible = True
     , temporal = True
     }
@@ -92,7 +98,7 @@ init _ =
     map = map2
     zoomFactor = ZoomLevel.getZoomFactor (toFloat map.zoom)
     mapLayerData =  List.indexedMap (\_ _ -> MapLayer.init ()) layers
-    mapLayerCmds = List.map (\(a,b) -> (Cmd.map (MapLayerMsg 1) b)) mapLayerData
+    mapLayerCmds = List.indexedMap (\ ind (a,b)  -> (Cmd.map (MapLayerMsg ind) b)) mapLayerData
     mapLayerModels = List.map (\(a,b) -> a) mapLayerData
   in
     (
@@ -305,11 +311,12 @@ update msg model =
         , Cmd.none
       )
 
-createLayerHelper model layer urlFunction =
+createLayerHelper model layer urlFunction dateModel =
   MapLayer.mapLayer
     layer 
     model.map 
-    urlFunction            
+    urlFunction
+    dateModel           
     model.currentAnimationZoom 
     model.currentAnimationLeftX 
     model.currentAnimationTopY
@@ -319,8 +326,8 @@ createLayerHelper model layer urlFunction =
     model.currentAnimationViewBoxWidth
     model.currentAnimationViewBoxHeight
 
-view : Model -> Html Msg
-view model = 
+view : Model -> DateModel -> Html Msg
+view model dateModel = 
   let
     maxTilesOnAxis = Types.tilesFromZoom model.map.zoom
     map = model.map
@@ -331,6 +338,7 @@ view model =
             model
             modelLayer
             config.urlCreator
+            dateModel
         )    
         model.mapLayerModels 
         layers         

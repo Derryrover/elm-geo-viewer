@@ -3,7 +3,7 @@ module MapBoxUtils exposing(..)
 import ProjectionWebMercator
 import Types exposing(tilesFromZoom)
 
-createMapBoxUrl zoomInt xInt yInt = 
+createMapBoxUrl zoomInt xInt yInt dateTimeString = 
   let
     x = String.fromInt xInt
     y = String.fromInt yInt
@@ -59,7 +59,7 @@ createWmsUrl zoomInt xInt yInt =
         --  http://localhost:1234/api/v3/wms/?SERVICE=WMS&REQUEST=GetMap&VERSION=1.1.1&LAYERS=dem%3Anl&STYLES=dem_nl&FORMAT=image%2Fpng&TRANSPARENT=false&HEIGHT=256&WIDTH=256&TIME=2020-07-19T07%3A47%3A34&SRS=EPSG%3A3857&BBOX=391357.5847656237,2991374.1354586314,469629.10171874845,3025367.023361571
 -- 545454.6337670891,2982875.913482898,547900.6186718731,2983938.1912298645
 
-createWmsUrlFromUrl url zoomInt xInt yInt = 
+createWmsUrlFromUrl url zoomInt xInt yInt dateTimeString = 
   let
     
     xLeft = xInt * 256
@@ -79,5 +79,7 @@ createWmsUrlFromUrl url zoomInt xInt yInt =
     yTopLat2 = String.fromFloat (ProjectionWebMercator.latToMeters yTopLat)
 
     yBottomLat2 = String.fromFloat (ProjectionWebMercator.latToMeters yBottomLat)
+
+    urlReplacedDateTime = String.replace "${DateTime}" dateTimeString url
   in
-    url++xLeftLong2++","++yBottomLat2++","++xRightLong2++","++yTopLat2
+    urlReplacedDateTime++xLeftLong2++","++yBottomLat2++","++xRightLong2++","++yTopLat2

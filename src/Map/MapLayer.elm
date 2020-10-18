@@ -62,7 +62,7 @@ update msg model =
       , Cmd.none
       ) 
 
-tilePixelSize = 1--256
+tilePixelSize = 1 --256
 
 
 keyedSvg = Svg.Keyed.node "svg"
@@ -75,7 +75,7 @@ flatten2D : List (List a) -> List a
 flatten2D list =
   List.foldr (++) [] list
 
-mapLayer model map createMapBoxUrl currentAnimationZoom currentAnimationLeftX currentAnimationTopY 
+mapLayer model map createMapBoxUrl dateModel currentAnimationZoom currentAnimationLeftX currentAnimationTopY 
   currentAnimationViewBoxLeftX
   currentAnimationViewBoxTopY
   currentAnimationViewBoxWidth
@@ -111,14 +111,14 @@ mapLayer model map createMapBoxUrl currentAnimationZoom currentAnimationLeftX cu
           , Svg.Attributes.height (String.fromInt map.window.height)
           ]
           (List.map 
-            (\zoomLevel -> mapLayerZoom model map createMapBoxUrl zoomLevel )
+            (\zoomLevel -> mapLayerZoom model map createMapBoxUrl dateModel zoomLevel )
             -- [-3, -2,-1,0,1]
             [0]
           )
        ]
       
 
-mapLayerZoom model map createTileUrl zoomMinus = 
+mapLayerZoom model map createTileUrl dateModel zoomMinus = 
   let
     mapZoomed = ZoomLevel.newMapForMinusZoom map zoomMinus
     zoomFactor = 2 ^ (maxZoomLevel - (map.zoom + zoomMinus))
@@ -126,9 +126,9 @@ mapLayerZoom model map createTileUrl zoomMinus =
     ( (String.fromInt (map.zoom + zoomMinus) ) -- KEY FOR ZOOM LAYER
     , Svg.g 
         []
-        [ mapLayerTiles model mapZoomed map createTileUrl zoomFactor ])
+        [ mapLayerTiles model mapZoomed map createTileUrl dateModel zoomFactor ])
 
-mapLayerTiles model map mapOriginal createTileUrl zoomFactor = 
+mapLayerTiles model map mapOriginal createTileUrl dateModel zoomFactor = 
     Svg.g 
       []
       [keyedSvgG [] 
@@ -136,7 +136,7 @@ mapLayerTiles model map mapOriginal createTileUrl zoomFactor =
             ( List.map (\y ->
                 List.map (\x ->
                   ( createKey x y map.zoom 
-                  , imageDiv model map createTileUrl zoomFactor x y 
+                  , imageDiv model map createTileUrl dateModel zoomFactor x y 
                   )) 
                   map.tileRange.rangeX
                 )
@@ -144,12 +144,12 @@ mapLayerTiles model map mapOriginal createTileUrl zoomFactor =
             ))
       ]
 
-imageDiv model map createTileUrl zoomFactor x y = 
+imageDiv model map createTileUrl dateModel zoomFactor x y = 
   let
     maxTilesOnAxis = Types.tilesFromZoom map.zoom
     xMod = modBy maxTilesOnAxis x
     yMod = modBy maxTilesOnAxis y
-    url = createTileUrl map.zoom xMod yMod
+    url = createTileUrl map.zoom xMod yMod dateModel
     tileLoadedObj = Dict.get (keyFromXYZ x y map.zoom)  model.loadedTiles
     tileLoaded = 
       case tileLoadedObj of
