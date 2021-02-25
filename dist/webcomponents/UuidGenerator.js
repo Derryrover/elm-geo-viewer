@@ -1,4 +1,4 @@
-import { nanoid } from '../../dist/web_modules/nanoid.js';
+import { nanoid } from '../web_modules/nanoid.js';
 
 // function eventFire(el, etype){
 //   if (el.fireEvent) {

@@ -7,7 +7,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "elm-make": "elm make src/elm/Main/Main.elm --output dist/elm.js",
     "elm-make-debug": "elm make src/elm/Main/Main.elm --output dist/elm.js --debug",
-    "serve": "serve",
+    "serve": "serve dist",
     "elm-reactor": "elm reactor",
     "elm-live": "elm-live src/elm/Main/Main.elm --open --start-page=dist/index.html -- --output=dist/elm.js --debug",
     "pika-web": "npx @pika/web && rm -rf dist/web_modules && mv web_modules dist"
