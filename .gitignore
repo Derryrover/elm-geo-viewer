@@ -1,6 +1,6 @@
 node_modules
 elm-stuff
-elm.js
 npm-debug.log
 dist/elm.js
 .cache
+.vscode

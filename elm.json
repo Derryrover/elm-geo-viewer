@@ -1,10 +1,10 @@
 {
     "type": "application",
     "source-directories": [
-        "src",
-        "src/ElmStyle",
-        "src/Map",
-        "src/DateTimePicker"
+        "src/elm/Main",
+        "src/elm/ElmStyle",
+        "src/elm/Map",
+        "src/elm/DateTimePicker"
     ],
     "elm-version": "0.19.1",
     "dependencies": {
@@ -27,11 +27,7 @@
         }
     },
     "test-dependencies": {
-        "direct": {
-            "elm-explorations/test": "1.2.0"
-        },
-        "indirect": {
-            "elm/random": "1.0.0"
-        }
+        "direct": {},
+        "indirect": {}
     }
 }

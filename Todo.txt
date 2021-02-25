@@ -1,1 +1,2 @@
 Replace subscription Map.elm with webcomponent
+fix proxy to lizard staging -> maybe with etc/hosts ?
