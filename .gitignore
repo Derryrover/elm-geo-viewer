@@ -1,19 +1,6 @@
-# elm-repl generated files
-repl-temp-*
-
-# authentication for mapbox and such
-AuthElm
-
-# App artifacts
-/dist
-/.cache
-/elm-stuff
-/node_modules
-.vscode
-
-# Generated on crash by NPM
+node_modules
+elm-stuff
+elm.js
 npm-debug.log
-
-# dev proxy server temp files
-server.cert
-server.key
+dist/elm.js
+.cache

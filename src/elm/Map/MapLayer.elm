@@ -25,42 +25,56 @@ type Msg
   = 
   -- x y z
   TileLoaded Int Int Int
+  | TileCoordinatesChanged Types.CompleteMapConfiguration
 
 type alias Model = 
   { loadedTiles: Dict String Bool --List Int
   , a: Int
   }
 
-init : () -> (Model, Cmd Msg)
-init _ = 
-  let 
-    map = 1
-    zoomFactor = 1
+areAllDictLoaded: Model -> Bool
+areAllDictLoaded model = 
+  let
+    values = Dict.values model.loadedTiles
   in
-    (
-        { loadedTiles = Dict.fromList []
-        , a = 0
-        }
-      , Cmd.batch []
-    )
+    (List.all (\item -> item==True) values) && (List.length values) /= 0
+
+
+mapToDictStrings: Types.CompleteMapConfiguration -> List String
+mapToDictStrings map = 
+  flatten2D
+  ( List.map 
+      (\x-> List.map 
+        (\y->
+          keyFromXYZ x y map.zoom
+        )
+        map.tileRange.rangeY
+      ) 
+      map.tileRange.rangeX
+  )
+
+
+init : Types.CompleteMapConfiguration -> Model
+init map = 
+   { loadedTiles = Dict.fromList (List.map (\key-> (key, False)) (mapToDictStrings map)) --Dict.fromList []
+    , a = 0
+    }
 
 
 keyFromXYZ x y z = (String.fromInt x) ++ "-" ++ (String.fromInt y) ++ "-" ++ (String.fromInt z)
 
-update : Msg -> Model -> ( Model, Cmd Msg )
+update : Msg -> Model -> Model
 update msg model = 
   case msg of
+    TileCoordinatesChanged map ->
+        { model | loadedTiles = Dict.fromList (List.map (\key-> (key, False)) (mapToDictStrings map))
+        }
     TileLoaded x y z -> 
       let
           key = keyFromXYZ x y z
       in
-      
-      (
-        { loadedTiles = Dict.insert key True model.loadedTiles --[]
-        , a = 0
+        { model | loadedTiles = Dict.insert key True model.loadedTiles --[]
         }
-      , Cmd.none
-      ) 
 
 tilePixelSize = 1 --256
 

@@ -77,10 +77,15 @@ getTileRange pixelCoordinateWindow zoom =
     rightX = toFloat pixelCoordinateWindow.rightX
     topY = toFloat pixelCoordinateWindow.topY
     bottomY = toFloat pixelCoordinateWindow.bottomY
-    xTileLeft = (Basics.floor ( leftX / tilePixelSize )) - 1
-    xTileRight = (Basics.ceiling ( rightX / tilePixelSize )) + 1
-    yTileTop = (Basics.floor ( topY / tilePixelSize )) - 1
-    yTileBottom = (Basics.ceiling ( bottomY / tilePixelSize )) + 1
+    -- remove margins it gets to slow
+    -- xTileLeft = (Basics.floor ( leftX / tilePixelSize )) - 1
+    -- xTileRight = (Basics.ceiling ( rightX / tilePixelSize )) + 1
+    -- yTileTop = (Basics.floor ( topY / tilePixelSize )) - 1
+    -- yTileBottom = (Basics.ceiling ( bottomY / tilePixelSize )) + 1
+    xTileLeft = (Basics.floor ( leftX / tilePixelSize )) 
+    xTileRight = (Basics.ceiling ( rightX / tilePixelSize )) 
+    yTileTop = (Basics.floor ( topY / tilePixelSize )) 
+    yTileBottom = (Basics.ceiling ( bottomY / tilePixelSize )) 
     -- Make sure y tile range cannot be less then 0 and does not exceed the maximum
     yTileTopNotNull = 
       if yTileTop < 0 then

@@ -62,7 +62,11 @@ type alias Model =
   , currentAnimationLeftX: Float
   , currentAnimationTopY: Float
   , mapLayerModels: List MapLayer.Model
+  , temporalMapLayerModel1: MapLayer.Model
+  , temporalMapLayerModel2: MapLayer.Model
   }
+
+type alias InitModel = {}
 
 type alias DateModel = String
 
@@ -83,25 +87,33 @@ layers =
     , visible = True
     , temporal = False
     }
-  , { 
-    --  urlCreator = createWmsUrlFromUrl "/api/v3/wms/?SERVICE=WMS&REQUEST=GetMap&VERSION=1.1.1&LAYERS=radar%2F5min&STYLES=radar-5min&FORMAT=image%2Fpng&TRANSPARENT=false&HEIGHT=497&WIDTH=525&TIME=2020-08-12T21%3A35%3A00&ZINDEX=20&SRS=EPSG%3A3857&BBOX="
-    -- urlCreator = createWmsUrlFromUrl "/api/v3/wms/?SERVICE=WMS&REQUEST=GetMap&VERSION=1.1.1&LAYERS=radar%2F5min&STYLES=radar-5min&FORMAT=image%2Fpng&TRANSPARENT=false&HEIGHT=497&WIDTH=525&TIME=2020-08-12T21:35:00&ZINDEX=20&SRS=EPSG%3A3857&BBOX="
-        urlCreator = createWmsUrlFromUrl "/api/v3/wms/?SERVICE=WMS&REQUEST=GetMap&VERSION=1.1.1&LAYERS=radar%2F5min&STYLES=radar-5min&FORMAT=image%2Fpng&TRANSPARENT=false&HEIGHT=256&WIDTH=256&TIME=${DateTime}&ZINDEX=20&SRS=EPSG%3A3857&BBOX="
+  -- , { 
+  --   --  urlCreator = createWmsUrlFromUrl "/api/v3/wms/?SERVICE=WMS&REQUEST=GetMap&VERSION=1.1.1&LAYERS=radar%2F5min&STYLES=radar-5min&FORMAT=image%2Fpng&TRANSPARENT=false&HEIGHT=497&WIDTH=525&TIME=2020-08-12T21%3A35%3A00&ZINDEX=20&SRS=EPSG%3A3857&BBOX="
+  --   -- urlCreator = createWmsUrlFromUrl "/api/v3/wms/?SERVICE=WMS&REQUEST=GetMap&VERSION=1.1.1&LAYERS=radar%2F5min&STYLES=radar-5min&FORMAT=image%2Fpng&TRANSPARENT=false&HEIGHT=497&WIDTH=525&TIME=2020-08-12T21:35:00&ZINDEX=20&SRS=EPSG%3A3857&BBOX="
+  --       urlCreator = createWmsUrlFromUrl "/api/v3/wms/?SERVICE=WMS&REQUEST=GetMap&VERSION=1.1.1&LAYERS=radar%2F5min&STYLES=radar-5min&FORMAT=image%2Fpng&TRANSPARENT=false&HEIGHT=256&WIDTH=256&TIME=${DateTime}&ZINDEX=20&SRS=EPSG%3A3857&BBOX="
+  --   , visible = True
+  --   , temporal = True
+  --   }
+  ]
+
+temporalLayer: LayerConfif
+temporalLayer = 
+    { urlCreator = createWmsUrlFromUrl "/api/v3/wms/?SERVICE=WMS&REQUEST=GetMap&VERSION=1.1.1&LAYERS=radar%2F5min&STYLES=radar-5min&FORMAT=image%2Fpng&TRANSPARENT=false&HEIGHT=256&WIDTH=256&TIME=${DateTime}&ZINDEX=20&SRS=EPSG%3A3857&BBOX="
     , visible = True
     , temporal = True
     }
-  ]
 
-init : () -> (Model, Cmd Msg)
+init : InitModel -> Model
 init _ = 
   let 
     map = map2
     zoomFactor = ZoomLevel.getZoomFactor (toFloat map.zoom)
-    mapLayerData =  List.indexedMap (\_ _ -> MapLayer.init ()) layers
-    mapLayerCmds = List.indexedMap (\ ind (a,b)  -> (Cmd.map (MapLayerMsg ind) b)) mapLayerData
-    mapLayerModels = List.map (\(a,b) -> a) mapLayerData
+    -- mapLayerData =  List.indexedMap (\_ _ -> MapLayer.init map) layers
+    -- mapLayerCmds = List.indexedMap (\ ind (a,b)  -> (Cmd.map (MapLayerMsg ind) b)) mapLayerData
+    mapLayerModels = List.map (\_ -> MapLayer.init map) layers
+    mapTemporalLayer1Model = MapLayer.init map
+    mapTemporalLayer2Model = MapLayer.init map
   in
-    (
         { dragStart = 
           { x = 0
           , y = 0
@@ -120,9 +132,10 @@ init _ =
         , currentAnimationLeftX = toFloat map.finalPixelCoordinateWindow.leftX
         , currentAnimationTopY = toFloat map.finalPixelCoordinateWindow.topY
         , mapLayerModels = mapLayerModels
+        , temporalMapLayerModel1 = mapTemporalLayer1Model
+        , temporalMapLayerModel2 = mapTemporalLayer2Model
         }
-      , Cmd.batch (List.concat [[],mapLayerCmds])
-    )
+     
 
 type Msg 
   = 
@@ -133,6 +146,8 @@ type Msg
   | ZoomLevelMsg ZoomLevel.Msg
   | WheelDecoderMsg WheelDecoder.Msg
   | MapLayerMsg Int MapLayer.Msg
+  | TemporalMapLayerMsg1 MapLayer.Msg
+  | TemporalMapLayerMsg2 MapLayer.Msg
 
 calculateAnimationValue timeFraction currentValue eventualValue = 
   let
@@ -153,29 +168,29 @@ calculateAnimationValue timeFraction currentValue eventualValue =
 
 
 
-update : Msg -> Model -> ( Model, Cmd Msg )
+update : Msg -> Model -> Model
 update msg model = 
   case msg of
+    TemporalMapLayerMsg1 mapLayerMessage ->
+      {model | temporalMapLayerModel1 = MapLayer.update mapLayerMessage model.temporalMapLayerModel1}
+    TemporalMapLayerMsg2 mapLayerMessage ->
+      {model | temporalMapLayerModel2 = MapLayer.update mapLayerMessage model.temporalMapLayerModel2}
     MapLayerMsg index mapLayerMessage ->
       let
           oldMapLayerModel = model.mapLayerModels
-          newMapLayerModelsAndCmds = 
+          mapLayerModels = 
             List.indexedMap 
               (\indexInList item ->  
                 if index == indexInList then
                   MapLayer.update mapLayerMessage item
                 else
-                  (item, Cmd.none)
+                  item
               ) 
               oldMapLayerModel
-          mapLayerCmds = List.map (\(a,b) -> (Cmd.map (MapLayerMsg 1) b)) newMapLayerModelsAndCmds
-          mapLayerModels = List.map (\(a,b) -> a) newMapLayerModelsAndCmds 
       in
       
-      ({ model | mapLayerModels = mapLayerModels      
-       }
-       , Cmd.batch (List.concat [[],mapLayerCmds])
-       )
+      { model | mapLayerModels = mapLayerModels}
+       
     TimeDelta delta ->
       let
           map = model.map
@@ -196,7 +211,6 @@ update msg model =
           newLeftX = calculateAnimationValue improvedTimeFraction model.currentAnimationLeftX eventualLeftX
           newTopY = calculateAnimationValue improvedTimeFraction model.currentAnimationTopY eventualTopY
       in
-      (
       { model 
         | currentAnimationTimeLeft = 
           if tempAnimationTimeLeft > 0 then
@@ -228,7 +242,7 @@ update msg model =
         , currentAnimationZoom = newZoom
         , currentAnimationLeftX = newLeftX
         , currentAnimationTopY = newTopY
-      } , Cmd.none)
+      } 
     WheelDecoderMsg wheelDecoderMsg ->
       let
         mousePosition = 
@@ -244,7 +258,7 @@ update msg model =
         zoomFactor = ZoomLevel.getZoomFactor (toFloat map.zoom)
       in
       
-      ( {model 
+      {model 
         | map = newMap
         , currentAnimationTimeLeft = 400 --miliseconds ?
 
@@ -257,8 +271,7 @@ update msg model =
         , currentAnimationLeftX = toFloat model.map.finalPixelCoordinateWindow.leftX
         , currentAnimationTopY = toFloat model.map.finalPixelCoordinateWindow.topY
         }
-      , Cmd.none
-      )
+      
     ZoomLevelMsg plusOrMinus ->
       let 
         map = model.map
@@ -267,19 +280,17 @@ update msg model =
         mapCenter = { x =  map.window.width // 2, y = map.window.height // 2}
         newMap = ZoomLevel.updateWholeMapForZoom newZoom mapCenter map
       in
-        ({model | map = newMap}, Cmd.none)
+        {model | map = newMap}
     MouseDown (x, y) ->
-      ({ model 
+      { model 
           | mouseDown = True
           , dragStart = {x = x, y = y}
           , dragStartPixels = model.map.finalPixelCoordinateWindow
         }
-        , Cmd.none
-      )
     MouseMove (x, y) ->
       case model.mouseDown of
         False ->
-          ( model , Cmd.none )
+          model
         True ->
           let 
             tempMap = model.map
@@ -295,21 +306,19 @@ update msg model =
                         }
             zoomFactor = ZoomLevel.getZoomFactor (toFloat newMap.zoom)
           in
-          ({ model 
+          { model 
               | map = newMap
               , currentAnimationViewBoxLeftX = (toFloat newMap.finalPixelCoordinateWindow.leftX)  * zoomFactor
               , currentAnimationViewBoxTopY = (toFloat newMap.finalPixelCoordinateWindow.topY)  * zoomFactor
               , currentAnimationViewBoxWidth = (toFloat newMap.window.width)  * zoomFactor
               , currentAnimationViewBoxHeight = (toFloat newMap.window.height)  * zoomFactor
             }
-            , Cmd.none
-          )
+           
     MouseUp (x, y) ->
-      ({ model 
+      { model 
           | mouseDown = False
         }
-        , Cmd.none
-      )
+       
 
 createLayerHelper model layer urlFunction dateModel =
   MapLayer.mapLayer
@@ -326,8 +335,8 @@ createLayerHelper model layer urlFunction dateModel =
     model.currentAnimationViewBoxWidth
     model.currentAnimationViewBoxHeight
 
-view : Model -> DateModel -> Html Msg
-view model dateModel = 
+view : Model -> DateModel -> DateModel -> Html Msg
+view model dateModel nextStepDateModel = 
   let
     maxTilesOnAxis = Types.tilesFromZoom model.map.zoom
     map = model.map
@@ -342,7 +351,27 @@ view model dateModel =
         )    
         model.mapLayerModels 
         layers         
-
+    temporalLayerView1 = 
+      ( createLayerHelper
+            model
+            model.temporalMapLayerModel1
+            temporalLayer.urlCreator
+            dateModel
+      )
+    temporalLayerView2 = 
+      ( createLayerHelper
+            model
+            model.temporalMapLayerModel2
+            temporalLayer.urlCreator
+            nextStepDateModel
+      )
+    mapTemporalLayerToUse = 
+      if (MapLayer.areAllDictLoaded model.temporalMapLayerModel2 && MapLayer.areAllDictLoaded model.temporalMapLayerModel1) then
+        Html.map (TemporalMapLayerMsg2) temporalLayerView2
+        -- Html.div [] []
+      else
+        Html.div [] []
+        -- Html.map (TemporalMapLayerMsg1) temporalLayerView1
   in
   div 
     []
@@ -383,10 +412,23 @@ view model dateModel =
           , ("position", "relative")
           ] 
           )])
-      (List.indexedMap 
-        (\ind layerView -> Html.map (MapLayerMsg ind) layerView) 
-        layerViews
-      )
+      (List.concat [
+        (List.indexedMap 
+          (\ind layerView -> Html.map (MapLayerMsg ind) layerView) 
+          layerViews
+        )
+        , [ mapTemporalLayerToUse]
+      ])
+      
+      , div 
+         (ElmStyle.createStyleList 
+           [ ("display", "none" )]
+         )
+        
+        [ Html.map (TemporalMapLayerMsg2) temporalLayerView2
+        , Html.map (TemporalMapLayerMsg1) temporalLayerView1
+        ]
+      
     ]
 
 

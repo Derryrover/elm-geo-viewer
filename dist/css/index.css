@@ -1,0 +1,96 @@
+body{
+  --button-gradient-highlight-lighten: 11%;
+  --button-gradient-shade-darken: -5%;
+  --button-gradient-hover-saturate: 32%;
+  --button-gradient-main-hue: 194;
+  --button-gradient-main-saturation: 53%;
+  --button-gradient-main-light: 37%;
+  --button-gradient-main: hsl(var(--button-gradient-main-hue), var(--button-gradient-main-saturation), var(--button-gradient-main-light));
+
+  --button-gradient-highlight-light: calc(var(--button-gradient-main-light) + var(--button-gradient-highlight-lighten));
+  --button-gradient-hightlight: hsl(var(--button-gradient-main-hue), var(--button-gradient-main-saturation), var(--button-gradient-highlight-light));
+
+  --button-gradient-shade-light: calc(var(--button-gradient-main-light) + var(--button-gradient-shade-darken));
+  --button-gradient-shade: hsl(var(--button-gradient-main-hue), var(--button-gradient-main-saturation), var(--button-gradient-shade-light));
+
+  --button-gradient-main-saturation-hover: calc(var(--button-gradient-main-saturation) + var(--button-gradient-hover-saturate));
+  --button-gradient-main-hover: hsl(var(--button-gradient-main-hue), var(--button-gradient-main-saturation-hover), var(--button-gradient-main-light));
+  --button-gradient-hightlight-hover: hsl(var(--button-gradient-main-hue), var(--button-gradient-main-saturation-hover), var(--button-gradient-highlight-light));
+
+  --button-text-color: white;
+  --button-box-shadow-color: var(--button-gradient-shade);
+  --button-text-transform: uppercase;
+  --button-width: 300px;
+  --button-margin: 10px;
+  --button-padding: 10px;
+  --button-border-radius: var(--button-padding);
+  --button-border-radius-delta-active: calc(var(--button-padding) / 2);
+  --button-border-radius-active: calc(var(--button-border-radius) - var(--button-border-radius-delta-active));
+
+  --transition-time-fade-out: 0.3s;
+  --transition-time-collapse: 0.3s;
+  --transition-time-fade-in: 0.4s;
+  --transition-fade-in-start:  calc(var(--transition-time-fade-out) + var(--transition-time-collapse));
+  /* unfortuenedly we cannot retrieve css variables using clac in javascript */
+  --transition-complete-time: 1s;
+  /* --transition-complete-time: calc(var(--transition-time-fade-out) + var(--transition-time-collapse) + var(--transition-time-fade-in)); */
+  /* --transition-complete-time: calc(calc(var(--transition-time-fade-out) + var(--transition-time-collapse)) + var(--transition-time-fade-in)); */
+
+  --transition-timing-function: ease-in-out;
+}
+
+.noshow,
+.noshow * {
+  font-size: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+  /* transition: opacity var(--transition-time-fade-out) var(--transition-timing-function),
+              visibility var(--transition-time-fade-out) var(--transition-timing-function),
+              font-size var(--transition-time-collapse) var(--transition-timing-function) var(--transition-time-fade-out),
+              margin var(--transition-time-collapse) var(--transition-timing-function) var(--transition-time-fade-out),
+              padding var(--transition-time-collapse) var(--transition-timing-function) var(--transition-time-fade-out); */
+}
+
+.noshow_stilltakesspace,
+.noshow_stilltakesspace * {
+  opacity: 0 !important;
+  visibility: hidden !important;
+  /* transition: opacity var(--transition-time-fade-out) var(--transition-timing-function),
+              visibility var(--transition-time-fade-out) var(--transition-timing-function); */
+}
+
+.show,
+.show * {
+  opacity: 1;
+  visibility: visible;
+  /* transition:   font-size var(--transition-time-collapse) var(--transition-timing-function) var(--transition-time-fade-out),
+                margin var(--transition-time-collapse) var(--transition-timing-function) var(--transition-time-fade-out),
+                padding var(--transition-time-collapse) var(--transition-timing-function) var(--transition-time-fade-out),
+                opacity var(--transition-time-fade-in) var(--transition-timing-function) var(--transition-fade-in-start),
+                visibility var(--transition-time-fade-in) var(--transition-timing-function) var(--transition-fade-in-start); */
+}
+.noshow_animate,
+.noshow_animate * {
+  transition: opacity var(--transition-time-fade-out) var(--transition-timing-function),
+              visibility var(--transition-time-fade-out) var(--transition-timing-function),
+              font-size var(--transition-time-collapse) var(--transition-timing-function) var(--transition-time-fade-out),
+              margin var(--transition-time-collapse) var(--transition-timing-function) var(--transition-time-fade-out),
+              padding var(--transition-time-collapse) var(--transition-timing-function) var(--transition-time-fade-out);
+}
+
+.noshow_stilltakesspace_animate,
+.noshow_stilltakesspace_animate * {
+  transition: opacity var(--transition-time-fade-out) var(--transition-timing-function),
+              visibility var(--transition-time-fade-out) var(--transition-timing-function);
+}
+
+.show_animate,
+.show_animate * {
+  transition:   font-size var(--transition-time-collapse) var(--transition-timing-function) var(--transition-time-fade-out),
+                margin var(--transition-time-collapse) var(--transition-timing-function) var(--transition-time-fade-out),
+                padding var(--transition-time-collapse) var(--transition-timing-function) var(--transition-time-fade-out),
+                opacity var(--transition-time-fade-in) var(--transition-timing-function) var(--transition-fade-in-start),
+                visibility var(--transition-time-fade-in) var(--transition-timing-function) var(--transition-fade-in-start);
+}

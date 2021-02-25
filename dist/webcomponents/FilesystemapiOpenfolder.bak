@@ -1,0 +1,142 @@
+import { nanoid } from '../../dist/web_modules/nanoid.js';
+class FilesystemapiOpenfolder extends HTMLElement {
+
+  static get observedAttributes() { 
+    return [
+    "requeststate"
+    ]; 
+  }
+  attributeChangedCallback(name, oldValue, newValue) {
+    console.log(`1 Value changed from ${oldValue} to ${newValue}`);
+
+    const newUuid = nanoid();
+    const customEvent = new CustomEvent('created', {detail: newUuid});//{ target: { value: newUuid }});
+
+
+    switch (name) {
+      case  "requeststate":
+        
+        if (newValue === "requested") {
+          console.log(`123 Value changed from ${oldValue} to ${newValue}`, this);
+          this.setAttribute('requestState', "created");
+          this.setAttribute('uuid', newUuid);
+          this.dispatchEvent(customEvent);
+
+          console.log("preevent");
+          const event2 = new MouseEvent('click', {
+            view: window,
+            bubbles: true,
+            cancelable: true
+          });
+          console.log("preevent 2");
+          
+          this.dispatchEvent(event2);
+          console.log("preevent 3");
+
+        } else if (newValue === "reset") {
+          this.setAttribute('requestState', "idle");
+          this.setAttribute('uuid', "");
+          // this.dispatchEvent(customEvent);
+        }
+    }
+
+  }
+
+  
+  
+  
+  constructor() {
+    // Always call super first in constructor
+    super();
+
+     var shadow = this.attachShadow({mode: 'open'});
+
+    var wrapper = document.createElement('button');
+    wrapper.setAttribute('class','wrapper');
+    wrapper.innerHTML = "New text!";
+    wrapper.addEventListener("click", async function () {
+      
+      // const options = {
+      //   types: [
+      //     {
+      //       description: 'Text Files',
+      //       accept: {
+      //         'text/plain': ['.txt'],
+      //       },
+      //     },
+      //   ],
+      // };
+      // const handle = await window.showSaveFilePicker(options);
+      // return handle;
+
+      async function verifyPermission(fileHandle, readWrite) {
+        const options = {};
+        if (readWrite) {
+          options.mode = 'readwrite';
+        }
+        // Check if permission was already granted. If so, return true.
+        if ((await fileHandle.queryPermission(options)) === 'granted') {
+          console.log("granted")
+          return true;
+        }
+        const permm = await fileHandle.requestPermission(options);
+        console.log("permm", permm)
+        const permm2 = await fileHandle.queryPermission({mode:"read"});
+        console.log("permm2", permm2)
+        // Request permission. If the user grants permission, return true.
+        if ((await fileHandle.requestPermission(options)) === 'granted') {
+          console.log("granted2")
+          return true;
+        }
+        console.log("not granted")
+        // The user didn't grant permission, so return false.
+        return false;
+      }
+      
+      // const options = {};
+      // options.mode = 'readwrite';
+      // console.log("clicked me !!!!!!!!!!!!!!!");
+      const dirHandle = await window.showDirectoryPicker(
+        // options
+      );
+      // for await  (const entry of dirHandle.values()) {
+      //   console.log(entry.kind, entry.name);
+      // }
+      const fileIter = dirHandle.values();
+      let containerItem = await fileIter.next();
+      while (!containerItem.done) {
+        console.log(containerItem.value.kind, containerItem.value.name);
+        containerItem = await fileIter.next();
+      }
+      const permission = await verifyPermission(dirHandle, true);
+      // In this new directory, create a file named "My Notes.txt".
+      try {
+      const newFileHandle = await dirHandle.getFileHandle('MyNotes.txt', { create: true });
+      } catch (error) {
+        console.log(error, error.name)
+      }
+      // const newDirectoryHandle = await dirHandle.getDirectoryHandle('my_files', {
+      //   create: true,
+      // });
+      // In this new directory, create a file named "My Notes.txt".
+      // const newFileHandle = await newDirectoryHandle.getFileHandle('My Notes.txt', { create: true });
+    })
+    shadow.appendChild(wrapper);
+    
+    
+    
+  }
+}
+
+customElements.define('filesystemapi-openfolder', FilesystemapiOpenfolder);
+
+
+/*
+const butDir = document.getElementById('butDirectory');
+butDir.addEventListener('click', async () => {
+  const dirHandle = await window.showDirectoryPicker();
+  for await (const entry of dirHandle.values()) {
+    console.log(entry.kind, entry.name);
+  }
+});
+//*/

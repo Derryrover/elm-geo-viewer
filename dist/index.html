@@ -1,17 +1,27 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
   <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Elm hotloading dev environment</title>
-    <link rel="stylesheet" href="/test.3e11d453.css">
-    <link rel="stylesheet" href="/test2.f16c7261.css">
-  <script src="/test.3e11d453.js"></script><script src="/test2.f16c7261.js"></script></head>
-
+    <title>This is the title of the webpage!</title>
+    <script type="module" src="../dist/webcomponents/FilesystemapiOpenfolder.js"></script>
+    <script type="module" src="../dist/webcomponents/UuidGenerator.js"></script>
+    <script type="module" src="../dist/webcomponents/AlwaysFireRightAway.js"></script>
+    <script type="module" src="../dist/webcomponents/ShowNoShow.js"></script>
+    <script type="module" src="../dist/webcomponents/DateTimeNowGenerator.js"></script>
+    <script src="../dist/elm.js"></script>
+    <link rel="stylesheet" type="text/css" href="./css/index.css">
+  </head>
   <body>
+    <!-- <p>This is an example paragraph. Anything in the <strong>body</strong> tag will appear on the page, just like this <strong>p</strong> tag and its contents.</p> -->
+    <!-- <button onclick="openFolder()">Open file picker</button> -->
     
-    <main></main>
-    <script src="/src.e31bb0bc.js"></script>
-
+    <div id="elm_element"></div>
+    <script>
+    var app = Elm.Main.init({
+      node: document.getElementById('elm_element')
+    });
+    </script>
+    <!-- this custom element can somehow not be added before the elm script -->
+    <!-- <filesystemapi-openfolder/>
+    <uuid-generator/> -->
   </body>
 </html>

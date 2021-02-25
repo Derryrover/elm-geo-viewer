@@ -1,6 +1,8 @@
 module DateTimePicker exposing (..)
 
 import Html
+import Time
+import DateTime
 
 type Month =
   Januari |
@@ -112,3 +114,37 @@ view model =
         ]
       ]
     ]
+
+
+monthToInt : Time.Month -> Int
+monthToInt month =
+  case month of
+    Time.Jan -> 1
+    Time.Feb -> 2
+    Time.Mar -> 3
+    Time.Apr -> 4
+    Time.May -> 5
+    Time.Jun -> 6
+    Time.Jul -> 7
+    Time.Aug -> 8
+    Time.Sep -> 9
+    Time.Oct -> 10
+    Time.Nov -> 11
+    Time.Dec -> 12
+
+dateIntToString: Int -> String
+dateIntToString integ = 
+  if integ < 10 then "0" ++ (String.fromInt integ)
+  else String.fromInt integ
+
+dateTimeToString: DateTime.DateTime -> String
+dateTimeToString dateTime = 
+  let
+    year = dateIntToString (DateTime.getYear dateTime)
+    month = dateIntToString (monthToInt (DateTime.getMonth dateTime))
+    day = dateIntToString (DateTime.getDay dateTime)
+    hour = dateIntToString (DateTime.getHours dateTime)
+    minute  = dateIntToString (DateTime.getMinutes dateTime)
+    second = dateIntToString (DateTime.getSeconds dateTime)
+  in
+    year++"-"++month++"-"++day++"T"++hour++":"++minute++":"++second
