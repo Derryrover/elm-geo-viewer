@@ -18,7 +18,7 @@ import MapBoxUtils exposing (createMapBoxUrl,createWmsUrl, createWmsUrlFromUrl)
 import ZoomLevel
 import MapLayer
 
-import Json.Decode as Decode
+import Json.Decode
 
 import WheelDecoder
 
@@ -28,6 +28,8 @@ import MapData exposing ( map1, map2 )
 import Browser
 import Browser.Events
 import Array
+import GenericGeneratorWebcomponent
+
 
 
 keyedDiv = Html.Keyed.node "div"
@@ -38,13 +40,6 @@ keyedDiv = Html.Keyed.node "div"
 --   , update = update
 --   , subscriptions = subscriptions
 --   }
-
-subscriptions : Model -> Sub Msg
-subscriptions model =
-  if model.currentAnimationTimeLeft /= 0 then
-    Browser.Events.onAnimationFrameDelta TimeDelta
-  else 
-    Sub.none
 
 type alias Model = 
   { dragStart: PixelPoint
@@ -428,6 +423,14 @@ view model dateModel nextStepDateModel =
         [ Html.map (TemporalMapLayerMsg2) temporalLayerView2
         , Html.map (TemporalMapLayerMsg1) temporalLayerView1
         ]
+      , if model.currentAnimationTimeLeft /= 0 then
+          GenericGeneratorWebcomponent.htmlNode 
+            "requestanimframe-component"
+            [ GenericGeneratorWebcomponent.onCreated Json.Decode.float TimeDelta
+            ]
+            []
+        else 
+          div [] []
       
     ]
 
