@@ -4,3 +4,4 @@ npm-debug.log
 dist/elm.js
 .cache
 .vscode
+personal_api_key.js

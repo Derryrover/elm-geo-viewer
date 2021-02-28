@@ -78,7 +78,9 @@ layers =
     , visible = True
     , temporal = False
     }
-  , { urlCreator = createWmsUrlFromUrl "/api/v3/wms/?SERVICE=WMS&REQUEST=GetMap&VERSION=1.1.1&LAYERS=dem%3Anl&STYLES=dem_nl&FORMAT=image%2Fpng&TRANSPARENT=false&HEIGHT=256&WIDTH=256&TIME=2020-07-19T07%3A47%3A34&SRS=EPSG%3A3857&BBOX="
+  , { 
+      urlCreator = createWmsUrlFromUrl "/api/v3/wms/?SERVICE=WMS&REQUEST=GetMap&VERSION=1.1.1&LAYERS=dem%3Anl&STYLES=dem_nl&FORMAT=image%2Fpng&TRANSPARENT=false&HEIGHT=256&WIDTH=256&TIME=2020-07-19T07%3A47%3A34&SRS=EPSG%3A3857&BBOX="
+      -- urlCreator = createWmsUrlFromUrl "https://nxt3.staging.lizard.net/api/v3/wms/?SERVICE=WMS&REQUEST=GetMap&VERSION=1.1.1&LAYERS=dem%3Anl&STYLES=dem_nl&FORMAT=image%2Fpng&TRANSPARENT=false&HEIGHT=256&WIDTH=256&TIME=2020-07-19T07%3A47%3A34&SRS=EPSG%3A3857&BBOX="
     , visible = True
     , temporal = False
     }
@@ -93,7 +95,9 @@ layers =
 
 temporalLayer: LayerConfif
 temporalLayer = 
-    { urlCreator = createWmsUrlFromUrl "/api/v3/wms/?SERVICE=WMS&REQUEST=GetMap&VERSION=1.1.1&LAYERS=radar%2F5min&STYLES=radar-5min&FORMAT=image%2Fpng&TRANSPARENT=false&HEIGHT=256&WIDTH=256&TIME=${DateTime}&ZINDEX=20&SRS=EPSG%3A3857&BBOX="
+    { 
+      urlCreator = createWmsUrlFromUrl "/api/v3/wms/?SERVICE=WMS&REQUEST=GetMap&VERSION=1.1.1&LAYERS=radar%2F5min&STYLES=radar-5min&FORMAT=image%2Fpng&TRANSPARENT=false&HEIGHT=256&WIDTH=256&TIME=${DateTime}&ZINDEX=20&SRS=EPSG%3A3857&BBOX="
+      -- urlCreator = createWmsUrlFromUrl "https://nxt3.staging.lizard.net/api/v3/wms/?SERVICE=WMS&REQUEST=GetMap&VERSION=1.1.1&LAYERS=radar%2F5min&STYLES=radar-5min&FORMAT=image%2Fpng&TRANSPARENT=false&HEIGHT=256&WIDTH=256&TIME=${DateTime}&ZINDEX=20&SRS=EPSG%3A3857&BBOX="
     , visible = True
     , temporal = True
     }

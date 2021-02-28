@@ -1,0 +1,3 @@
+module.exports = {
+  personal_api_key: "<example.apikey.from.https://nxt3.staging.lizard.net/management/#/personal_api_keys/>",
+};

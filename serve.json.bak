@@ -1,0 +1,11 @@
+{
+  "public": "dist",
+  "redirects": [
+    { "source": "/api/:apiversion/:apipoint/:end", "destination": "https://nxt3.staging.lizard.net/api/:apiversion/:apipoint/:end" },
+    { "source": "/api/v4/**", "destination": "https://nxt3.staging.lizard.net/api/v4/" },
+    {
+      "source": "/api/v3/wms/?SERVICE=WMS&REQUEST=GetMap&VERSION=1.1.1&LAYERS=radar%2F5min&STYLES=radar-5min&FORMAT=image%2Fpng&TRANSPARENT=false&HEIGHT=256&WIDTH=256&TIME=2020-10-03T20:05:00&ZINDEX=20&SRS=EPSG%3A3857&BBOX=1252344.2712499986,6887893.491874998,1565430.3390625003,7200979.559687502",
+      "destination": "https://nxt3.staging.lizard.net/api/v3/wms/?SERVICE=WMS&REQUEST=GetMap&VERSION=1.1.1&LAYERS=radar%2F5min&STYLES=radar-5min&FORMAT=image%2Fpng&TRANSPARENT=false&HEIGHT=256&WIDTH=256&TIME=2020-10-03T20:05:00&ZINDEX=20&SRS=EPSG%3A3857&BBOX=1252344.2712499986,6887893.491874998,1565430.3390625003,7200979.559687502"
+    }
+  ]
+}
