@@ -434,7 +434,7 @@ view model dateModel nextStepDateModel =
             ]
             []
         else 
-          div [] []
+          Html.node "empty-element" [] []
       
     ]
 
