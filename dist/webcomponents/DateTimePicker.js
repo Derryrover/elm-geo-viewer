@@ -1,14 +1,29 @@
+function pad2(n) {  // always returns a string
+  return (n < 10 ? '0' : '') + n;
+}
+
+function getUserTimeYYYYMMDDHHMM (date) {
+  // seconds somehow does not work
+  return `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}T${pad2(date.getHours())}:${pad2(date.getMinutes())}`;//.${pad2(date.getSeconds())}`;
+}
+     
+
 class DateTimePicker extends HTMLElement {
 
   static get observedAttributes() { 
     return [
-    "value"
+    "posix"
     ]; 
   }
   async attributeChangedCallback(name, oldValue, newValue) {
     switch (name) {
-      case  "value":
-        this.dateTimeInput.setAttribute('value',newValue);
+      case  "posix":
+        const intPosix = parseInt(newValue, 10);
+        const date = new Date(intPosix);
+        const valueStr = getUserTimeYYYYMMDDHHMM(date);
+        console.log('valueStr', valueStr)
+
+        this.dateTimeInput.setAttribute('value',valueStr);
     }
 
   }
@@ -19,7 +34,7 @@ class DateTimePicker extends HTMLElement {
   constructor() {
     // Always call super first in constructor
     super();
-    const self = this;
+    
 
     const shadow = this.attachShadow({mode: 'open'});
     const input = document.createElement('input');
@@ -42,14 +57,20 @@ class DateTimePicker extends HTMLElement {
     // shadow.appendChild(div);
     // div.setAttribute('class','status_dropdown');
     // div.innerHTML = dropDownStr;
-
+    
+    const self = this;
     input.addEventListener("change", function (event) {
       // console.log('datetimepicker', event, event.target.value);
       const date = new Date(event.target.value);
-      const isoStr = date.toISOString();
+      // const isoStr = date.toISOString();
       // console.log('isoStr', isoStr);
-      const customEvent = new CustomEvent('created', {detail: isoStr});
-      this.dispatchEvent(customEvent);
+      const posix = date.getTime();
+      
+      const customEvent = new CustomEvent('valuechanged', {detail: posix});
+      requestAnimationFrame(() => {
+        // console.log("posix", posix);
+        self.dispatchEvent(customEvent);
+      })
     })
   }
 }
