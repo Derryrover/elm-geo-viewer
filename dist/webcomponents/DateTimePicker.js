@@ -25,8 +25,10 @@ class DateTimePicker extends HTMLElement {
     const input = document.createElement('input');
     shadow.appendChild(input);
     input.setAttribute('type','datetime-local');
-    input.setAttribute('value','2020-10-29T10:00:00');
     this.dateTimeInput = input;
+
+    // console.log("this.getAttribute('value')",this.getAttribute('value'));
+    // input.setAttribute('value','2020-10-29T10:00:00');
 
     // const dropDownStr = `
     //   <select>
