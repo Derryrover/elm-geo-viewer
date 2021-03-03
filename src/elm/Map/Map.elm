@@ -269,6 +269,9 @@ update msg model =
         , currentAnimationZoom = toFloat model.map.zoom
         , currentAnimationLeftX = toFloat model.map.finalPixelCoordinateWindow.leftX
         , currentAnimationTopY = toFloat model.map.finalPixelCoordinateWindow.topY
+        , temporalMapLayerModel1 = MapLayer.update (MapLayer.TileCoordinatesChanged newMap) model.temporalMapLayerModel1
+        , temporalMapLayerModel2 = MapLayer.update (MapLayer.TileCoordinatesChanged newMap) model.temporalMapLayerModel2
+        , mapLayerModels = List.map (MapLayer.update (MapLayer.TileCoordinatesChanged newMap)) model.mapLayerModels
         }
       
     ZoomLevelMsg plusOrMinus ->
@@ -279,7 +282,12 @@ update msg model =
         mapCenter = { x =  map.window.width // 2, y = map.window.height // 2}
         newMap = ZoomLevel.updateWholeMapForZoom newZoom mapCenter map
       in
-        {model | map = newMap}
+        {model 
+          | map = newMap
+          , temporalMapLayerModel1 = MapLayer.update (MapLayer.TileCoordinatesChanged newMap) model.temporalMapLayerModel1
+          , temporalMapLayerModel2 = MapLayer.update (MapLayer.TileCoordinatesChanged newMap) model.temporalMapLayerModel2
+          , mapLayerModels = List.map (MapLayer.update (MapLayer.TileCoordinatesChanged newMap)) model.mapLayerModels
+        }
     MouseDown (x, y) ->
       { model 
           | mouseDown = True
@@ -287,10 +295,9 @@ update msg model =
           , dragStartPixels = model.map.finalPixelCoordinateWindow
         }
     MouseMove (x, y) ->
-      case model.mouseDown of
-        False ->
+      if model.mouseDown == False then
           model
-        True ->
+      else
           let 
             tempMap = model.map
             deltaX = x - model.dragStart.x
@@ -311,6 +318,9 @@ update msg model =
               , currentAnimationViewBoxTopY = (toFloat newMap.finalPixelCoordinateWindow.topY)  * zoomFactor
               , currentAnimationViewBoxWidth = (toFloat newMap.window.width)  * zoomFactor
               , currentAnimationViewBoxHeight = (toFloat newMap.window.height)  * zoomFactor
+              , temporalMapLayerModel1 = MapLayer.update (MapLayer.TileCoordinatesChanged newMap) model.temporalMapLayerModel1
+              , temporalMapLayerModel2 = MapLayer.update (MapLayer.TileCoordinatesChanged newMap) model.temporalMapLayerModel2
+              , mapLayerModels = List.map (MapLayer.update (MapLayer.TileCoordinatesChanged newMap)) model.mapLayerModels
             }
            
     MouseUp (x, y) ->
