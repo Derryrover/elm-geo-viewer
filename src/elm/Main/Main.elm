@@ -9,6 +9,8 @@ import Http exposing (Error(..))
 import Map exposing(..)
 import GenericGeneratorWebcomponent
 import Json.Decode
+import Time
+import Iso8601
 
 
 type alias Model =
@@ -63,7 +65,13 @@ view model =
             ]
             []
         , div [] [Html.text (String.fromInt model.posix)]
-        , Html.map MapMsg (Map.view model.map model.dateTimeGlobalTimezoneString model.dateTimeGlobalTimezoneStringNextTimeStep)
+        , Html.map 
+            MapMsg 
+            (Map.view 
+                model.map 
+                (Iso8601.fromTime (Time.millisToPosix model.posix)) 
+                (Iso8601.fromTime (Time.millisToPosix (model.posix + 3600000))) 
+            )
         -- , img [src "/api/v3/wms/?SERVICE=WMS&REQUEST=GetMap&VERSION=1.1.1&LAYERS=users%3Atom-test-upload-data-18-januari&STYLES=dem_nl&FORMAT=image%2Fpng&TRANSPARENT=false&HEIGHT=256&WIDTH=256&TIME=2020-02-07T10%3A00%3A00&SRS=EPSG%3A3857&BBOX=386465.61500985106,6687322.730613498,391357.5848201024,6692214.700423751"] []
         ]
 
