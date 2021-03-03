@@ -25,7 +25,7 @@ type alias Model =
 init : Model
 init =
     { map = Map.init {}
-    , posix = 1614692212412
+    , posix = 1598639940000
     , dateTimeGlobalTimezoneString = "2020-10-03T20:05:00.000z"
     , dateTimeGlobalTimezoneStringNextTimeStep = "2020-10-03T20:25:00"
     }

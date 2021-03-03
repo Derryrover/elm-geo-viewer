@@ -367,10 +367,8 @@ view model dateModel nextStepDateModel =
     mapTemporalLayerToUse = 
       if (MapLayer.areAllDictLoaded model.temporalMapLayerModel2 && MapLayer.areAllDictLoaded model.temporalMapLayerModel1) then
         Html.map (TemporalMapLayerMsg2) temporalLayerView2
-        -- Html.div [] []
       else
-        Html.div [] []
-        -- Html.map (TemporalMapLayerMsg1) temporalLayerView1
+        Html.map (TemporalMapLayerMsg1) temporalLayerView1
   in
   div 
     []
