@@ -59,6 +59,7 @@ type alias Model =
   , mapLayerModels: List MapLayer.Model
   , temporalMapLayerModel1: MapLayer.Model
   , temporalMapLayerModel2: MapLayer.Model
+  , triggerTemporalLayersReadyForNextFrame: Bool
   }
 
 type alias InitModel = {}
@@ -133,6 +134,7 @@ init _ =
         , mapLayerModels = mapLayerModels
         , temporalMapLayerModel1 = mapTemporalLayer1Model
         , temporalMapLayerModel2 = mapTemporalLayer2Model
+        , triggerTemporalLayersReadyForNextFrame = False
         }
      
 
@@ -173,7 +175,17 @@ update msg model =
     TemporalMapLayerMsg1 mapLayerMessage ->
       {model | temporalMapLayerModel1 = MapLayer.update mapLayerMessage model.temporalMapLayerModel1}
     TemporalMapLayerMsg2 mapLayerMessage ->
-      {model | temporalMapLayerModel2 = MapLayer.update mapLayerMessage model.temporalMapLayerModel2}
+      let 
+        newModel = {model | temporalMapLayerModel2 = MapLayer.update mapLayerMessage model.temporalMapLayerModel2}
+      in
+        case mapLayerMessage of 
+          MapLayer.AllTilesLoaded _ -> 
+            if (MapLayer.areAllDictLoaded model.temporalMapLayerModel1) then
+              { newModel | triggerTemporalLayersReadyForNextFrame = True}
+            else
+              newModel
+          _  -> 
+            newModel
     MapLayerMsg index mapLayerMessage ->
       let
           oldMapLayerModel = model.mapLayerModels

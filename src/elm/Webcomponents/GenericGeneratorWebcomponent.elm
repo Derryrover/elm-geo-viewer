@@ -7,15 +7,15 @@ import Json.Decode
 htmlNode: String -> List (Html.Attribute msg) -> List (Html.Html msg) -> Html.Html msg
 htmlNode str attrs childs = (Html.node str) attrs childs
 
-type RequestState = Idle | Requested | Created | Reset 
+type RequestState = Idle | Requested --| Created | Reset 
 
 requestStateToString: RequestState -> String
 requestStateToString status = 
   case status of
     Idle -> "idle"
     Requested -> "requested"
-    Created -> "created"
-    Reset -> "reset"
+    -- Created -> "created"
+    -- Reset -> "reset"
 
 --onCreated : Json.Decode.Decoder a -> (a -> msg a) -> Html.Attribute (msg a)
 onCreated decoder tagger =

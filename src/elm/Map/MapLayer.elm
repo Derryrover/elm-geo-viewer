@@ -20,15 +20,20 @@ import MapVariables exposing (
   )
 import Dict exposing (Dict)
 import Json.Decode
+import GenericGeneratorWebcomponent
+import Html
+
 
 type Msg 
   = 
   -- x y z
   TileLoaded Int Int Int
+  | AllTilesLoaded Float
   | TileCoordinatesChanged Types.CompleteMapConfiguration
 
 type alias Model = 
   { loadedTiles: Dict String Bool --List Int
+  , triggerAllLoaded: Bool
   , a: Int
   }
 
@@ -58,6 +63,7 @@ init : Types.CompleteMapConfiguration -> Model
 init map = 
    { loadedTiles = Dict.fromList (List.map (\key-> (key, False)) (mapToDictStrings map)) --Dict.fromList []
     , a = 0
+    , triggerAllLoaded = False
     }
 
 
@@ -72,10 +78,16 @@ update msg model =
     TileLoaded x y z -> 
       let
           key = keyFromXYZ x y z
-      in
-        { model | loadedTiles = Dict.insert key True model.loadedTiles --[]
-        }
+          newModel = { model | loadedTiles = Dict.insert key True model.loadedTiles 
+                      }
+          newModelLoaded = 
+            if areAllDictLoaded newModel then {newModel | triggerAllLoaded = True}
+            else newModel
 
+      in
+        newModelLoaded
+    AllTilesLoaded _ ->
+      {model | triggerAllLoaded = False}
 tilePixelSize = 1 --256
 
 
@@ -106,6 +118,17 @@ mapLayer model map createMapBoxUrl dateModel currentAnimationZoom currentAnimati
             [ ("position", "absolute")
             , ("pointer-events", "none")])
        [
+         GenericGeneratorWebcomponent.htmlNode 
+            "always-fire-right-away"
+            [ GenericGeneratorWebcomponent.onCreated Json.Decode.float AllTilesLoaded
+            , Html.Attributes.attribute 
+              "requestState" 
+              (GenericGeneratorWebcomponent.requestStateToString 
+                (if model.triggerAllLoaded then GenericGeneratorWebcomponent.Requested else GenericGeneratorWebcomponent.Idle)
+              ) 
+            ]
+            [],
+
          keyedSvg 
           [
             Svg.Attributes.viewBox 
