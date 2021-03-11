@@ -35,8 +35,6 @@ type Msg
 
 type alias Model = 
   { loadedTiles: Dict String Bool --List Int
-  , triggerAllLoaded: Bool
-  , a: Int
   , emitEvent: Maybe Msg
   }
 
@@ -65,8 +63,6 @@ mapToDictStrings map =
 init : Types.CompleteMapConfiguration -> Model
 init map = 
    { loadedTiles = Dict.fromList (List.map (\key-> (key, False)) (mapToDictStrings map)) --Dict.fromList []
-    , a = 0
-    , triggerAllLoaded = False
     , emitEvent = Nothing
     }
 
@@ -81,24 +77,21 @@ update msg model =
         }
     TileLoaded x y z -> 
       let
-          key = keyFromXYZ x y z
-          newModel = { model | loadedTiles = Dict.insert key True model.loadedTiles 
-                      }
-          newModelLoaded = 
-            if areAllDictLoaded newModel then 
-              { newModel 
-              | triggerAllLoaded = True
-              , emitEvent = Just AllTilesLoaded
-              }
-            else 
-              newModel
-
+        key = keyFromXYZ x y z
+        newModel = { model | loadedTiles = Dict.insert key True model.loadedTiles 
+                    }
+        newModelLoaded = 
+          if areAllDictLoaded newModel then 
+            { newModel 
+            | emitEvent = Just AllTilesLoaded
+            }
+          else 
+            newModel
       in
         newModelLoaded
     AllTilesLoaded -> --_ ->
       { model 
-      | triggerAllLoaded = False
-      , emitEvent = Nothing
+      | emitEvent = Nothing
       }
 tilePixelSize = 1 --256
 
@@ -122,31 +115,18 @@ mapLayer model map createMapBoxUrl dateModel currentAnimationZoom currentAnimati
   = 
   let
     zoomFactor = 2 ^ ((toFloat maxZoomLevel) - currentAnimationZoom)
-    zoomFactorNoAnimation = 2 ^ (( maxZoomLevel) - (map.zoom))
-    -- zoomFactor = 2 ^ (maxZoomLevel - (map.zoom))
+    -- zoomFactorNoAnimation = 2 ^ (( maxZoomLevel) - (map.zoom))
   in
     div 
       (ElmStyle.createStyleList 
             [ ("position", "absolute")
             , ("pointer-events", "none")])
        [
-        --  GenericGeneratorWebcomponent.htmlNode 
-        --     "always-fire-right-away"
-        --     [ GenericGeneratorWebcomponent.onCreated Json.Decode.float AllTilesLoaded
-        --     , Html.Attributes.attribute 
-        --       "requestState" 
-        --       (GenericGeneratorWebcomponent.requestStateToString 
-        --         (if model.triggerAllLoaded then GenericGeneratorWebcomponent.Requested else GenericGeneratorWebcomponent.Idle)
-        --       ) 
-        --     ]
-        --     [],
-          -- if model.triggerAllLoaded then EmitEvent.emitEvent AllTilesLoaded
-          -- else HtmlEmpty.htmlEmpty
         case model.emitEvent of
            Nothing ->
-            HtmlEmpty.htmlEmpty
+             HtmlEmpty.htmlEmpty
            Just msg ->
-            EmitEvent.emitEvent msg
+             EmitEvent.emitEvent msg
 
         , keyedSvg 
           [
