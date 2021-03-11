@@ -5,7 +5,8 @@
         "src/elm/ElmStyle",
         "src/elm/Map",
         "src/elm/DateTimePicker",
-        "src/elm/Webcomponents"
+        "src/elm/Webcomponents",
+        "src/elm/Components"
     ],
     "elm-version": "0.19.1",
     "dependencies": {

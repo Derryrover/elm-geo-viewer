@@ -179,7 +179,7 @@ update msg model =
         newModel = {model | temporalMapLayerModel2 = MapLayer.update mapLayerMessage model.temporalMapLayerModel2}
       in
         case mapLayerMessage of 
-          MapLayer.AllTilesLoaded _ -> 
+          MapLayer.AllTilesLoaded -> --_ -> 
             if (MapLayer.areAllDictLoaded model.temporalMapLayerModel1) then
               { newModel | triggerTemporalLayersReadyForNextFrame = True}
             else

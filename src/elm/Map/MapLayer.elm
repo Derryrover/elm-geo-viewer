@@ -22,19 +22,22 @@ import Dict exposing (Dict)
 import Json.Decode
 import GenericGeneratorWebcomponent
 import Html
+import EmitEvent
+import HtmlEmpty
 
 
 type Msg 
   = 
   -- x y z
   TileLoaded Int Int Int
-  | AllTilesLoaded Float
+  | AllTilesLoaded --Float
   | TileCoordinatesChanged Types.CompleteMapConfiguration
 
 type alias Model = 
   { loadedTiles: Dict String Bool --List Int
   , triggerAllLoaded: Bool
   , a: Int
+  , emitEvent: Maybe Msg
   }
 
 areAllDictLoaded: Model -> Bool
@@ -64,6 +67,7 @@ init map =
    { loadedTiles = Dict.fromList (List.map (\key-> (key, False)) (mapToDictStrings map)) --Dict.fromList []
     , a = 0
     , triggerAllLoaded = False
+    , emitEvent = Nothing
     }
 
 
@@ -81,13 +85,21 @@ update msg model =
           newModel = { model | loadedTiles = Dict.insert key True model.loadedTiles 
                       }
           newModelLoaded = 
-            if areAllDictLoaded newModel then {newModel | triggerAllLoaded = True}
-            else newModel
+            if areAllDictLoaded newModel then 
+              { newModel 
+              | triggerAllLoaded = True
+              , emitEvent = Just AllTilesLoaded
+              }
+            else 
+              newModel
 
       in
         newModelLoaded
-    AllTilesLoaded _ ->
-      {model | triggerAllLoaded = False}
+    AllTilesLoaded -> --_ ->
+      { model 
+      | triggerAllLoaded = False
+      , emitEvent = Nothing
+      }
 tilePixelSize = 1 --256
 
 
@@ -118,18 +130,25 @@ mapLayer model map createMapBoxUrl dateModel currentAnimationZoom currentAnimati
             [ ("position", "absolute")
             , ("pointer-events", "none")])
        [
-         GenericGeneratorWebcomponent.htmlNode 
-            "always-fire-right-away"
-            [ GenericGeneratorWebcomponent.onCreated Json.Decode.float AllTilesLoaded
-            , Html.Attributes.attribute 
-              "requestState" 
-              (GenericGeneratorWebcomponent.requestStateToString 
-                (if model.triggerAllLoaded then GenericGeneratorWebcomponent.Requested else GenericGeneratorWebcomponent.Idle)
-              ) 
-            ]
-            [],
+        --  GenericGeneratorWebcomponent.htmlNode 
+        --     "always-fire-right-away"
+        --     [ GenericGeneratorWebcomponent.onCreated Json.Decode.float AllTilesLoaded
+        --     , Html.Attributes.attribute 
+        --       "requestState" 
+        --       (GenericGeneratorWebcomponent.requestStateToString 
+        --         (if model.triggerAllLoaded then GenericGeneratorWebcomponent.Requested else GenericGeneratorWebcomponent.Idle)
+        --       ) 
+        --     ]
+        --     [],
+          -- if model.triggerAllLoaded then EmitEvent.emitEvent AllTilesLoaded
+          -- else HtmlEmpty.htmlEmpty
+        case model.emitEvent of
+           Nothing ->
+            HtmlEmpty.htmlEmpty
+           Just msg ->
+            EmitEvent.emitEvent msg
 
-         keyedSvg 
+        , keyedSvg 
           [
             Svg.Attributes.viewBox 
               -- ( 
