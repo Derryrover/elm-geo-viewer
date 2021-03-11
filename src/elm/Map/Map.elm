@@ -29,6 +29,8 @@ import Browser
 import Browser.Events
 import Array
 import GenericGeneratorWebcomponent
+import EmitEvent
+import HtmlEmpty
 
 
 
@@ -59,7 +61,7 @@ type alias Model =
   , mapLayerModels: List MapLayer.Model
   , temporalMapLayerModel1: MapLayer.Model
   , temporalMapLayerModel2: MapLayer.Model
-  , triggerTemporalLayersReadyForNextFrame: Bool
+  , emitEvent: Maybe Msg
   }
 
 type alias InitModel = {}
@@ -79,12 +81,12 @@ layers =
     , visible = True
     , temporal = False
     }
-  , { 
-      urlCreator = createWmsUrlFromUrl "/api/v3/wms/?SERVICE=WMS&REQUEST=GetMap&VERSION=1.1.1&LAYERS=dem%3Anl&STYLES=dem_nl&FORMAT=image%2Fpng&TRANSPARENT=false&HEIGHT=256&WIDTH=256&TIME=2020-07-19T07%3A47%3A34&SRS=EPSG%3A3857&BBOX="
-      -- urlCreator = createWmsUrlFromUrl "https://nxt3.staging.lizard.net/api/v3/wms/?SERVICE=WMS&REQUEST=GetMap&VERSION=1.1.1&LAYERS=dem%3Anl&STYLES=dem_nl&FORMAT=image%2Fpng&TRANSPARENT=false&HEIGHT=256&WIDTH=256&TIME=2020-07-19T07%3A47%3A34&SRS=EPSG%3A3857&BBOX="
-    , visible = True
-    , temporal = False
-    }
+  -- , { 
+  --     urlCreator = createWmsUrlFromUrl "/api/v3/wms/?SERVICE=WMS&REQUEST=GetMap&VERSION=1.1.1&LAYERS=dem%3Anl&STYLES=dem_nl&FORMAT=image%2Fpng&TRANSPARENT=false&HEIGHT=256&WIDTH=256&TIME=2020-07-19T07%3A47%3A34&SRS=EPSG%3A3857&BBOX="
+  --     -- urlCreator = createWmsUrlFromUrl "https://nxt3.staging.lizard.net/api/v3/wms/?SERVICE=WMS&REQUEST=GetMap&VERSION=1.1.1&LAYERS=dem%3Anl&STYLES=dem_nl&FORMAT=image%2Fpng&TRANSPARENT=false&HEIGHT=256&WIDTH=256&TIME=2020-07-19T07%3A47%3A34&SRS=EPSG%3A3857&BBOX="
+  --   , visible = True
+  --   , temporal = False
+  --   }
   -- , { 
   --   --  urlCreator = createWmsUrlFromUrl "/api/v3/wms/?SERVICE=WMS&REQUEST=GetMap&VERSION=1.1.1&LAYERS=radar%2F5min&STYLES=radar-5min&FORMAT=image%2Fpng&TRANSPARENT=false&HEIGHT=497&WIDTH=525&TIME=2020-08-12T21%3A35%3A00&ZINDEX=20&SRS=EPSG%3A3857&BBOX="
   --   -- urlCreator = createWmsUrlFromUrl "/api/v3/wms/?SERVICE=WMS&REQUEST=GetMap&VERSION=1.1.1&LAYERS=radar%2F5min&STYLES=radar-5min&FORMAT=image%2Fpng&TRANSPARENT=false&HEIGHT=497&WIDTH=525&TIME=2020-08-12T21:35:00&ZINDEX=20&SRS=EPSG%3A3857&BBOX="
@@ -134,7 +136,7 @@ init _ =
         , mapLayerModels = mapLayerModels
         , temporalMapLayerModel1 = mapTemporalLayer1Model
         , temporalMapLayerModel2 = mapTemporalLayer2Model
-        , triggerTemporalLayersReadyForNextFrame = False
+        , emitEvent = Nothing
         }
      
 
@@ -149,6 +151,8 @@ type Msg
   | MapLayerMsg Int MapLayer.Msg
   | TemporalMapLayerMsg1 MapLayer.Msg
   | TemporalMapLayerMsg2 MapLayer.Msg
+  | AllTemporalLayersLoaded
+  | TimeUpdated
 
 calculateAnimationValue timeFraction currentValue eventualValue = 
   let
@@ -173,7 +177,17 @@ update : Msg -> Model -> Model
 update msg model = 
   case msg of
     TemporalMapLayerMsg1 mapLayerMessage ->
-      {model | temporalMapLayerModel1 = MapLayer.update mapLayerMessage model.temporalMapLayerModel1}
+      let 
+        newModel = {model | temporalMapLayerModel1 = MapLayer.update mapLayerMessage model.temporalMapLayerModel1}
+      in
+        case mapLayerMessage of 
+          MapLayer.AllTilesLoaded -> --_ -> 
+            if (MapLayer.areAllDictLoaded model.temporalMapLayerModel2) then
+              { newModel | emitEvent = Just AllTemporalLayersLoaded}
+            else
+              newModel
+          _  -> 
+            newModel
     TemporalMapLayerMsg2 mapLayerMessage ->
       let 
         newModel = {model | temporalMapLayerModel2 = MapLayer.update mapLayerMessage model.temporalMapLayerModel2}
@@ -181,11 +195,18 @@ update msg model =
         case mapLayerMessage of 
           MapLayer.AllTilesLoaded -> --_ -> 
             if (MapLayer.areAllDictLoaded model.temporalMapLayerModel1) then
-              { newModel | triggerTemporalLayersReadyForNextFrame = True}
+              { newModel | emitEvent = Just AllTemporalLayersLoaded}
             else
               newModel
           _  -> 
             newModel
+    AllTemporalLayersLoaded ->
+      { model | emitEvent = Nothing}
+    TimeUpdated ->
+      { model
+      | temporalMapLayerModel1 = MapLayer.update (MapLayer.TileCoordinatesChanged model.map) model.temporalMapLayerModel1
+      , temporalMapLayerModel2 = MapLayer.update (MapLayer.TileCoordinatesChanged model.map) model.temporalMapLayerModel2
+      }
     MapLayerMsg index mapLayerMessage ->
       let
           oldMapLayerModel = model.mapLayerModels
@@ -386,11 +407,11 @@ view model dateModel nextStepDateModel =
             temporalLayer.urlCreator
             nextStepDateModel
       )
-    mapTemporalLayerToUse = 
-      if (MapLayer.areAllDictLoaded model.temporalMapLayerModel2 && MapLayer.areAllDictLoaded model.temporalMapLayerModel1) then
-        Html.map (TemporalMapLayerMsg2) temporalLayerView2
-      else
-        Html.map (TemporalMapLayerMsg1) temporalLayerView1
+    mapTemporalLayerToUse = Html.map (TemporalMapLayerMsg1) temporalLayerView1
+      -- if (MapLayer.areAllDictLoaded model.temporalMapLayerModel2 && MapLayer.areAllDictLoaded model.temporalMapLayerModel1) then
+      --   Html.map (TemporalMapLayerMsg2) temporalLayerView2
+      -- else
+      --   Html.map (TemporalMapLayerMsg1) temporalLayerView1
   in
   div 
     []
@@ -454,7 +475,12 @@ view model dateModel nextStepDateModel =
             ]
             []
         else 
-          Html.node "empty-element" [] []
+          HtmlEmpty.htmlEmpty
+      , case model.emitEvent of
+           Nothing ->
+             HtmlEmpty.htmlEmpty
+           Just msg ->
+             EmitEvent.emitEvent msg
       
     ]
 

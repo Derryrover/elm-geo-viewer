@@ -12,6 +12,7 @@ import Json.Decode
 import Time
 import Iso8601
 
+temporalRasterTimeStep = 300000
 
 type alias Model =
     { map: Map.Model
@@ -44,7 +45,19 @@ update message model =
         UpdateHtmlDateTime dateTime ->
             {model | dateTimeGlobalTimezoneString = dateTime}
         MapMsg mapMsg ->
-            {model | map = Map.update mapMsg model.map}
+            let
+                newModel = {model | map = Map.update mapMsg model.map}
+                modelTimeupdated = 
+                    case mapMsg of
+                        AllTemporalLayersLoaded ->
+                          let
+                            updatedMap =  Map.update TimeUpdated newModel.map
+                          in
+                          { newModel | posix = model.posix + temporalRasterTimeStep, map = updatedMap}
+                        _ ->
+                          newModel
+            in
+                modelTimeupdated
 
 
 view : Model -> Html Msg
@@ -70,7 +83,7 @@ view model =
             (Map.view 
                 model.map 
                 (Iso8601.fromTime (Time.millisToPosix model.posix)) 
-                (Iso8601.fromTime (Time.millisToPosix (model.posix + 3600000))) 
+                (Iso8601.fromTime (Time.millisToPosix (model.posix + temporalRasterTimeStep))) 
             )
         -- , img [src "/api/v3/wms/?SERVICE=WMS&REQUEST=GetMap&VERSION=1.1.1&LAYERS=users%3Atom-test-upload-data-18-januari&STYLES=dem_nl&FORMAT=image%2Fpng&TRANSPARENT=false&HEIGHT=256&WIDTH=256&TIME=2020-02-07T10%3A00%3A00&SRS=EPSG%3A3857&BBOX=386465.61500985106,6687322.730613498,391357.5848201024,6692214.700423751"] []
         ]
